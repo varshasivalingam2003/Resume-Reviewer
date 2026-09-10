@@ -25,7 +25,7 @@ export const LoginIllustration: React.FC = () => {
       <div className="review-anim-header">
         <div className="review-anim-badge">
           <span className="review-anim-pulse-dot"></span>
-          <span>INTERACTIVE RESUME WORKFLOW</span>
+          <span>RESUME REVIEW WORKFLOW</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button 
@@ -40,227 +40,194 @@ export const LoginIllustration: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Animated SVG Canvas - Spacious, accommodated in bigger size */}
+      {/* Main Animated SVG Canvas - Clean, Spacious, No Clumsy Boxes */}
       <div className="review-anim-stage">
         <svg 
           className="review-anim-svg" 
-          viewBox="0 0 580 250" 
+          viewBox="0 0 580 230" 
           fill="none" 
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Background Ambient Decor */}
-          <circle cx="110" cy="125" r="95" fill="#FEF08A" fillOpacity="0.28" />
-          <circle cx="470" cy="125" r="95" fill="#FEF9C3" fillOpacity="0.45" />
-          <path d="M 0 226 Q 290 236 580 226" stroke="#E2E8F0" strokeWidth="1.5" />
+          {/* Subtle Ambient Background Decor */}
+          <circle cx="100" cy="115" r="90" fill="#FEF08A" fillOpacity="0.22" />
+          <circle cx="460" cy="115" r="90" fill="#FEF9C3" fillOpacity="0.38" />
+          <line x1="20" y1="214" x2="560" y2="214" stroke="#E2E8F0" strokeWidth="1" strokeDasharray="4 4" />
 
           {/* ========================================================
               CONNECTING PIPELINE STREAM (Student ➔ Volunteer)
               ======================================================== */}
           <path 
-            d="M 218 118 C 265 62, 305 62, 355 118" 
+            d="M 180 120 C 235 68, 305 68, 360 120" 
             stroke="#CBD5E1" 
-            strokeWidth="3" 
+            strokeWidth="2.5" 
             strokeLinecap="round" 
             className="anim-transfer-stream"
           />
 
           {/* Transferring Document Particle in Center */}
-          <g transform="translate(268, 70)" className="anim-transfer-doc">
+          <g transform="translate(255, 74)" className="anim-transfer-doc">
             <rect 
-              width="36" 
-              height="46" 
-              rx="5" 
+              width="34" 
+              height="44" 
+              rx="4" 
               fill="#FFFFFF" 
               stroke="#FACC15" 
-              strokeWidth="2" 
-              filter="drop-shadow(0 6px 10px rgba(234,179,8,0.22))" 
+              strokeWidth="1.8" 
+              filter="drop-shadow(0 4px 8px rgba(234,179,8,0.2))" 
             />
-            <rect x="7" y="7" width="16" height="4" rx="2" fill="#EF4444" />
-            <rect x="7" y="15" width="22" height="2.5" rx="1.2" fill="#94A3B8" />
-            <rect x="7" y="21" width="18" height="2.5" rx="1.2" fill="#FEF08A" />
-            <rect x="7" y="27" width="20" height="2.5" rx="1.2" fill="#94A3B8" />
-            <polygon points="15,37 21,37 18,32" fill="#10B981" />
+            <rect x="6" y="6" width="14" height="3.5" rx="1.5" fill="#EF4444" />
+            <rect x="6" y="14" width="22" height="2.5" rx="1.2" fill="#94A3B8" />
+            <rect x="6" y="20" width="18" height="2.5" rx="1.2" fill="#FEF08A" />
+            <rect x="6" y="26" width="20" height="2.5" rx="1.2" fill="#94A3B8" />
+            <polygon points="14,35 20,35 17,30" fill="#10B981" />
           </g>
 
+          <text x="270" y="152" fontSize="10" fontWeight="600" fill="#94A3B8" textAnchor="middle">
+            Direct Review Stream
+          </text>
+
           {/* ========================================================
-              LEFT SIDE: STUDENT UPLOADING RESUME
+              LEFT SIDE: STUDENT UPLOADING RESUME (Clean, No Box)
               ======================================================== */}
-          <g transform="translate(16, 20)">
-            {/* Student Label Pill - Placed cleanly at the top */}
-            <rect x="25" y="0" width="94" height="22" rx="11" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="1.2" />
-            <text x="72" y="15" fontSize="11" fontWeight="700" fill="#1E40AF" textAnchor="middle">🎓 Student</text>
+          <g transform="translate(10, 10)">
+            {/* Simple Clean Title Text */}
+            <text x="95" y="18" fontSize="13" fontWeight="700" fill="#1E40AF" textAnchor="middle">
+              🎓 Student
+            </text>
 
             {/* Student Character Figure */}
-            <g transform="translate(10, 48)">
+            <g transform="translate(20, 24)">
               {/* Torso & Hoodie */}
-              <path d="M 24 102 C 24 72 36 54 58 54 C 80 54 92 72 92 102 Z" fill="#3B82F6" />
-              <path d="M 47 54 C 50 64 66 64 69 54" stroke="#1D4ED8" strokeWidth="2.5" />
+              <path d="M 40 100 C 40 74 50 58 70 58 C 90 58 100 74 100 100 Z" fill="#3B82F6" />
+              <path d="M 60 58 C 63 67 77 67 80 58" stroke="#1D4ED8" strokeWidth="2.5" />
 
               {/* Arms Typing */}
-              <path d="M 28 86 C 40 98 56 99 66 99" stroke="#FED7AA" strokeWidth="6" strokeLinecap="round" />
-              <path d="M 88 86 C 76 98 60 99 50 99" stroke="#FED7AA" strokeWidth="6" strokeLinecap="round" />
+              <path d="M 44 86 C 54 96 68 97 77 97" stroke="#FED7AA" strokeWidth="5.5" strokeLinecap="round" />
+              <path d="M 96 86 C 86 96 72 97 63 97" stroke="#FED7AA" strokeWidth="5.5" strokeLinecap="round" />
 
               {/* Head & Graduation Cap */}
-              <circle cx="58" cy="34" r="20" fill="#FED7AA" />
-              <path d="M 38 28 C 38 16 50 13 58 13 C 68 13 78 16 78 28 Z" fill="#1E293B" />
+              <circle cx="70" cy="38" r="18" fill="#FED7AA" />
+              <path d="M 52 32 C 52 22 62 19 70 19 C 78 19 88 22 88 32 Z" fill="#1E293B" />
               {/* Graduation Cap */}
-              <polygon points="58,4 32,15 58,22 84,15" fill="#0F172A" />
-              <polygon points="58,20 54,28 62,28" fill="#F59E0B" />
+              <polygon points="70,10 46,20 70,26 94,20" fill="#0F172A" />
+              <polygon points="70,25 66,32 74,32" fill="#F59E0B" />
 
               {/* Eyes & Smile */}
-              <circle cx="51" cy="33" r="2" fill="#78350F" />
-              <circle cx="65" cy="33" r="2" fill="#78350F" />
-              <path d="M 53 41 Q 58 45 63 41" stroke="#78350F" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              <circle cx="64" cy="37" r="1.8" fill="#78350F" />
+              <circle cx="76" cy="37" r="1.8" fill="#78350F" />
+              <path d="M 66 44 Q 70 48 74 44" stroke="#78350F" strokeWidth="1.5" strokeLinecap="round" fill="none" />
 
               {/* Laptop with Upload Screen */}
-              <g transform="translate(18, 76)">
-                <rect x="10" y="8" width="60" height="38" rx="4" fill="#1E293B" />
-                <rect x="13" y="11" width="54" height="32" rx="2" fill="#0F172A" />
+              <g transform="translate(32, 78)">
+                <rect x="8" y="6" width="60" height="38" rx="4" fill="#1E293B" />
+                <rect x="11" y="9" width="54" height="32" rx="2" fill="#0F172A" />
                 
                 {/* Upload Cloud on Laptop Screen */}
-                <g transform="translate(32, 16)" className="anim-upload-cloud">
+                <g transform="translate(30, 14)" className="anim-upload-cloud">
                   <path d="M 4 10 C 2 10 0 8 0 6 C 0 4 2 2 4 2 C 5 1 7 0 9 0 C 13 0 15 2 16 5 C 17 5 18 6 18 8 C 18 10 16 10 14 10 Z" fill="#60A5FA" />
                   <path d="M 9 10 L 9 4 M 7 6 L 9 4 L 11 6" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </g>
 
                 {/* Progress bar on Laptop Screen */}
-                <rect x="18" y="32" width="44" height="4" rx="2" fill="#334155" />
-                <rect x="18" y="32" width="34" height="4" rx="2" fill="#10B981" />
+                <rect x="16" y="30" width="44" height="4" rx="2" fill="#334155" />
+                <rect x="16" y="30" width="36" height="4" rx="2" fill="#10B981" />
 
                 {/* Base of laptop */}
-                <polygon points="2,46 78,46 82,51 0,51" fill="#94A3B8" />
+                <polygon points="0,44 76,44 80,49 -4,49" fill="#94A3B8" />
               </g>
             </g>
 
-            {/* Floating Uploading Document Card - Positioned beside student with zero collision */}
-            <g transform="translate(122, 34)" className="anim-student-resume">
-              <rect 
-                width="72" 
-                height="98" 
-                rx="7" 
-                fill="#FFFFFF" 
-                stroke="#93C5FD" 
-                strokeWidth="1.8" 
-                filter="drop-shadow(0 10px 20px rgba(59,130,246,0.18))" 
-              />
-              {/* PDF Header Tag */}
-              <rect x="7" y="7" width="24" height="8" rx="2.5" fill="#EF4444" />
-              <text x="19" y="13.5" fontSize="6.5" fontWeight="900" fill="#FFFFFF" textAnchor="middle">PDF</text>
-              <rect x="35" y="9" width="30" height="4" rx="2" fill="#0F172A" />
-              
-              {/* Skeleton Document Lines */}
-              <rect x="7" y="20" width="58" height="2.5" rx="1.2" fill="#CBD5E1" />
-              <rect x="7" y="27" width="50" height="2.5" rx="1.2" fill="#E2E8F0" />
-              <rect x="7" y="33" width="54" height="2.5" rx="1.2" fill="#E2E8F0" />
-              
-              {/* Subtopic Highlight Indicator */}
-              <rect x="7" y="41" width="40" height="6" rx="2.5" fill="#FEF08A" stroke="#EAB308" strokeWidth="1" />
-              <text x="27" y="45.5" fontSize="4.5" fontWeight="800" fill="#854D0E" textAnchor="middle">Subtopic Area</text>
-              <rect x="7" y="51" width="58" height="2.5" rx="1.2" fill="#E2E8F0" />
-              <rect x="7" y="57" width="46" height="2.5" rx="1.2" fill="#E2E8F0" />
-
-              {/* Upload 100% Badge */}
-              <g transform="translate(8, 68)">
-                <rect width="56" height="20" rx="5" fill="#ECFDF5" stroke="#10B981" strokeWidth="1.2" />
-                <circle cx="12" cy="10" r="5" fill="#10B981" />
-                <path d="M 9.5 10 L 11.5 12.5 L 14.5 7.5" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
-                <text x="21" y="13.5" fontSize="7.5" fontWeight="800" fill="#065F46">Upload 100%</text>
-              </g>
-            </g>
+            {/* Simple Clean Status Text Below Student */}
+            <text x="95" y="174" fontSize="11" fontWeight="700" fill="#059669" textAnchor="middle">
+              ✓ Resume Uploaded (PDF)
+            </text>
+            <text x="95" y="190" fontSize="10" fontWeight="500" fill="#64748B" textAnchor="middle">
+              Objective, Projects & Skills Ready
+            </text>
           </g>
 
           {/* ========================================================
-              RIGHT SIDE: VOLUNTEER REVIEWING & HIGHLIGHTING
+              RIGHT SIDE: VOLUNTEER REVIEWING (Clean, No Box)
               ======================================================== */}
-          <g transform="translate(340, 20)">
-            {/* Volunteer Reviewer Label Pill */}
-            <rect x="90" y="0" width="120" height="22" rx="11" fill="#FEF9C3" stroke="#FDE047" strokeWidth="1.2" />
-            <text x="150" y="15" fontSize="11" fontWeight="700" fill="#854D0E" textAnchor="middle">🧑‍🏫 Volunteer Review</text>
+          <g transform="translate(360, 10)">
+            {/* Simple Clean Title Text */}
+            <text x="100" y="18" fontSize="13" fontWeight="700" fill="#854D0E" textAnchor="middle">
+              🧑‍🏫 Volunteer Reviewer
+            </text>
 
-            {/* Volunteer Desk & Large Monitor */}
-            <g transform="translate(45, 34)">
-              {/* Monitor Display Stand */}
-              <rect x="58" y="128" width="26" height="18" fill="#94A3B8" rx="2" />
-              <ellipse cx="71" cy="148" rx="32" ry="5" fill="#64748B" />
+            {/* Volunteer Monitor Display */}
+            <g transform="translate(30, 24)">
+              {/* Stand */}
+              <rect x="58" y="112" width="24" height="14" fill="#94A3B8" rx="2" />
+              <ellipse cx="70" cy="128" rx="28" ry="4" fill="#64748B" />
 
-              {/* Monitor Screen Frame */}
+              {/* Monitor Frame */}
               <rect 
                 x="0" 
-                y="10" 
-                width="142" 
-                height="118" 
-                rx="8" 
+                y="6" 
+                width="140" 
+                height="106" 
+                rx="6" 
                 fill="#1E293B" 
                 stroke="#334155" 
-                strokeWidth="2.5" 
-                filter="drop-shadow(0 14px 28px rgba(0,0,0,0.12))" 
+                strokeWidth="2" 
+                filter="drop-shadow(0 10px 20px rgba(0,0,0,0.1))" 
               />
-              <rect x="5" y="15" width="132" height="108" rx="5" fill="#FFFFFF" />
+              <rect x="5" y="11" width="130" height="96" rx="4" fill="#FFFFFF" />
 
               {/* Resume Header on Monitor */}
-              <rect x="12" y="24" width="46" height="6" rx="2" fill="#0F172A" />
-              <rect x="62" y="25" width="58" height="4" rx="2" fill="#94A3B8" />
-              <line x1="12" y1="35" x2="126" y2="35" stroke="#E2E8F0" strokeWidth="1.2" />
+              <rect x="12" y="18" width="42" height="5" rx="1.5" fill="#0F172A" />
+              <rect x="58" y="19" width="56" height="3.5" rx="1.5" fill="#94A3B8" />
+              <line x1="12" y1="28" x2="124" y2="28" stroke="#E2E8F0" strokeWidth="1" />
 
               {/* Section 1: Objective */}
-              <rect x="12" y="41" width="30" height="4" rx="2" fill="#64748B" />
-              <rect x="12" y="48" width="102" height="2.5" rx="1.2" fill="#CBD5E1" />
+              <rect x="12" y="34" width="26" height="3" rx="1" fill="#64748B" />
+              <rect x="12" y="40" width="98" height="2.5" rx="1" fill="#CBD5E1" />
               
               {/* Section 2: HIGHLIGHTED SUBTOPIC (Soft Yellow) */}
               <g>
                 <rect 
                   x="10" 
-                  y="55" 
-                  width="122" 
-                  height="26" 
-                  rx="5" 
+                  y="46" 
+                  width="120" 
+                  height="22" 
+                  rx="4" 
                   className="anim-highlight-rect" 
                 />
-                <text x="16" y="68" fontSize="8" fontWeight="800" fill="#854D0E">✦ Projective Skills & Metrics</text>
-                <rect x="16" y="73" width="76" height="3" rx="1.5" fill="#CA8A04" />
+                <text x="15" y="58" fontSize="7.5" fontWeight="800" fill="#854D0E">✦ Projective Skills & Metrics</text>
+                <rect x="15" y="62" width="72" height="2.5" rx="1" fill="#CA8A04" />
 
                 {/* Animated Highlighter Pen Sweeping */}
-                <g className="anim-highlighter-pen" transform="translate(50, 46)">
-                  <polygon points="5,3 17,3 12,18" fill="#FACC15" />
-                  <rect x="7" y="0" width="8" height="10" rx="1.5" fill="#EAB308" />
-                  <circle cx="11" cy="18" r="2" fill="#CA8A04" />
+                <g className="anim-highlighter-pen" transform="translate(48, 38)">
+                  <polygon points="4,2 14,2 10,15" fill="#FACC15" />
+                  <rect x="6" y="0" width="6" height="8" rx="1" fill="#EAB308" />
+                  <circle cx="9" cy="15" r="1.5" fill="#CA8A04" />
                 </g>
               </g>
 
               {/* Section 3: Education & Experience */}
-              <rect x="12" y="87" width="36" height="4" rx="2" fill="#64748B" />
-              <rect x="12" y="95" width="96" height="2.5" rx="1.2" fill="#CBD5E1" />
-              <rect x="12" y="101" width="84" height="2.5" rx="1.2" fill="#CBD5E1" />
+              <rect x="12" y="74" width="32" height="3" rx="1" fill="#64748B" />
+              <rect x="12" y="81" width="94" height="2" rx="1" fill="#CBD5E1" />
+              <rect x="12" y="86" width="80" height="2" rx="1" fill="#CBD5E1" />
 
-              {/* Stamp of Approval / Feedback */}
-              <g transform="translate(86, 78)" className="anim-approved-stamp">
-                <circle cx="20" cy="20" r="19" fill="#10B981" />
-                <circle cx="20" cy="20" r="16" fill="#FFFFFF" stroke="#10B981" strokeWidth="1.5" strokeDasharray="3 2" />
-                <path d="M 13 20 L 18 25 L 27 15" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <text x="20" y="32" fontSize="5" fontWeight="900" fill="#10B981" textAnchor="middle">APPROVED</text>
-              </g>
+              {/* Stamp of Approval / Feedback (visible on Step 3) */}
+              {activeStep === 3 && (
+                <g transform="translate(82, 68)" className="anim-approved-stamp">
+                  <circle cx="18" cy="18" r="17" fill="#10B981" />
+                  <circle cx="18" cy="18" r="14" fill="#FFFFFF" stroke="#10B981" strokeWidth="1.5" strokeDasharray="3 2" />
+                  <path d="M 12 18 L 16 22 L 24 14" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <text x="18" y="28" fontSize="4.5" fontWeight="900" fill="#10B981" textAnchor="middle">APPROVED</text>
+                </g>
+              )}
             </g>
 
-            {/* Floating Mentor Comment Callout Bubble - Positioned cleanly on left of monitor */}
-            <g transform="translate(-115, 62)" className="anim-comment-bubble">
-              <rect 
-                width="162" 
-                height="54" 
-                rx="8" 
-                fill="#FFFBEB" 
-                stroke="#EAB308" 
-                strokeWidth="1.8" 
-                filter="drop-shadow(0 6px 16px rgba(234,179,8,0.24))" 
-              />
-              {/* Pointer Tail directing right to monitor */}
-              <polygon points="162,28 172,34 162,38" fill="#FFFBEB" stroke="#EAB308" strokeWidth="1.5" />
-              
-              <circle cx="16" cy="16" r="6" fill="#FACC15" />
-              <text x="16" y="19" fontSize="8" fontWeight="900" fill="#713F12" textAnchor="middle">💬</text>
-              <text x="28" y="18" fontSize="9" fontWeight="800" fill="#713F12">Volunteer Command:</text>
-              <text x="12" y="32" fontSize="8.5" fontWeight="600" fill="#854D0E">"Add quantified impact metrics</text>
-              <text x="12" y="44" fontSize="8.5" fontWeight="600" fill="#854D0E">to your project achievements."</text>
-            </g>
+            {/* Simple Clean Volunteer Command Text (Replaces Clumsy Box) */}
+            <text x="100" y="174" fontSize="11" fontWeight="700" fill="#78350F" textAnchor="middle">
+              💬 Volunteer Command:
+            </text>
+            <text x="100" y="190" fontSize="10.5" fontWeight="600" fill="#854D0E" textAnchor="middle">
+              "Add quantified impact metrics to your projects"
+            </text>
           </g>
         </svg>
       </div>

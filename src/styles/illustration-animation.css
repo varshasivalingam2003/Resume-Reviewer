@@ -82,11 +82,11 @@
   color: #64748B;
 }
 
-/* Main Interactive Stage Canvas - Enlarged to accommodate bigger size */
+/* Main Interactive Stage Canvas - Clean, Spacious, Uncluttered */
 .review-anim-stage {
   position: relative;
   width: 100%;
-  height: 240px;
+  height: 230px;
   background: linear-gradient(180deg, #FFFDF5 0%, #FEFCE8 100%);
   border-radius: 14px;
   border: 1px solid #FEF08A;
@@ -99,23 +99,6 @@
   width: 100%;
   height: 100%;
   display: block;
-}
-
-/* Keyframes for Floating Student Resume Upload */
-@keyframes resumeUploadFloat {
-  0% {
-    transform: translateY(0px) scale(1);
-  }
-  50% {
-    transform: translateY(-6px) scale(1.02);
-  }
-  100% {
-    transform: translateY(0px) scale(1);
-  }
-}
-
-.anim-student-resume {
-  animation: resumeUploadFloat 3.6s ease-in-out infinite;
 }
 
 /* Keyframes for Upload Cloud Pulse */
@@ -150,10 +133,10 @@
 /* Keyframes for Transferring Document in Center */
 @keyframes transferDocFloat {
   0%, 100% {
-    transform: translate(268px, 70px) scale(1);
+    transform: translate(255px, 74px) scale(1);
   }
   50% {
-    transform: translate(268px, 64px) scale(1.04);
+    transform: translate(255px, 68px) scale(1.04);
   }
 }
 
@@ -167,13 +150,13 @@
     transform: translate(0, 0);
   }
   25% {
-    transform: translate(50px, 0);
+    transform: translate(46px, 0);
   }
   45% {
-    transform: translate(50px, 16px);
+    transform: translate(46px, 14px);
   }
   70% {
-    transform: translate(0, 16px);
+    transform: translate(0, 14px);
   }
   100% {
     transform: translate(0, 0);
@@ -203,27 +186,6 @@
 
 .anim-highlight-rect {
   animation: yellowHighlightGlow 2.4s ease-in-out infinite;
-}
-
-/* Keyframes for Floating Comment Callout Box */
-@keyframes commentBoxPop {
-  0% {
-    transform: scale(0.96) translateY(2px);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.02) translateY(-3px);
-    opacity: 1;
-    filter: drop-shadow(0 8px 18px rgba(234, 179, 8, 0.3));
-  }
-  100% {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-}
-
-.anim-comment-bubble {
-  animation: commentBoxPop 3.2s ease-in-out infinite alternate;
 }
 
 /* Keyframes for Approved Stamp */
