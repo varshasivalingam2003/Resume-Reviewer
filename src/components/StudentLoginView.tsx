@@ -117,50 +117,46 @@ export const StudentLoginView: React.FC = () => {
       <div className="login-container">
         {/* Left Hero Section (Desktop) */}
         <div className="login-hero">
+          {/* Brand header pill badge */}
           <div className="hero-brand-pill">
             <div className="brand-icon-mini">
               <PortalLogoIcon size={14} />
             </div>
-            <span className="brand-text">Resume Review Portal</span>
+            <span className="brand-text">Student Feedback & Corrections Gateway</span>
             <span className="brand-status-dot"></span>
-            <span className="brand-status-text">Student Access</span>
+            <span className="brand-status-text">Individual Student Access</span>
           </div>
 
           <div className="hero-content">
-            <h1 className="hero-title">Track mentor feedback & resume corrections.</h1>
-            <p className="hero-subtitle">Review volunteer suggestions, fix mistakes, and get placement ready.</p>
+            <h1 className="hero-title">
+              Track mentor feedback & <span className="hero-gradient-text">resume corrections.</span>
+            </h1>
+            <p className="hero-subtitle">
+              Review volunteer suggestions, resolve section checklist items, and get placement certified.
+            </p>
 
-            <div className="hero-benefits">
-              <div className="benefit-item">
-                <div className="benefit-icon"><ReviewsIcon size={18} /></div>
-                <span>View highlighted mistakes directly on your resume</span>
+            <div className="hero-feature-chips">
+              <div className="feature-chip">
+                <div className="feature-chip-icon"><ReviewsIcon size={16} /></div>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Highlighted Sections</span>
+                  <span className="feature-chip-desc">Visual mistake callouts</span>
+                </div>
               </div>
-              <div className="benefit-item">
-                <div className="benefit-icon"><CommentIcon size={18} /></div>
-                <span>Read volunteer mentor commands & subtopic instructions</span>
+              <div className="feature-chip">
+                <div className="feature-chip-icon"><CommentIcon size={16} /></div>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Mentor Commands</span>
+                  <span className="feature-chip-desc">Actionable checklist directives</span>
+                </div>
               </div>
-              <div className="benefit-item">
-                <div className="benefit-icon"><CheckIcon size={18} /></div>
-                <span>Check off completed fixes and submit for re-review</span>
+              <div className="feature-chip">
+                <div className="feature-chip-icon"><CheckIcon size={16} /></div>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Resolution Checkoff</span>
+                  <span className="feature-chip-desc">Instant re-review submission</span>
+                </div>
               </div>
-            </div>
-
-            {/* Compact note regarding student access */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#FFFFFF',
-              border: '1px solid #FDE047',
-              borderRadius: '6px',
-              padding: '3px 8px',
-              fontSize: '11px',
-              color: '#854D0E',
-              fontWeight: '600',
-              marginTop: '12px'
-            }}>
-              <span>📲</span>
-              <span>Individual Student Access Portal</span>
             </div>
           </div>
 

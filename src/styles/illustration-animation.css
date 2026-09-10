@@ -3,11 +3,12 @@
 .review-animation-card {
   width: 100%;
   max-width: 100%;
-  background: #FFFFFF;
-  border: 1.5px solid #FEF08A;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(254, 240, 138, 0.95);
   border-radius: 20px;
-  padding: 16px 20px;
-  box-shadow: 0 10px 30px rgba(234, 179, 8, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 14px 18px;
+  box-shadow: 0 12px 32px rgba(234, 179, 8, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
   font-family: inherit;
@@ -27,36 +28,75 @@
   pointer-events: none;
 }
 
-/* Card Header Banner */
+/* Studio Window Bar with Mac-style Dots */
 .review-anim-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px dashed #FEF08A;
+  border-bottom: 1px dashed rgba(254, 240, 138, 0.9);
+}
+
+.review-studio-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.window-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dot-red {
+  background: #EF4444;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+}
+
+.dot-yellow {
+  background: #F59E0B;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+}
+
+.dot-green {
+  background: #10B981;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
 }
 
 .review-anim-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #854D0E;
   background: #FEF9C3;
   padding: 3px 9px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #FDE047;
 }
 
 .review-anim-pulse-dot {
-  width: 7px;
-  height: 7px;
+  width: 6.5px;
+  height: 6.5px;
   background: #10B981;
   border-radius: 50%;
   animation: animPulse 1.8s infinite;
+}
+
+.review-studio-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .anim-play-toggle-btn {
@@ -82,14 +122,14 @@
   color: #64748B;
 }
 
-/* Main Interactive Stage Canvas - Clean, Spacious, Uncluttered */
+/* Main Interactive Stage Canvas */
 .review-anim-stage {
   position: relative;
   width: 100%;
-  height: 230px;
-  background: linear-gradient(180deg, #FFFDF5 0%, #FEFCE8 100%);
-  border-radius: 14px;
-  border: 1px solid #FEF08A;
+  height: 225px;
+  background: linear-gradient(180deg, #FFFDF7 0%, #FEFCE8 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(254, 240, 138, 0.85);
   overflow: hidden;
   box-shadow: inset 0 2px 6px rgba(250, 204, 21, 0.08);
 }
@@ -133,10 +173,10 @@
 /* Keyframes for Transferring Document in Center */
 @keyframes transferDocFloat {
   0%, 100% {
-    transform: translate(255px, 74px) scale(1);
+    transform: translate(258px, 68px) scale(1);
   }
   50% {
-    transform: translate(255px, 68px) scale(1.04);
+    transform: translate(258px, 62px) scale(1.04);
   }
 }
 
@@ -220,7 +260,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .anim-step-btn {
@@ -258,19 +298,33 @@
 .review-anim-caption {
   font-size: 12px;
   color: #854D0E;
-  margin-top: 10px;
-  text-align: center;
+  margin-top: 9px;
   font-weight: 600;
   background: #FFFBEB;
-  border: 1px solid #FEF08A;
+  border: 1px solid rgba(254, 240, 138, 0.9);
   border-radius: 8px;
   padding: 7px 12px;
   line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.caption-badge {
+  background: #FACC15;
+  color: #78350F;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {
   .review-anim-stage {
-    height: 190px;
+    height: 185px;
   }
   .anim-step-btn {
     padding: 6px 8px;

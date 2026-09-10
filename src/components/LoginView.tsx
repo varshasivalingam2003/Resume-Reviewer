@@ -131,33 +131,46 @@ export const LoginView: React.FC = () => {
             <div className="brand-icon-mini">
               <PortalLogoIcon size={14} />
             </div>
-            <span className="brand-text">Resume Review Portal</span>
+            <span className="brand-text">Resume Review & Mentorship Platform</span>
             <span className="brand-status-dot"></span>
-            <span className="brand-status-text">Active Session</span>
+            <span className="brand-status-text">Active Evaluation Session</span>
           </div>
 
           <div className="hero-content">
-            <h1 className="hero-title">Help students build better resumes.</h1>
-            <p className="hero-subtitle">Review. Guide. Approve.</p>
+            <h1 className="hero-title">
+              Empower students to build <span className="hero-gradient-text">placement-ready resumes.</span>
+            </h1>
+            <p className="hero-subtitle">
+              Annotate sections in real-time, deliver actionable commands, and certify career readiness.
+            </p>
 
-            <div className="hero-benefits">
-              <div className="benefit-item">
-                <div className="benefit-icon">
-                  <ReviewsIcon size={18} />
+            <div className="hero-feature-chips">
+              <div className="feature-chip">
+                <div className="feature-chip-icon">
+                  <ReviewsIcon size={16} />
                 </div>
-                <span>Review student resumes</span>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Precision Highlighting</span>
+                  <span className="feature-chip-desc">Soft yellow subtopic markers</span>
+                </div>
               </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">
-                  <CommentIcon size={18} />
+              <div className="feature-chip">
+                <div className="feature-chip-icon">
+                  <CommentIcon size={16} />
                 </div>
-                <span>Highlight sections & share feedback</span>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Volunteer Commands</span>
+                  <span className="feature-chip-desc">Actionable mentor directives</span>
+                </div>
               </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">
-                  <CheckIcon size={18} />
+              <div className="feature-chip">
+                <div className="feature-chip-icon">
+                  <CheckIcon size={16} />
                 </div>
-                <span>Approve placement-ready resumes</span>
+                <div className="feature-chip-text">
+                  <span className="feature-chip-title">Verified Approval</span>
+                  <span className="feature-chip-desc">Placement-ready signoff</span>
+                </div>
               </div>
             </div>
           </div>
