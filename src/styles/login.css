@@ -4,16 +4,17 @@
 
 .login-view {
   flex: 1;
-  height: 100%;
-  max-height: 100%;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at 10% 15%, #FFFDF0 0%, #FAF8F5 50%, #FEFCE8 100%);
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px 36px;
+  padding: 36px 32px;
   position: relative;
+  box-sizing: border-box;
 }
 
 /* Ambient glow orbs in corners for rich modern aesthetic */
@@ -22,8 +23,8 @@
   position: absolute;
   top: -80px;
   left: -80px;
-  width: 320px;
-  height: 320px;
+  width: 340px;
+  height: 340px;
   background: radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
   border-radius: 50%;
   pointer-events: none;
@@ -34,9 +35,9 @@
   position: absolute;
   bottom: -80px;
   right: -80px;
-  width: 360px;
-  height: 360px;
-  background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -46,8 +47,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 52px;
-  max-width: 1160px;
+  gap: 48px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
   position: relative;
@@ -59,12 +60,13 @@
    ========================================================================== */
 .login-hero {
   flex: 1;
-  max-width: 540px;
+  max-width: 620px;
   background: transparent;
   padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 14px;
   border: none;
 }
 
@@ -76,15 +78,15 @@
   background: #FFFFFF;
   border: 1px solid #FEF08A;
   box-shadow: 0 2px 6px rgba(234, 179, 8, 0.12);
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: var(--radius-full);
-  margin-bottom: 12px;
+  margin-bottom: 2px;
   width: fit-content;
 }
 
 .hero-brand-pill .brand-icon-mini {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: var(--primary-yellow);
   border-radius: 6px;
   display: flex;
@@ -94,72 +96,73 @@
 }
 
 .hero-brand-pill .brand-text {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #1E293B;
   letter-spacing: 0.3px;
 }
 
 .hero-brand-pill .brand-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   background: #10B981;
   border-radius: 50%;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 .hero-brand-pill .brand-status-text {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #059669;
 }
 
 .hero-content {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .hero-title {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
   color: #0F172A;
-  margin-bottom: 6px;
   letter-spacing: -0.6px;
 }
 
 .hero-subtitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #854D0E;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
 }
 
 .hero-benefits {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .benefit-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 16px;
+  gap: 12px;
+  font-size: 14.5px;
   font-weight: 600;
-  color: #0F172A;
+  color: #1E293B;
 }
 
 .benefit-icon {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
   background: #FACC15;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #78350F;
-  box-shadow: 0 2px 5px rgba(234, 179, 8, 0.25);
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
   transition: transform 0.2s ease;
 }
 
@@ -167,14 +170,15 @@
   transform: scale(1.1);
 }
 
-/* Illustration Container */
+/* Illustration Container - Accommodates Bigger Size */
 .hero-illustration {
   position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 620px;
   margin: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 /* ==========================================================================
@@ -182,7 +186,7 @@
    ========================================================================== */
 .login-form-pane {
   flex: none;
-  width: 410px;
+  width: 440px;
   background: transparent;
   display: flex;
   align-items: center;
@@ -192,18 +196,18 @@
 
 .login-card {
   width: 100%;
-  padding: 28px 26px;
+  padding: 32px 30px;
   background: #FFFFFF;
-  border-radius: 22px;
+  border-radius: 24px;
   border: 1.5px solid #FEF08A;
-  box-shadow: 0 20px 40px -12px rgba(202, 138, 4, 0.15), 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 45px -12px rgba(202, 138, 4, 0.16), 0 4px 16px rgba(0, 0, 0, 0.04);
   text-align: center;
   position: relative;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .login-card:hover {
-  box-shadow: 0 24px 48px -12px rgba(202, 138, 4, 0.2), 0 6px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 26px 52px -12px rgba(202, 138, 4, 0.22), 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Segmented Role Switcher */
@@ -211,15 +215,15 @@
   display: flex;
   background: #F1F5F9;
   border-radius: var(--radius-full);
-  padding: 3px;
-  margin-bottom: 14px;
+  padding: 4px;
+  margin-bottom: 16px;
   border: 1px solid var(--border-color);
 }
 
 .login-role-tab {
   flex: 1;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 7px 14px;
+  font-size: 12.5px;
   font-weight: 700;
   border: none;
   background: transparent;
@@ -240,8 +244,8 @@
 }
 
 .login-card-logo {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   background: var(--primary-yellow);
   border-radius: 14px;
   display: inline-flex;
@@ -270,10 +274,10 @@
 }
 
 .login-card-prompt {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 16px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 /* OTP Inputs */
@@ -281,16 +285,16 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .otp-box {
-  width: 46px;
-  height: 52px;
+  width: 48px;
+  height: 54px;
   border: 1.5px solid #CBD5E1;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   text-align: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--text-primary);
   background: #F8FAFC;
@@ -327,7 +331,7 @@
 /* Continue Button */
 .btn-login-submit {
   width: 100%;
-  padding: 12px 18px;
+  padding: 13px 20px;
   font-size: 15px;
   font-weight: 700;
   display: flex;
@@ -337,15 +341,15 @@
   background: var(--primary-yellow);
   color: #0F172A;
   border: 1px solid #EAB308;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(234, 179, 8, 0.3);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
   transition: all 0.2s ease;
 }
 
 .btn-login-submit:hover {
   background: #FACC15;
-  box-shadow: 0 5px 14px rgba(234, 179, 8, 0.4);
+  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.4);
   transform: translateY(-1px);
 }
 
@@ -378,8 +382,8 @@
   background: #FEF9C3;
   border: 1px dashed #EAB308;
   color: #854D0E;
-  padding: 4px 10px;
-  border-radius: 8px;
+  padding: 5px 12px;
+  border-radius: 9px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -403,9 +407,9 @@
   color: #15803D;
   font-size: 11.5px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 6px;
-  margin-top: 8px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  margin-top: 10px;
   animation: fadeIn 0.3s ease;
 }
 
@@ -415,7 +419,7 @@
 }
 
 .login-need-help {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 12.5px;
   color: #64748B;
   text-decoration: none;
@@ -431,12 +435,12 @@
 
 /* Student Quick Select Chips */
 .student-quick-picker {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   text-align: left;
 }
 
 .student-quick-picker-label {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #64748B;
   text-transform: uppercase;
@@ -456,7 +460,7 @@
   gap: 8px;
   padding: 8px 10px;
   border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: #F8FAFC;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -475,8 +479,8 @@
 }
 
 .student-quick-avatar {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -497,7 +501,7 @@
 }
 
 .student-quick-otp {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   color: #854D0E;
 }
@@ -518,37 +522,16 @@
   gap: 8px;
 }
 
-/* Interactive Play/Pause Button in Illustration */
-.anim-play-toggle-btn {
-  background: #FEF9C3;
-  border: 1px solid #FEF08A;
-  color: #854D0E;
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.anim-play-toggle-btn:hover {
-  background: #FEF08A;
-  transform: scale(1.04);
-}
-
 /* ==========================================================================
    Responsive Layout Rules
    ========================================================================== */
-@media (max-width: 950px) {
+@media (max-width: 1024px) {
   .login-view {
-    height: auto;
-    min-height: 100%;
-    overflow-y: auto;
-    padding: 24px 16px;
+    padding: 24px 20px;
   }
   .login-container {
     flex-direction: column;
-    gap: 28px;
+    gap: 36px;
   }
   .login-hero {
     max-width: 100%;
@@ -556,21 +539,21 @@
     align-items: center;
   }
   .hero-brand-pill {
-    margin: 0 auto 12px auto;
+    margin: 0 auto 8px auto;
   }
   .hero-benefits {
     align-items: center;
   }
   .hero-title {
-    font-size: 26px;
+    font-size: 28px;
   }
   .hero-subtitle {
     font-size: 15px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   .login-form-pane {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
   }
 }
 
@@ -611,5 +594,5 @@
   width: 100%;
 }
 .mobile-frame-mode .login-card {
-  padding: 18px 14px;
+  padding: 20px 16px;
 }
