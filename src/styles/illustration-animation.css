@@ -1,0 +1,275 @@
+/* Live Resume Review Pipeline Animation Styles */
+
+.review-animation-card {
+  width: 100%;
+  max-width: 480px;
+  background: #FFFFFF;
+  border: 1.5px solid #FEF08A;
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 24px rgba(234, 179, 8, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+/* Ambient Background Glow */
+.review-animation-card::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 110px;
+  height: 110px;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.5) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Card Header Banner */
+.review-anim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #FEF08A;
+}
+
+.review-anim-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #854D0E;
+  background: #FEF9C3;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.review-anim-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #10B981;
+  border-radius: 50%;
+  animation: animPulse 1.8s infinite;
+}
+
+.review-anim-counter {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+/* Main Interactive Stage Canvas */
+.review-anim-stage {
+  position: relative;
+  width: 100%;
+  height: 155px;
+  background: linear-gradient(180deg, #FFFDF5 0%, #FEFCE8 100%);
+  border-radius: 12px;
+  border: 1px solid #FEF08A;
+  overflow: hidden;
+}
+
+/* Animated SVG Canvas */
+.review-anim-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Keyframes for Floating Student Resume Upload */
+@keyframes resumeUploadFloat {
+  0% {
+    transform: translateY(22px) scale(0.92);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(0px) scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-4px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-16px) scale(0.96);
+    opacity: 0.8;
+  }
+}
+
+.anim-student-resume {
+  animation: resumeUploadFloat 3.5s ease-in-out infinite alternate;
+}
+
+/* Keyframes for Upload Cloud Pulse */
+@keyframes cloudBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.anim-upload-cloud {
+  animation: cloudBounce 2.5s ease-in-out infinite;
+}
+
+/* Keyframes for Connecting Transfer Particles */
+@keyframes streamParticles {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.anim-transfer-stream {
+  stroke-dasharray: 6 6;
+  animation: streamParticles 1.5s linear infinite;
+}
+
+/* Keyframes for Volunteer Highlighter Pen Sweeping */
+@keyframes penHighlightSweep {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(45px, 0);
+  }
+  40% {
+    transform: translate(45px, 14px);
+  }
+  65% {
+    transform: translate(0, 14px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.anim-highlighter-pen {
+  animation: penHighlightSweep 3.2s ease-in-out infinite;
+}
+
+/* Keyframes for Glow of Highlighted Section */
+@keyframes yellowHighlightGlow {
+  0%, 100% {
+    fill: #FEF08A;
+    fill-opacity: 0.4;
+    stroke: #FACC15;
+  }
+  50% {
+    fill: #FEF08A;
+    fill-opacity: 0.95;
+    stroke: #EAB308;
+    filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
+  }
+}
+
+.anim-highlight-rect {
+  animation: yellowHighlightGlow 2.4s ease-in-out infinite;
+}
+
+/* Keyframes for Floating Comment Callout Box */
+@keyframes commentBoxPop {
+  0% {
+    transform: scale(0.85) translateY(4px);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.04) translateY(-3px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.anim-comment-bubble {
+  animation: commentBoxPop 3s ease-in-out infinite alternate;
+}
+
+/* Keyframes for Approved Stamp */
+@keyframes stampPulse {
+  0%, 100% {
+    transform: scale(1) rotate(-6deg);
+  }
+  50% {
+    transform: scale(1.08) rotate(-4deg);
+    filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.4));
+  }
+}
+
+.anim-approved-stamp {
+  animation: stampPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes animPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+/* Step Pipeline Switcher Controls */
+.review-anim-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.anim-step-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.anim-step-btn:hover {
+  background: #FEFCE8;
+  border-color: #FDE047;
+  color: #713F12;
+}
+
+.anim-step-btn.active {
+  background: #FEF08A;
+  border-color: #EAB308;
+  color: #713F12;
+  box-shadow: 0 1px 4px rgba(250, 204, 21, 0.2);
+}
+
+/* Caption Description Line */
+.review-anim-caption {
+  font-size: 10px;
+  color: #854D0E;
+  margin-top: 5px;
+  text-align: center;
+  font-weight: 600;
+  background: #FFFBEB;
+  border-radius: 5px;
+  padding: 3px 6px;
+  line-height: 1.3;
+}

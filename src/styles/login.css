@@ -1,0 +1,615 @@
+/* ==========================================================================
+   Cohesive, Modern Landing Page Styling
+   ========================================================================== */
+
+.login-view {
+  flex: 1;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 10% 15%, #FFFDF0 0%, #FAF8F5 50%, #FEFCE8 100%);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 36px;
+  position: relative;
+}
+
+/* Ambient glow orbs in corners for rich modern aesthetic */
+.login-view::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: -80px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-view::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  right: -80px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Centered Unified Container */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 52px;
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Left Column: Hero Content & Interactive Workflow Showcase
+   ========================================================================== */
+.login-hero {
+  flex: 1;
+  max-width: 540px;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: none;
+}
+
+/* Brand badge pill at top of hero */
+.hero-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #FEF08A;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.12);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: 12px;
+  width: fit-content;
+}
+
+.hero-brand-pill .brand-icon-mini {
+  width: 20px;
+  height: 20px;
+  background: var(--primary-yellow);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350F;
+}
+
+.hero-brand-pill .brand-text {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1E293B;
+  letter-spacing: 0.3px;
+}
+
+.hero-brand-pill .brand-status-dot {
+  width: 6px;
+  height: 6px;
+  background: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.hero-brand-pill .brand-status-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.hero-content {
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0F172A;
+  margin-bottom: 6px;
+  letter-spacing: -0.6px;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #854D0E;
+  margin-bottom: 16px;
+}
+
+.hero-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.benefit-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: #FACC15;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #78350F;
+  box-shadow: 0 2px 5px rgba(234, 179, 8, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.benefit-item:hover .benefit-icon {
+  transform: scale(1.1);
+}
+
+/* Illustration Container */
+.hero-illustration {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* ==========================================================================
+   Right Column: Elevated, Interactive Login Form Card
+   ========================================================================== */
+.login-form-pane {
+  flex: none;
+  width: 410px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.login-card {
+  width: 100%;
+  padding: 28px 26px;
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1.5px solid #FEF08A;
+  box-shadow: 0 20px 40px -12px rgba(202, 138, 4, 0.15), 0 4px 16px rgba(0, 0, 0, 0.04);
+  text-align: center;
+  position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+  box-shadow: 0 24px 48px -12px rgba(202, 138, 4, 0.2), 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Segmented Role Switcher */
+.login-role-tabs {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: var(--radius-full);
+  padding: 3px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-color);
+}
+
+.login-role-tab {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.login-role-tab.active {
+  background: #FFFFFF;
+  color: var(--text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.login-card-logo {
+  width: 46px;
+  height: 46px;
+  background: var(--primary-yellow);
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px var(--primary-yellow-glow);
+  color: #78350F;
+}
+
+.login-card-portal-name {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #854D0E;
+  margin-bottom: 2px;
+}
+
+.login-card-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  letter-spacing: -0.4px;
+}
+
+.login-card-prompt {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.35;
+}
+
+/* OTP Inputs */
+.otp-inputs-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.otp-box {
+  width: 46px;
+  height: 52px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: #F8FAFC;
+  outline: none;
+  transition: all var(--transition-fast);
+  font-family: monospace;
+}
+
+.otp-box:focus {
+  border-color: #EAB308;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.35);
+  transform: translateY(-2px);
+}
+
+.otp-box.filled {
+  background: #FFFFFF;
+  border-color: #94A3B8;
+}
+
+.otp-box.highlight-flash {
+  border-color: #10B981;
+  background: #F0FDF4;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  animation: pulseFlash 0.5s ease-in-out;
+}
+
+@keyframes pulseFlash {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* Continue Button */
+.btn-login-submit {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary-yellow);
+  color: #0F172A;
+  border: 1px solid #EAB308;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(234, 179, 8, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-login-submit:hover {
+  background: #FACC15;
+  box-shadow: 0 5px 14px rgba(234, 179, 8, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-login-submit:active {
+  transform: translateY(0);
+}
+
+.btn-arrow-icon {
+  font-size: 17px;
+  transition: transform 0.2s ease;
+}
+
+.btn-login-submit:hover .btn-arrow-icon {
+  transform: translateX(4px);
+}
+
+/* Demo Autofill Helper */
+.demo-otp-helper {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.demo-otp-chip {
+  background: #FEF9C3;
+  border: 1px dashed #EAB308;
+  color: #854D0E;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.demo-otp-chip:hover {
+  background: #FEF08A;
+  transform: scale(1.03);
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.2);
+}
+
+.autofill-success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-need-help {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #64748B;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.login-need-help:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* Student Quick Select Chips */
+.student-quick-picker {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.student-quick-picker-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.student-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.student-quick-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #F8FAFC;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.student-quick-card:hover {
+  border-color: #FACC15;
+  background: #FFFDF5;
+}
+
+.student-quick-card.selected {
+  border-color: #EAB308;
+  background: #FFFBEB;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+}
+
+.student-quick-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.student-quick-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.student-quick-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-quick-otp {
+  font-size: 10px;
+  font-weight: 600;
+  color: #854D0E;
+}
+
+/* Login Error Alert */
+.login-error-alert {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Interactive Play/Pause Button in Illustration */
+.anim-play-toggle-btn {
+  background: #FEF9C3;
+  border: 1px solid #FEF08A;
+  color: #854D0E;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.anim-play-toggle-btn:hover {
+  background: #FEF08A;
+  transform: scale(1.04);
+}
+
+/* ==========================================================================
+   Responsive Layout Rules
+   ========================================================================== */
+@media (max-width: 950px) {
+  .login-view {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  .login-container {
+    flex-direction: column;
+    gap: 28px;
+  }
+  .login-hero {
+    max-width: 100%;
+    text-align: center;
+    align-items: center;
+  }
+  .hero-brand-pill {
+    margin: 0 auto 12px auto;
+  }
+  .hero-benefits {
+    align-items: center;
+  }
+  .hero-title {
+    font-size: 26px;
+  }
+  .hero-subtitle {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+  .login-form-pane {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+/* Mobile Frame Mode Simulation */
+.mobile-frame-mode .login-view {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+  padding: 16px 12px;
+}
+.mobile-frame-mode .login-container {
+  flex-direction: column;
+  gap: 20px;
+}
+.mobile-frame-mode .login-hero {
+  max-width: 100%;
+}
+.mobile-frame-mode .hero-title {
+  font-size: 22px;
+}
+.mobile-frame-mode .hero-subtitle {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.mobile-frame-mode .hero-benefits {
+  gap: 8px;
+}
+.mobile-frame-mode .benefit-item {
+  font-size: 13px;
+  gap: 8px;
+}
+.mobile-frame-mode .benefit-icon {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+}
+.mobile-frame-mode .login-form-pane {
+  width: 100%;
+}
+.mobile-frame-mode .login-card {
+  padding: 18px 14px;
+}
