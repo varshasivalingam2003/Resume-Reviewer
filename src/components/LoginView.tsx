@@ -131,46 +131,31 @@ export const LoginView: React.FC = () => {
             <div className="brand-icon-mini">
               <PortalLogoIcon size={14} />
             </div>
-            <span className="brand-text">Resume Review & Mentorship Platform</span>
+            <span className="brand-text">Resume Review Portal</span>
             <span className="brand-status-dot"></span>
-            <span className="brand-status-text">Active Evaluation Session</span>
+            <span className="brand-status-text">Active</span>
           </div>
 
           <div className="hero-content">
             <h1 className="hero-title">
-              Empower students to build <span className="hero-gradient-text">placement-ready resumes.</span>
+              Help students build <span className="hero-gradient-text">better resumes.</span>
             </h1>
             <p className="hero-subtitle">
-              Annotate sections in real-time, deliver actionable commands, and certify career readiness.
+              Highlight sections, share feedback, and approve resumes.
             </p>
 
             <div className="hero-feature-chips">
-              <div className="feature-chip">
-                <div className="feature-chip-icon">
-                  <ReviewsIcon size={16} />
-                </div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Precision Highlighting</span>
-                  <span className="feature-chip-desc">Soft yellow subtopic markers</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">⚡</span>
+                <span className="pill-label">Highlight Sections</span>
               </div>
-              <div className="feature-chip">
-                <div className="feature-chip-icon">
-                  <CommentIcon size={16} />
-                </div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Volunteer Commands</span>
-                  <span className="feature-chip-desc">Actionable mentor directives</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">💬</span>
+                <span className="pill-label">Mentor Feedback</span>
               </div>
-              <div className="feature-chip">
-                <div className="feature-chip-icon">
-                  <CheckIcon size={16} />
-                </div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Verified Approval</span>
-                  <span className="feature-chip-desc">Placement-ready signoff</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">✓</span>
+                <span className="pill-label">Approve Resumes</span>
               </div>
             </div>
           </div>

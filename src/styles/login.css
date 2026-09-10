@@ -132,11 +132,11 @@
 }
 
 .hero-title {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 800;
-  line-height: 1.18;
+  line-height: 1.22;
   color: #0F172A;
-  letter-spacing: -0.7px;
+  letter-spacing: -0.6px;
 }
 
 .hero-gradient-text {
@@ -147,75 +147,52 @@
 }
 
 .hero-subtitle {
-  font-size: 15.5px;
+  font-size: 15px;
   font-weight: 500;
   color: #64748B;
-  line-height: 1.45;
-  margin-bottom: 2px;
+  line-height: 1.4;
+  margin-bottom: 4px;
 }
 
-/* Modern Horizontal Feature Chips */
+/* Minimalist Feature Pills */
 .hero-feature-chips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
   margin-top: 4px;
 }
 
-.feature-chip {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
+.feature-pill {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
   border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 12px;
-  padding: 10px 12px;
-  display: flex;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  gap: 7px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
-.feature-chip:hover {
+.feature-pill:hover {
   background: #FFFFFF;
   border-color: #FACC15;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(234, 179, 8, 0.15);
 }
 
-.feature-chip-icon {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  border-radius: 8px;
-  background: #FEF9C3;
-  color: #854D0E;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  box-shadow: 0 2px 5px rgba(234, 179, 8, 0.2);
+.pill-icon {
+  font-size: 13px;
+  line-height: 1;
 }
 
-.feature-chip-text {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.feature-chip-title {
-  font-size: 12px;
-  font-weight: 800;
-  color: #0F172A;
+.pill-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E293B;
   white-space: nowrap;
-}
-
-.feature-chip-desc {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: #64748B;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Illustration Studio Frame */

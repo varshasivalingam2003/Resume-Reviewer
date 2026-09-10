@@ -143,11 +143,8 @@ export const LoginIllustration: React.FC = () => {
             </g>
 
             {/* Simple Clean Status Text Below Student */}
-            <text x="95" y="170" fontSize="11.5" fontWeight="700" fill="#059669" textAnchor="middle">
-              ✓ Resume Uploaded (PDF)
-            </text>
-            <text x="95" y="186" fontSize="10" fontWeight="600" fill="#64748B" textAnchor="middle">
-              Objective & Key Skills Attached
+            <text x="95" y="174" fontSize="11.5" fontWeight="700" fill="#059669" textAnchor="middle">
+              ✓ Resume Uploaded
             </text>
           </g>
 
@@ -157,7 +154,7 @@ export const LoginIllustration: React.FC = () => {
           <g transform="translate(365, 8)">
             {/* Clean Section Header Text */}
             <text x="100" y="18" fontSize="13" fontWeight="800" fill="#854D0E" textAnchor="middle">
-              🧑‍🏫 Volunteer Review Studio
+              🧑‍🏫 Volunteer Review
             </text>
 
             {/* Volunteer Monitor Display */}
@@ -227,11 +224,11 @@ export const LoginIllustration: React.FC = () => {
             </g>
 
             {/* Simple Clean Volunteer Command Text */}
-            <text x="100" y="170" fontSize="11.5" fontWeight="700" fill="#78350F" textAnchor="middle">
+            <text x="100" y="174" fontSize="11" fontWeight="700" fill="#78350F" textAnchor="middle">
               💬 Volunteer Command:
             </text>
-            <text x="100" y="186" fontSize="10.5" fontWeight="600" fill="#854D0E" textAnchor="middle">
-              "Add quantified impact metrics to your projects"
+            <text x="100" y="190" fontSize="10.5" fontWeight="600" fill="#854D0E" textAnchor="middle">
+              "Add impact metrics to projects"
             </text>
           </g>
         </svg>

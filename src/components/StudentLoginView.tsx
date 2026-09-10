@@ -122,40 +122,31 @@ export const StudentLoginView: React.FC = () => {
             <div className="brand-icon-mini">
               <PortalLogoIcon size={14} />
             </div>
-            <span className="brand-text">Student Feedback & Corrections Gateway</span>
+            <span className="brand-text">Student Portal</span>
             <span className="brand-status-dot"></span>
-            <span className="brand-status-text">Individual Student Access</span>
+            <span className="brand-status-text">Active</span>
           </div>
 
           <div className="hero-content">
             <h1 className="hero-title">
-              Track mentor feedback & <span className="hero-gradient-text">resume corrections.</span>
+              Review your <span className="hero-gradient-text">resume feedback.</span>
             </h1>
             <p className="hero-subtitle">
-              Review volunteer suggestions, resolve section checklist items, and get placement certified.
+              View mentor notes, fix checklist items, and get approved.
             </p>
 
             <div className="hero-feature-chips">
-              <div className="feature-chip">
-                <div className="feature-chip-icon"><ReviewsIcon size={16} /></div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Highlighted Sections</span>
-                  <span className="feature-chip-desc">Visual mistake callouts</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">🔍</span>
+                <span className="pill-label">View Highlights</span>
               </div>
-              <div className="feature-chip">
-                <div className="feature-chip-icon"><CommentIcon size={16} /></div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Mentor Commands</span>
-                  <span className="feature-chip-desc">Actionable checklist directives</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">📝</span>
+                <span className="pill-label">Fix Mistakes</span>
               </div>
-              <div className="feature-chip">
-                <div className="feature-chip-icon"><CheckIcon size={16} /></div>
-                <div className="feature-chip-text">
-                  <span className="feature-chip-title">Resolution Checkoff</span>
-                  <span className="feature-chip-desc">Instant re-review submission</span>
-                </div>
+              <div className="feature-pill">
+                <span className="pill-icon">✓</span>
+                <span className="pill-label">Get Approved</span>
               </div>
             </div>
           </div>
