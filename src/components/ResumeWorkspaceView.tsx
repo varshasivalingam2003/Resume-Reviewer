@@ -174,6 +174,16 @@ export const ResumeWorkspaceView: React.FC = () => {
     return Math.round((avg / 5) * 100);
   };
 
+  const getActiveToolLabel = () => {
+    switch (activeCommentTool) {
+      case 'sections': return '✍️ Section Notes';
+      case 'preset_bank': return '⚡ Comment Bank';
+      case 'rewrite_diff': return '🔄 Rewrite (Diff)';
+      case 'voice_memo': return '🎙️ Voice Memo';
+      case 'rubric': return '📊 Rubric Scorecard';
+    }
+  };
+
   const handleInsertRubricSummary = () => {
     const summary = `\n\n📊 MENTOR EVALUATION RUBRIC (Score: ${calculateRubricOverall()}%):\n• ATS & Layout: ${rubricScores.atsFormat}/5\n• Impact & Metrics: ${rubricScores.metricsImpact}/5\n• Technical Stack Depth: ${rubricScores.techDepth}/5\n• Clarity & Action Verbs: ${rubricScores.grammarClarity}/5`;
     updateGeneralFeedback((activeStudent?.generalFeedback || '') + summary);
@@ -442,56 +452,71 @@ export const ResumeWorkspaceView: React.FC = () => {
             </div>
           </div>
 
-          {/* Banner: Multiple Commenting Methods Available */}
-          <div className="comment-methods-banner">
-            <div className="comment-methods-title">
-              <span>💬 5 Commenting & Feedback Tools</span>
+          {/* Volunteer Commenting Options Switcher Panel */}
+          <div className="comment-feedback-tools-panel">
+            <div className="comment-tools-top-bar">
+              <div className="comment-tools-title-group">
+                <span className="comment-tools-badge-icon">💬</span>
+                <div>
+                  <div className="comment-tools-main-title">Feedback Options for Volunteers</div>
+                  <div className="comment-tools-sub-title">5 commenting methods to evaluate this resume</div>
+                </div>
+              </div>
+              <span className="comment-tools-current-mode-pill">
+                Active: <strong>{getActiveToolLabel()}</strong>
+              </span>
             </div>
-            <span className="comment-methods-count-badge">Multi-Method</span>
-          </div>
 
-          {/* Multi-Method Comment Tool Navigation Tabs */}
-          <div className="commenting-tools-tabs">
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('sections')}
-              title="Section commands with severity tags & highlights"
-            >
-              ✍️ Section Notes
-            </button>
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'preset_bank' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('preset_bank')}
-              title="1-Click pre-written mentor feedback library"
-            >
-              ⚡ Comment Bank
-            </button>
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('rewrite_diff')}
-              title="Suggest specific Before/After text replacements"
-            >
-              🔄 Rewrite (Diff)
-            </button>
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('voice_memo')}
-              title="Record and attach voice audio coaching"
-            >
-              🎙️ Voice {hasRecordedVoice ? '✓' : ''}
-            </button>
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('rubric')}
-              title="Scorecard evaluation across 4 dimensions"
-            >
-              📊 Rubric
-            </button>
+            {/* 5 Distinct Navigation Tabs */}
+            <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
+              <button 
+                type="button"
+                className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('sections')}
+                title="Section commands with severity tags & highlights"
+              >
+                <span className="tab-icon">✍️</span>
+                <span className="tab-label">Section Notes</span>
+                <span className="tab-count-pill">{volunteerSubtopics.length}</span>
+              </button>
+              <button 
+                type="button"
+                className={`comment-tool-tab ${activeCommentTool === 'preset_bank' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('preset_bank')}
+                title="1-Click pre-written mentor feedback library"
+              >
+                <span className="tab-icon">⚡</span>
+                <span className="tab-label">Comment Bank</span>
+              </button>
+              <button 
+                type="button"
+                className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('rewrite_diff')}
+                title="Suggest specific Before/After text replacements"
+              >
+                <span className="tab-icon">🔄</span>
+                <span className="tab-label">Rewrite (Diff)</span>
+              </button>
+              <button 
+                type="button"
+                className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('voice_memo')}
+                title="Record and attach voice audio coaching"
+              >
+                <span className="tab-icon">🎙️</span>
+                <span className="tab-label">Voice Memo</span>
+                {hasRecordedVoice && <span className="tab-saved-dot">✓</span>}
+              </button>
+              <button 
+                type="button"
+                className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('rubric')}
+                title="Scorecard evaluation across 4 dimensions"
+              >
+                <span className="tab-icon">📊</span>
+                <span className="tab-label">Rubric</span>
+              </button>
+            </div>
           </div>
 
           {/* =========================================================================
