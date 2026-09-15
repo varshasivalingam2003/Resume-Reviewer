@@ -129,195 +129,6 @@ const PRESET_COMMENT_BANK: PresetComment[] = [
   }
 ];
 
-interface StampOption {
-  id: string;
-  icon: string;
-  title: string;
-  preview: string;
-  severity: 'suggestion' | 'must_fix' | 'praise' | 'question';
-  sectionKey: string;
-  defaultCommand: string;
-}
-
-const STAMP_OPTIONS: StampOption[] = [
-  {
-    id: 'st-1',
-    icon: '📊',
-    title: 'Needs Metrics (%)',
-    preview: 'Quantify impact with numbers',
-    severity: 'must_fix',
-    sectionKey: 'projects',
-    defaultCommand: 'Quantify your impact here with concrete numbers, percentages, or scale metrics (e.g. "Improved query performance by 35%").'
-  },
-  {
-    id: 'st-2',
-    icon: '🔗',
-    title: 'Add GitHub / Live URL',
-    preview: 'Missing repository or demo link',
-    severity: 'must_fix',
-    sectionKey: 'projects',
-    defaultCommand: 'Add a clickable live deployment link and public GitHub repository link so recruiters can test your project.'
-  },
-  {
-    id: 'st-3',
-    icon: '⚡',
-    title: 'Stronger Action Verb',
-    preview: 'Replace passive phrases',
-    severity: 'suggestion',
-    sectionKey: 'experience',
-    defaultCommand: 'Lead with powerful action verbs ("Engineered", "Spearheaded", "Refactored") rather than passive phrasing ("Assisted", "Helped").'
-  },
-  {
-    id: 'st-4',
-    icon: '✂️',
-    title: 'Trim Words (Max 2 Lines)',
-    preview: 'Bullet point is too lengthy',
-    severity: 'suggestion',
-    sectionKey: 'experience',
-    defaultCommand: 'Shorten this bullet point to 1–2 crisp lines. Avoid run-on sentences to ensure quick scanning.'
-  },
-  {
-    id: 'st-5',
-    icon: '🤖',
-    title: 'ATS Formatting Alert',
-    preview: 'Avoid tables or complex columns',
-    severity: 'must_fix',
-    sectionKey: 'education',
-    defaultCommand: 'Format using standard single-column text. Avoid text boxes or non-standard tables that confuse ATS resume parsers.'
-  },
-  {
-    id: 'st-6',
-    icon: '🌟',
-    title: 'Outstanding Project!',
-    preview: 'High impact engineering work',
-    severity: 'praise',
-    sectionKey: 'projects',
-    defaultCommand: 'Excellent project selection! Demonstrates strong end-to-end technical competence and modern architectural design.'
-  },
-  {
-    id: 'st-7',
-    icon: '📜',
-    title: 'Add Credential Link',
-    preview: 'Include certification URL',
-    severity: 'suggestion',
-    sectionKey: 'certifications',
-    defaultCommand: 'Add the official credential ID or verification URL for this certification.'
-  },
-  {
-    id: 'st-8',
-    icon: '📧',
-    title: 'Update LinkedIn / Contact',
-    preview: 'Make links clean & clickable',
-    severity: 'suggestion',
-    sectionKey: 'contact',
-    defaultCommand: 'Include your customized LinkedIn profile slug (e.g. linkedin.com/in/yourname) and ensure email is professional.'
-  }
-];
-
-interface WizardStep {
-  id: string;
-  title: string;
-  question: string;
-  flagFeedback: string;
-}
-
-const WIZARD_STEPS: WizardStep[] = [
-  {
-    id: 'contact',
-    title: '1. Contact Info & Professional Links',
-    question: 'Are email, phone, LinkedIn, and GitHub links present and clean?',
-    flagFeedback: 'Update contact info: ensure email is professional, add customized LinkedIn URL, and verify public GitHub profile is linked.'
-  },
-  {
-    id: 'verbs',
-    title: '2. Action Verbs & Tone',
-    question: 'Do bullet points start with strong power verbs (Engineered, Architected)?',
-    flagFeedback: 'Action verbs review: replace passive phrases ("Worked on", "Assisted") with punchy action verbs.'
-  },
-  {
-    id: 'metrics',
-    title: '3. Measurable Impact & Numbers',
-    question: 'Are project accomplishments quantified with % or metrics?',
-    flagFeedback: 'Measurable metrics: apply Google XYZ formula to quantify results with concrete percentages, user counts, or latency reductions.'
-  },
-  {
-    id: 'tech_stack',
-    title: '4. Technical Stack Organization',
-    question: 'Are skills categorized into Languages, Frameworks, and Tools?',
-    flagFeedback: 'Skills categorization: group technologies into Languages, Frameworks/Libraries, Databases, and Developer Tools.'
-  },
-  {
-    id: 'ats_layout',
-    title: '5. ATS & Clean Formatting',
-    question: 'Is layout single-column, cleanly spaced, and within 1 page?',
-    flagFeedback: 'ATS layout check: avoid tables, multi-column blocks, or fancy graphics to ensure high readability on applicant tracking systems.'
-  }
-];
-
-interface AiSuggestionItem {
-  id: string;
-  icon: string;
-  title: string;
-  sectionTitle: string;
-  sectionKey: string;
-  severity: 'must_fix' | 'suggestion' | 'praise';
-  badge: string;
-  recommendation: string;
-  before: string;
-  after: string;
-}
-
-const AI_SUGGESTIONS: AiSuggestionItem[] = [
-  {
-    id: 'ai-1',
-    icon: '⚡',
-    title: 'Upgrade Passive Action Verbs',
-    sectionTitle: 'Academic Projects',
-    sectionKey: 'projects',
-    severity: 'must_fix',
-    badge: 'High Impact',
-    recommendation: 'Detected passive verb "Worked on a web portal". Change to strong proactive action verb with concrete technology detail.',
-    before: 'Worked on a web portal for university hostel management.',
-    after: 'Architected full-stack React and Node.js hostel management portal, reducing room allocation time by 40%.'
-  },
-  {
-    id: 'ai-2',
-    icon: '📊',
-    title: 'Quantify Result with Metrics',
-    sectionTitle: 'Experience / Projects',
-    sectionKey: 'projects',
-    severity: 'suggestion',
-    badge: 'Metrics Missing',
-    recommendation: 'Project description has no numbers. Recruiters prioritize candidates who quantify scale and outcomes.',
-    before: 'Built automated attendance system using OpenCV and Python.',
-    after: 'Developed automated facial recognition attendance system in Python/OpenCV serving 400+ daily students with 98% accuracy.'
-  },
-  {
-    id: 'ai-3',
-    icon: '🔗',
-    title: 'Add Live Verification Links',
-    sectionTitle: 'Certifications',
-    sectionKey: 'certifications',
-    severity: 'suggestion',
-    badge: 'Trust Signal',
-    recommendation: 'Certificate listed without credential verification link. Adding ID reinforces authenticity.',
-    before: 'AWS Certified Cloud Practitioner - 2024',
-    after: 'AWS Certified Cloud Practitioner (Credential ID: AWS-89410294, Verify at aws.amazon.com/verify)'
-  },
-  {
-    id: 'ai-4',
-    icon: '📂',
-    title: 'Categorize Skills Density',
-    sectionTitle: 'Technical Skills',
-    sectionKey: 'skills',
-    severity: 'suggestion',
-    badge: 'Readability',
-    recommendation: 'Uncategorized comma-separated skills list. Categorize into distinct clusters to pass ATS keyword matchers.',
-    before: 'JavaScript, React, Node.js, Python, PostgreSQL, Git, Docker, MongoDB',
-    after: 'Languages: JavaScript, Python | Frontend: React | Backend: Node.js | Databases: PostgreSQL, MongoDB | DevOps: Git, Docker'
-  }
-];
-
 interface ResumeDocumentPaperProps {
   student: Student;
   pageNum: number;
@@ -358,10 +169,8 @@ export const ResumeWorkspaceView: React.FC = () => {
     setSelectedStudentForViewId
   } = useApp();
 
-  // Multi-Method Commenting Tool State (Expanded beyond 5 methods)
-  const [activeCommentTool, setActiveCommentTool] = useState<
-    'sections' | 'preset_bank' | 'quick_stamps' | 'speed_wizard' | 'rewrite_diff' | 'voice_memo' | 'rubric' | 'ai_suggestions'
-  >('sections');
+  // Multi-Method Commenting Tool State (5 Suggestions)
+  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'preset_bank' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
   
   // Method 1: Subtopic Definition
   const [newSubtopicTitle, setNewSubtopicTitle] = useState('');
@@ -372,18 +181,6 @@ export const ResumeWorkspaceView: React.FC = () => {
 
   // Method 2: Preset Bank Filter
   const [presetCategoryFilter, setPresetCategoryFilter] = useState<'all' | 'impact' | 'ats' | 'projects' | 'skills' | 'contact'>('all');
-
-  // Quick Stamps State
-  const [appliedStampIds, setAppliedStampIds] = useState<string[]>([]);
-  const [stampFeedbackAlert, setStampFeedbackAlert] = useState<string | null>(null);
-
-  // Speed Wizard State
-  const [wizardResponses, setWizardResponses] = useState<Record<string, 'pass' | 'flag'>>({});
-  const [wizardAlert, setWizardAlert] = useState<string | null>(null);
-
-  // AI Suggestions State
-  const [appliedAiIds, setAppliedAiIds] = useState<string[]>([]);
-  const [aiAlert, setAiAlert] = useState<string | null>(null);
 
   // Method 3: Rewrite Suggestion Tool
   const [rewriteTargetSection, setRewriteTargetSection] = useState('objective');
@@ -451,91 +248,10 @@ export const ResumeWorkspaceView: React.FC = () => {
     switch (activeCommentTool) {
       case 'sections': return '✍️ Section Notes';
       case 'preset_bank': return '⚡ Comment Bank';
-      case 'quick_stamps': return '🎯 Quick Stamps';
-      case 'speed_wizard': return '⏩ Speed Wizard';
       case 'rewrite_diff': return '🔄 Rewrite (Diff)';
       case 'voice_memo': return '🎙️ Voice Memo';
       case 'rubric': return '📊 Rubric Scorecard';
-      case 'ai_suggestions': return '🤖 AI Suggestions';
     }
-  };
-
-  const handleApplyStamp = (stamp: StampOption) => {
-    const targetSub = volunteerSubtopics.find(s => s.sectionKey === stamp.sectionKey);
-    if (targetSub) {
-      const existing = targetSub.command || '';
-      updateSubtopicCommand(targetSub.id, existing ? `${existing}\n\n• [${stamp.icon} ${stamp.title}]: ${stamp.defaultCommand}` : `[${stamp.icon} ${stamp.title}]: ${stamp.defaultCommand}`);
-      updateSubtopicCategory(targetSub.id, stamp.severity);
-    } else {
-      addVolunteerSubtopic(`${stamp.icon} ${stamp.title}`, stamp.sectionKey, stamp.defaultCommand, stamp.severity);
-    }
-    setAppliedStampIds(prev => [...prev, stamp.id]);
-    setStampFeedbackAlert(`Attached stamp "${stamp.icon} ${stamp.title}" to ${stamp.sectionKey.toUpperCase()} section!`);
-    setTimeout(() => setStampFeedbackAlert(null), 3000);
-  };
-
-  const handleSetWizardStep = (stepId: string, status: 'pass' | 'flag') => {
-    setWizardResponses(prev => ({ ...prev, [stepId]: status }));
-  };
-
-  const handleGenerateWizardFeedback = () => {
-    const flaggedSteps = WIZARD_STEPS.filter(step => wizardResponses[step.id] === 'flag');
-    const passedSteps = WIZARD_STEPS.filter(step => wizardResponses[step.id] === 'pass');
-    
-    if (flaggedSteps.length === 0 && passedSteps.length === 0) {
-      alert('Please evaluate at least one item before generating feedback.');
-      return;
-    }
-
-    let summaryText = `\n\n⚡ SPEED REVIEW CHECKLIST (${passedSteps.length}/${WIZARD_STEPS.length} Verified):\n`;
-    if (passedSteps.length > 0) {
-      summaryText += `\n✅ Strengths Verified:\n` + passedSteps.map(s => `• ${s.title}: Meets industry standards`).join('\n') + '\n';
-    }
-    if (flaggedSteps.length > 0) {
-      summaryText += `\n⚠️ Areas Requiring Attention:\n` + flaggedSteps.map(s => `• ${s.title}: ${s.flagFeedback}`).join('\n') + '\n';
-    }
-
-    const existing = activeStudent?.generalFeedback || '';
-    updateGeneralFeedback(existing ? `${existing}${summaryText}` : summaryText.trim());
-
-    flaggedSteps.forEach(step => {
-      const cleanTitle = step.title.replace(/^\d+\.\s*/, '');
-      const existingSub = volunteerSubtopics.find(s => s.title.toLowerCase().includes(cleanTitle.toLowerCase()));
-      if (!existingSub) {
-        addVolunteerSubtopic(`Needs Polish: ${cleanTitle}`, 'custom', step.flagFeedback, 'must_fix');
-      }
-    });
-
-    setWizardAlert(`Generated Speed Review with ${flaggedSteps.length} action items & ${passedSteps.length} verified checks!`);
-    setTimeout(() => setWizardAlert(null), 4000);
-  };
-
-  const handleApplySingleAi = (ai: AiSuggestionItem) => {
-    const targetSub = volunteerSubtopics.find(s => s.sectionKey === ai.sectionKey);
-    if (targetSub) {
-      updateSubtopicRewrite(targetSub.id, { before: ai.before, after: ai.after });
-      updateSubtopicCommand(targetSub.id, `${targetSub.command || ''}\n\n🤖 [AI Suggestion - ${ai.title}]: ${ai.recommendation}\nSuggested: "${ai.after}"`);
-    } else {
-      addVolunteerSubtopic(`🤖 ${ai.title}`, ai.sectionKey, `[AI Suggestion]: ${ai.recommendation}\nSuggested: "${ai.after}"`, ai.severity);
-    }
-    setAppliedAiIds(prev => prev.includes(ai.id) ? prev : [...prev, ai.id]);
-    setAiAlert(`Applied smart AI suggestion: "${ai.title}"!`);
-    setTimeout(() => setAiAlert(null), 3000);
-  };
-
-  const handleApplyAllAiSuggestions = () => {
-    AI_SUGGESTIONS.forEach(ai => {
-      const targetSub = volunteerSubtopics.find(s => s.sectionKey === ai.sectionKey);
-      if (targetSub) {
-        updateSubtopicRewrite(targetSub.id, { before: ai.before, after: ai.after });
-        updateSubtopicCommand(targetSub.id, `${targetSub.command || ''}\n\n🤖 [AI Suggestion - ${ai.title}]: ${ai.recommendation}\nSuggested: "${ai.after}"`);
-      } else {
-        addVolunteerSubtopic(`🤖 ${ai.title}`, ai.sectionKey, `[AI Suggestion]: ${ai.recommendation}\nSuggested: "${ai.after}"`, ai.severity);
-      }
-    });
-    setAppliedAiIds(AI_SUGGESTIONS.map(s => s.id));
-    setAiAlert('Applied all 4 AI recommendations to candidate review!');
-    setTimeout(() => setAiAlert(null), 4000);
   };
 
   const handleInsertRubricSummary = () => {
@@ -813,7 +529,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                 <span className="comment-tools-badge-icon">💬</span>
                 <div>
                   <div className="comment-tools-main-title">Feedback Options for Volunteers</div>
-                  <div className="comment-tools-sub-title">8 user-friendly commenting & review methods to evaluate this resume</div>
+                  <div className="comment-tools-sub-title">5 commenting feedback methods to evaluate this resume</div>
                 </div>
               </div>
               <span className="comment-tools-current-mode-pill">
@@ -821,7 +537,7 @@ export const ResumeWorkspaceView: React.FC = () => {
               </span>
             </div>
 
-            {/* 8 Distinct Navigation Tabs */}
+            {/* 5 Distinct Navigation Tabs */}
             <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
               <button 
                 type="button"
@@ -838,37 +554,11 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className={`comment-tool-tab ${activeCommentTool === 'preset_bank' ? 'active' : ''}`}
                 onClick={() => setActiveCommentTool('preset_bank')}
-                title="16 Pre-written battle-tested mentor suggestions across 5 categories"
+                title="16 Pre-written battle-tested mentor suggestions across categories"
               >
                 <span className="tab-icon">⚡</span>
                 <span className="tab-label">Comment Bank</span>
                 <span className="tab-count-pill">16</span>
-              </button>
-
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'quick_stamps' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('quick_stamps')}
-                title="1-Click visual reaction stamps with zero typing needed"
-              >
-                <span className="tab-icon">🎯</span>
-                <span className="tab-label">Quick Stamps</span>
-                {appliedStampIds.length > 0 && (
-                  <span className="tab-saved-dot">{appliedStampIds.length} ✓</span>
-                )}
-              </button>
-
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'speed_wizard' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('speed_wizard')}
-                title="60-Second rapid review checklist across 5 core criteria"
-              >
-                <span className="tab-icon">⏩</span>
-                <span className="tab-label">Speed Wizard</span>
-                {Object.keys(wizardResponses).length > 0 && (
-                  <span className="tab-count-pill">{Object.keys(wizardResponses).length}/5</span>
-                )}
               </button>
 
               <button 
@@ -885,7 +575,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
                 onClick={() => setActiveCommentTool('voice_memo')}
-                title="Record up to 10-min audio coaching for overall resume or specific sections"
+                title="Record audio coaching for overall resume or specific sections"
               >
                 <span className="tab-icon">🎙️</span>
                 <span className="tab-label">Voice Memo</span>
@@ -904,19 +594,6 @@ export const ResumeWorkspaceView: React.FC = () => {
               >
                 <span className="tab-icon">📊</span>
                 <span className="tab-label">Rubric</span>
-              </button>
-
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'ai_suggestions' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('ai_suggestions')}
-                title="Smart automated suggestions with before/after diffs & 1-click apply"
-              >
-                <span className="tab-icon">🤖</span>
-                <span className="tab-label">AI Suggestions</span>
-                <span className="tab-count-pill" style={{ background: '#7C3AED', color: '#FFF' }}>
-                  {appliedAiIds.length === AI_SUGGESTIONS.length ? '✓ All' : '4 Smart'}
-                </span>
               </button>
             </div>
           </div>
@@ -1314,159 +991,6 @@ export const ResumeWorkspaceView: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* =========================================================================
-              METHOD: QUICK STAMPS (1-CLICK VISUAL REACTION FEEDBACK)
-             ========================================================================= */}
-          {activeCommentTool === 'quick_stamps' && (
-            <div className="quick-stamps-panel">
-              <div className="tool-intro-banner">
-                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🎯 Quick Reaction Stamps</span>
-                  <span className="badge-tag-pill">Zero Typing</span>
-                </div>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  1-Click stamp reactions directly attached to candidate resume sections with actionable mentor instructions:
-                </p>
-              </div>
-
-              {stampFeedbackAlert && (
-                <div className="tool-toast-alert success">
-                  <span>✅ {stampFeedbackAlert}</span>
-                </div>
-              )}
-
-              <div className="stamps-grid">
-                {STAMP_OPTIONS.map(stamp => {
-                  const isApplied = appliedStampIds.includes(stamp.id);
-                  return (
-                    <div key={stamp.id} className={`stamp-card ${isApplied ? 'applied' : ''}`}>
-                      <div className="stamp-card-top">
-                        <span className="stamp-emoji">{stamp.icon}</span>
-                        <div className="stamp-title-wrap">
-                          <div className="stamp-title">{stamp.title}</div>
-                          <div className="stamp-preview">{stamp.preview}</div>
-                        </div>
-                      </div>
-                      <div className="stamp-meta-row">
-                        <span className="stamp-section-pill">📍 {stamp.sectionKey.toUpperCase()}</span>
-                        <span className={`subtopic-badge badge-${stamp.severity}`}>
-                          {stamp.severity === 'must_fix' ? '⚠️ Must Fix' : stamp.severity === 'praise' ? '🌟 Praise' : '💡 Suggestion'}
-                        </span>
-                      </div>
-                      <div className="stamp-command-preview">
-                        "{stamp.defaultCommand}"
-                      </div>
-                      <div className="stamp-action-row">
-                        <button
-                          type="button"
-                          className={`btn-apply-stamp ${isApplied ? 'applied' : ''}`}
-                          onClick={() => handleApplyStamp(stamp)}
-                        >
-                          {isApplied ? '✓ Stamp Attached (+1)' : '+ Apply Stamp'}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-stamp-jump"
-                          onClick={() => scrollToDocSection(stamp.sectionKey)}
-                          title="Jump to this section on the resume"
-                        >
-                          👁️ View
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              METHOD: SPEED WIZARD (60-SECOND RAPID 5-PILLAR CHECKLIST)
-             ========================================================================= */}
-          {activeCommentTool === 'speed_wizard' && (
-            <div className="speed-wizard-panel">
-              <div className="tool-intro-banner">
-                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>⏩ Speed Review Wizard</span>
-                    <span className="badge-tag-pill">60-Sec Checklist</span>
-                  </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#6366F1' }}>
-                    {Object.keys(wizardResponses).length} of {WIZARD_STEPS.length} Evaluated
-                  </span>
-                </div>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Quickly mark Pass or Flag on 5 essential industry benchmarks. Once finished, click generate to compile professional candidate notes.
-                </p>
-              </div>
-
-              {wizardAlert && (
-                <div className="tool-toast-alert success">
-                  <span>⚡ {wizardAlert}</span>
-                </div>
-              )}
-
-              <div className="wizard-steps-list">
-                {WIZARD_STEPS.map((step, idx) => {
-                  const currentChoice = wizardResponses[step.id];
-                  return (
-                    <div key={step.id} className={`wizard-step-card ${currentChoice ? `choice-${currentChoice}` : ''}`}>
-                      <div className="wizard-card-header">
-                        <span className="wizard-step-badge">Step {idx + 1}</span>
-                        <div className="wizard-step-title">{step.title}</div>
-                      </div>
-                      <p className="wizard-question">{step.question}</p>
-
-                      <div className="wizard-toggle-row">
-                        <button
-                          type="button"
-                          className={`wizard-toggle-btn pass ${currentChoice === 'pass' ? 'selected' : ''}`}
-                          onClick={() => handleSetWizardStep(step.id, 'pass')}
-                        >
-                          ✅ Meets Standard (Pass)
-                        </button>
-                        <button
-                          type="button"
-                          className={`wizard-toggle-btn flag ${currentChoice === 'flag' ? 'selected' : ''}`}
-                          onClick={() => handleSetWizardStep(step.id, 'flag')}
-                        >
-                          🚩 Needs Polish (Flag)
-                        </button>
-                      </div>
-
-                      {currentChoice === 'flag' && (
-                        <div className="wizard-flagged-preview">
-                          <span className="wizard-flag-label">Will generate feedback:</span>
-                          <p className="wizard-flag-text">"{step.flagFeedback}"</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="wizard-footer-actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ flex: 1, padding: '10px 16px', fontWeight: '800', fontSize: '13px' }}
-                  onClick={handleGenerateWizardFeedback}
-                >
-                  ⚡ Generate Structured Review ({Object.values(wizardResponses).filter(v => v === 'flag').length} Action Items)
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm"
-                  onClick={() => setWizardResponses({})}
-                  title="Clear all responses"
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* =========================================================================
               METHOD 3: REWRITE SUGGESTION TOOL (BEFORE / AFTER DIFF)
              ========================================================================= */}
@@ -1894,88 +1418,6 @@ export const ResumeWorkspaceView: React.FC = () => {
               >
                 📝 Append Rubric Scorecard into Overall Feedback
               </button>
-            </div>
-          )}
-
-          {/* =========================================================================
-              METHOD: AI SUGGESTIONS (AUTOMATED PRE-COMPUTED ENHANCEMENTS)
-             ========================================================================= */}
-          {activeCommentTool === 'ai_suggestions' && (
-            <div className="ai-suggestions-panel">
-              <div className="tool-intro-banner">
-                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>🤖 Smart AI Suggestions & Rewrites</span>
-                    <span className="badge-tag-pill" style={{ background: '#EDE9FE', color: '#6D28D9' }}>AI Powered</span>
-                  </div>
-                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#7C3AED' }}>
-                    {appliedAiIds.length}/{AI_SUGGESTIONS.length} Applied
-                  </span>
-                </div>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Automated checks detected candidate weak spots. Review side-by-side diffs and apply individually or all at once.
-                </p>
-              </div>
-
-              {aiAlert && (
-                <div className="tool-toast-alert success">
-                  <span>✨ {aiAlert}</span>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-                <button
-                  type="button"
-                  className="btn-apply-all-ai"
-                  onClick={handleApplyAllAiSuggestions}
-                >
-                  ✨ Apply All {AI_SUGGESTIONS.length} AI Recommendations
-                </button>
-              </div>
-
-              <div className="ai-cards-list">
-                {AI_SUGGESTIONS.map(ai => {
-                  const isApplied = appliedAiIds.includes(ai.id);
-                  return (
-                    <div key={ai.id} className={`ai-card ${isApplied ? 'applied' : ''}`}>
-                      <div className="ai-card-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '20px' }}>{ai.icon}</span>
-                          <div>
-                            <div className="ai-card-title">{ai.title}</div>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
-                              <span className="stamp-section-pill">📍 {ai.sectionTitle}</span>
-                              <span className="badge-ai-reason">{ai.badge}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className={`btn-ai-single ${isApplied ? 'applied' : ''}`}
-                          onClick={() => handleApplySingleAi(ai)}
-                        >
-                          {isApplied ? '✓ Applied' : '+ Apply Diff'}
-                        </button>
-                      </div>
-
-                      <div className="ai-card-recommendation">
-                        💡 <strong>Why improve:</strong> {ai.recommendation}
-                      </div>
-
-                      <div className="ai-card-diff-box">
-                        <div className="ai-diff-row before">
-                          <span className="ai-diff-label before">❌ Current:</span>
-                          <span className="ai-diff-content before">{ai.before}</span>
-                        </div>
-                        <div className="ai-diff-row after">
-                          <span className="ai-diff-label after">✅ Suggested:</span>
-                          <span className="ai-diff-content after">{ai.after}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           )}
 
