@@ -5,6 +5,8 @@ export interface VolunteerSubtopic {
   isHighlighted: boolean;
   command: string;
   isReviewed: boolean;
+  category?: 'suggestion' | 'must_fix' | 'praise' | 'question';
+  suggestedRewrite?: { before: string; after: string };
 }
 
 export interface EducationItem {
@@ -51,6 +53,8 @@ export interface Student {
   generalFeedback: string;
   volunteerSubtopics: VolunteerSubtopic[];
   resumeSections: ResumeSection[];
+  audioNote?: { recorded: boolean; duration: string; timestamp: string };
+  rubricScores?: Record<string, number>;
 }
 
 export interface VolunteerProfile {

@@ -59,10 +59,14 @@ export interface AppContextType {
   updateGeneralFeedback: (text: string) => void;
   setRating: (rating: number) => void;
   toggleImproveTag: (tag: string) => void;
-  addVolunteerSubtopic: (title: string, sectionKey?: string, command?: string) => void;
+  addVolunteerSubtopic: (title: string, sectionKey?: string, command?: string, category?: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
   removeVolunteerSubtopic: (subtopicId: string) => void;
   toggleSubtopicHighlight: (subtopicId: string) => void;
   updateSubtopicCommand: (subtopicId: string, command: string) => void;
+  updateSubtopicCategory: (subtopicId: string, category: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
+  updateSubtopicRewrite: (subtopicId: string, rewrite: { before: string; after: string }) => void;
+  saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string }) => void;
+  saveRubricScores: (scores: Record<string, number>) => void;
   toggleSubtopicReviewed: (subtopicId: string) => void;
   quickHighlightFromCanvas: (sectionKey: string, sectionTitle: string) => void;
   openModal: (modalName: string) => void;
@@ -349,7 +353,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // Dynamic Volunteer-Defined Subtopics & Highlighting Methods
-  const addVolunteerSubtopic = (title: string, sectionKey = 'custom', command = '') => {
+  const addVolunteerSubtopic = (
+    title: string, 
+    sectionKey = 'custom', 
+    command = '', 
+    category: 'suggestion' | 'must_fix' | 'praise' | 'question' = 'suggestion'
+  ) => {
     if (!activeStudent || !title.trim()) return;
     const newSubtopic: VolunteerSubtopic = {
       id: `sub-${Date.now()}`,
@@ -357,7 +366,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sectionKey: sectionKey || 'custom',
       isHighlighted: true,
       command: command || '',
-      isReviewed: false
+      isReviewed: false,
+      category
     };
 
     setStudents(prev => prev.map(s => {
@@ -408,6 +418,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
             sub.id === subtopicId ? { ...sub, command } : sub
           )
         };
+      }
+      return s;
+    }));
+  };
+
+  const updateSubtopicCategory = (subtopicId: string, category: 'suggestion' | 'must_fix' | 'praise' | 'question') => {
+    if (!activeStudent) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return {
+          ...s,
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+            sub.id === subtopicId ? { ...sub, category } : sub
+          )
+        };
+      }
+      return s;
+    }));
+  };
+
+  const updateSubtopicRewrite = (subtopicId: string, rewrite: { before: string; after: string }) => {
+    if (!activeStudent) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return {
+          ...s,
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+            sub.id === subtopicId ? { ...sub, suggestedRewrite: rewrite } : sub
+          )
+        };
+      }
+      return s;
+    }));
+  };
+
+  const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string }) => {
+    if (!activeStudent) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return { ...s, audioNote };
+      }
+      return s;
+    }));
+  };
+
+  const saveRubricScores = (scores: Record<string, number>) => {
+    if (!activeStudent) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return { ...s, rubricScores: scores };
       }
       return s;
     }));
@@ -576,6 +636,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     removeVolunteerSubtopic,
     toggleSubtopicHighlight,
     updateSubtopicCommand,
+    updateSubtopicCategory,
+    updateSubtopicRewrite,
+    saveAudioNote,
+    saveRubricScores,
     toggleSubtopicReviewed,
     quickHighlightFromCanvas,
     openModal: (modalName: string) => setActiveModal(modalName),

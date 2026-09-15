@@ -21,6 +21,7 @@ export const StudentFeedbackView: React.FC = () => {
 
   const [activeSpotlightSection, setActiveSpotlightSection] = useState<string | null>(null);
   const [studentMobileTab, setStudentMobileTab] = useState<'mistakes' | 'resume'>('mistakes');
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   if (!activeStudent) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Student profile not found.</div>;
@@ -53,6 +54,12 @@ export const StudentFeedbackView: React.FC = () => {
   const handleSubmitRevisions = () => {
     alert(`Thank you, ${activeStudent.name}! Your revised resume and responses to volunteer feedback have been submitted to mentor ${volunteer.name} for re-review.`);
   };
+
+  const rubricScores = activeStudent.rubricScores;
+  const hasRubric = !!rubricScores;
+  const rubricAvg = hasRubric
+    ? Math.round(((rubricScores.atsFormat + rubricScores.metricsImpact + rubricScores.techDepth + rubricScores.grammarClarity) / 20) * 100)
+    : null;
 
   return (
     <div className="student-view-container">
@@ -228,6 +235,76 @@ export const StudentFeedbackView: React.FC = () => {
                 "{activeStudent.generalFeedback || 'Great foundation. Review the highlighted action items on your resume.'}"
               </div>
             </div>
+
+            {/* Mentor Voice Audio Memo if present */}
+            {activeStudent.audioNote?.recorded && (
+              <div className="student-voice-memo-card">
+                <div className="voice-memo-header">
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#0F172A', fontSize: '13px' }}>
+                    🎙️ Mentor Voice Memo ({activeStudent.audioNote.duration})
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>
+                    {activeStudent.audioNote.timestamp || 'Recorded during review'}
+                  </span>
+                </div>
+                <div className="student-voice-player-row">
+                  <button 
+                    type="button" 
+                    className={`btn-play-voice ${isPlayingAudio ? 'is-playing' : ''}`}
+                    onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                  >
+                    {isPlayingAudio ? '⏸ Pause Feedback' : '▶ Play Voice Feedback'}
+                  </button>
+                  <div className="voice-waveform-mini">
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                    <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>
+                    {isPlayingAudio ? 'Playing...' : activeStudent.audioNote.duration}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 4-Criteria Evaluation Rubric Scorecard if present */}
+            {hasRubric && rubricScores && (
+              <div className="student-rubric-summary-box">
+                <div className="rubric-summary-header">
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#0F172A', fontSize: '13px' }}>
+                    📊 Evaluation Rubric Scorecard
+                  </span>
+                  <span className="rubric-overall-badge">
+                    {rubricAvg}% Overall Quality
+                  </span>
+                </div>
+                <div className="rubric-compact-grid">
+                  <div className="rubric-compact-card">
+                    <span className="criterion-name">ATS & Layout</span>
+                    <span className="criterion-val">{rubricScores.atsFormat} / 5</span>
+                    <div className="criterion-bar"><div style={{ width: `${(rubricScores.atsFormat / 5) * 100}%` }} /></div>
+                  </div>
+                  <div className="rubric-compact-card">
+                    <span className="criterion-name">Metrics & Impact</span>
+                    <span className="criterion-val">{rubricScores.metricsImpact} / 5</span>
+                    <div className="criterion-bar"><div style={{ width: `${(rubricScores.metricsImpact / 5) * 100}%` }} /></div>
+                  </div>
+                  <div className="rubric-compact-card">
+                    <span className="criterion-name">Technical Depth</span>
+                    <span className="criterion-val">{rubricScores.techDepth} / 5</span>
+                    <div className="criterion-bar"><div style={{ width: `${(rubricScores.techDepth / 5) * 100}%` }} /></div>
+                  </div>
+                  <div className="rubric-compact-card">
+                    <span className="criterion-name">Clarity & Verbs</span>
+                    <span className="criterion-val">{rubricScores.grammarClarity} / 5</span>
+                    <div className="criterion-bar"><div style={{ width: `${(rubricScores.grammarClarity / 5) * 100}%` }} /></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actionable Mistakes & Commands Section */}
@@ -250,6 +327,7 @@ export const StudentFeedbackView: React.FC = () => {
               volunteerSubtopics.map(item => {
                 const isResolved = !!studentResolvedItems[item.id];
                 const isSpotlighted = activeSpotlightSection === item.sectionKey;
+                const cat = item.category || 'suggestion';
 
                 return (
                   <div 
@@ -258,9 +336,14 @@ export const StudentFeedbackView: React.FC = () => {
                     style={isSpotlighted ? { borderColor: '#EAB308', boxShadow: '0 0 0 3px rgba(250, 204, 21, 0.4)' } : {}}
                   >
                     <div className="student-mistake-top-row">
-                      <span className="subtopic-badge">
-                        🟡 {item.title}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span className="subtopic-card-title" style={{ fontSize: '14px' }}>
+                          {item.title}
+                        </span>
+                        <span className={`subtopic-badge badge-${cat}`}>
+                          {cat === 'must_fix' ? '⚠️ Must Fix' : cat === 'praise' ? '🌟 Praise' : cat === 'question' ? '❓ Question' : '💡 Suggestion'}
+                        </span>
+                      </div>
 
                       <button 
                         className="btn-spotlight-resume"
@@ -278,6 +361,20 @@ export const StudentFeedbackView: React.FC = () => {
                         {item.command || "Please review and enhance this section based on best resume formatting standards."}
                       </p>
                     </div>
+
+                    {/* Before / After Rewrite Diff if provided by volunteer */}
+                    {item.suggestedRewrite && (
+                      <div className="diff-box-group" style={{ margin: '8px 0 12px 0' }}>
+                        <div className="diff-box before" style={{ padding: '6px 10px', fontSize: '12px' }}>
+                          <span className="diff-label">Original Text:</span>
+                          <s>{item.suggestedRewrite.before}</s>
+                        </div>
+                        <div className="diff-box after" style={{ padding: '6px 10px', fontSize: '12px' }}>
+                          <span className="diff-label">Suggested Replacement by Mentor:</span>
+                          <strong>{item.suggestedRewrite.after}</strong>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Student Action: Mark as Resolved */}
                     <div className="student-resolve-action-row">
@@ -429,15 +526,32 @@ export const StudentFeedbackView: React.FC = () => {
                     {/* Highlighted Box with Volunteer Command */}
                     {hasFeedback && subtopic && (
                       <div className="resume-highlight-zone is-active">
-                        <div className="highlight-comment-bubble">
-                          <CommentIcon size={12} /> Volunteer Correction
+                        <div className="highlight-comment-bubble" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span><CommentIcon size={12} /> Volunteer Correction</span>
+                          {subtopic.category && (
+                            <span className={`subtopic-badge badge-${subtopic.category}`} style={{ fontSize: '9px', padding: '1px 6px' }}>
+                              {subtopic.category === 'must_fix' ? '⚠️ Must Fix' : subtopic.category === 'praise' ? '🌟 Praise' : subtopic.category === 'question' ? '❓ Question' : '💡 Suggestion'}
+                            </span>
+                          )}
                         </div>
                         <div className="highlight-comment-pin">
-                          🟡 Action Required: {subtopic.title}
+                          Action Required: {subtopic.title}
                         </div>
                         <div className="highlight-comment-text">
                           {subtopic.command || "Please improve this section based on volunteer advice."}
                         </div>
+                        {subtopic.suggestedRewrite && (
+                          <div className="diff-box-group" style={{ marginTop: '8px' }}>
+                            <div className="diff-box before" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              <span className="diff-label" style={{ fontSize: '9px' }}>Original:</span>
+                              <s>{subtopic.suggestedRewrite.before}</s>
+                            </div>
+                            <div className="diff-box after" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              <span className="diff-label" style={{ fontSize: '9px' }}>Suggested Replacement:</span>
+                              <strong>{subtopic.suggestedRewrite.after}</strong>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </section>

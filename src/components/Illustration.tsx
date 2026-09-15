@@ -255,7 +255,7 @@ export const LoginIllustration: React.FC = () => {
           className={`anim-step-btn ${activeStep === 3 ? 'active' : ''}`}
           onClick={() => handleStepClick(3)}
         >
-          <span>🏆 3. Placement Approved</span>
+          <span>🏆 3. Resume Reviewed</span>
         </button>
       </div>
 
@@ -265,7 +265,7 @@ export const LoginIllustration: React.FC = () => {
         <span>
           {activeStep === 1 && "Student uploads resume with career goals and target role interests."}
           {activeStep === 2 && "Volunteer mentor annotates sections with soft yellow highlights and actionable commands."}
-          {activeStep === 3 && "Student resolves corrections, clears checklist, and receives final placement approval."}
+          {activeStep === 3 && "Student resolves corrections, clears checklist, and receives final resume review."}
         </span>
       </div>
     </div>
