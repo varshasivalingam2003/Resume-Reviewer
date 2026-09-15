@@ -100,6 +100,7 @@ export const ResumeWorkspaceView: React.FC = () => {
     updateSubtopicCommand,
     updateSubtopicCategory,
     updateSubtopicRewrite,
+    updateSubtopicAudioNote,
     saveAudioNote,
     saveRubricScores,
     toggleSubtopicReviewed,
@@ -131,11 +132,12 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [rewriteProposed, setRewriteProposed] = useState('Results-driven Software Engineering candidate with hands-on React & Node.js full-stack project experience, seeking to build high-performance web applications.');
   const [rewriteSavedAlert, setRewriteSavedAlert] = useState(false);
 
-  // Method 4: Voice Feedback Recorder Simulation
+  // Method 4: Voice Feedback Recorder Simulation (Overall + Subtopics)
+  const [voiceTarget, setVoiceTarget] = useState<string>('overall');
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
-  const [hasRecordedVoice, setHasRecordedVoice] = useState(!!activeStudent?.audioNote?.recorded);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [playingSubtopicAudioId, setPlayingSubtopicAudioId] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: any;
@@ -144,8 +146,13 @@ export const ResumeWorkspaceView: React.FC = () => {
         setVoiceSeconds(prev => {
           if (prev >= 60) {
             setIsVoiceRecording(false);
-            setHasRecordedVoice(true);
-            saveAudioNote({ recorded: true, duration: '0:60', timestamp: 'Just now' });
+            const duration = '0:60';
+            const timestamp = 'Just now';
+            if (voiceTarget === 'overall') {
+              saveAudioNote({ recorded: true, duration, timestamp });
+            } else {
+              updateSubtopicAudioNote(voiceTarget, { recorded: true, duration, timestamp });
+            }
             return 60;
           }
           return prev + 1;
@@ -153,7 +160,7 @@ export const ResumeWorkspaceView: React.FC = () => {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isVoiceRecording]);
+  }, [isVoiceRecording, voiceTarget]);
 
   // Method 5: Evaluation Rubric Scorecard
   const [rubricScores, setRubricScoresLocal] = useState({
@@ -501,11 +508,15 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
                 onClick={() => setActiveCommentTool('voice_memo')}
-                title="Record and attach voice audio coaching"
+                title="Record and attach voice audio coaching for overall resume or specific sections"
               >
                 <span className="tab-icon">🎙️</span>
                 <span className="tab-label">Voice Memo</span>
-                {hasRecordedVoice && <span className="tab-saved-dot">✓</span>}
+                {((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length) > 0 && (
+                  <span className="tab-saved-dot">
+                    {(activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length} ✓
+                  </span>
+                )}
               </button>
               <button 
                 type="button"
@@ -775,6 +786,66 @@ export const ResumeWorkspaceView: React.FC = () => {
                               + Leadership
                             </button>
                           </div>
+
+                          {/* Subtopic Voice Feedback Note Row */}
+                          <div className="subtopic-voice-row">
+                            {sub.audioNote?.recorded ? (
+                              <div className="subtopic-voice-pill">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ fontSize: '13px' }}>🎙️</span>
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#166534' }}>
+                                    Voice Note ({sub.audioNote.duration})
+                                  </span>
+                                  <span style={{ fontSize: '10px', color: '#64748B' }}>
+                                    {sub.audioNote.timestamp}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <button 
+                                    type="button" 
+                                    className="subtopic-voice-action-btn"
+                                    onClick={() => {
+                                      setPlayingSubtopicAudioId(playingSubtopicAudioId === sub.id ? null : sub.id);
+                                    }}
+                                  >
+                                    {playingSubtopicAudioId === sub.id ? '⏸ Pause' : '▶ Play'}
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    className="subtopic-voice-action-btn record-again"
+                                    onClick={() => {
+                                      setVoiceTarget(sub.id);
+                                      setActiveCommentTool('voice_memo');
+                                    }}
+                                    title="Re-record voice note for this subtopic"
+                                  >
+                                    🔄 Re-record
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    className="subtopic-voice-action-btn delete"
+                                    onClick={() => {
+                                      updateSubtopicAudioNote(sub.id, { recorded: false, duration: '0:00', timestamp: '' });
+                                    }}
+                                    title="Remove voice note"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button 
+                                type="button" 
+                                className="btn-attach-subtopic-voice"
+                                onClick={() => {
+                                  setVoiceTarget(sub.id);
+                                  setActiveCommentTool('voice_memo');
+                                }}
+                              >
+                                🎙️ + Record Voice Note for "{sub.title}"
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -942,16 +1013,57 @@ export const ResumeWorkspaceView: React.FC = () => {
           )}
 
           {/* =========================================================================
-              METHOD 4: VOICE / AUDIO COACHING NOTE
+              METHOD 4: VOICE / AUDIO COACHING NOTE (OVERALL & SUBTOPIC TARGETS)
              ========================================================================= */}
           {activeCommentTool === 'voice_memo' && (
             <div className="voice-memo-panel">
               <div style={{ fontSize: '14px', fontWeight: '800', color: '#0F172A', marginBottom: '4px' }}>
-                🎙️ Audio Voice Coaching Note
+                🎙️ Audio Voice Coaching Notes
               </div>
-              <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '340px', margin: '0 auto' }}>
-                Record a 30–60 second vocal review note. Students retain verbal mentor nuance and encouragement far better!
+              <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '380px', margin: '0 auto 12px auto' }}>
+                Record voice notes either for <strong>specific resume subtopics</strong> or as an <strong>overall review coaching memo</strong>.
               </p>
+
+              {/* Target Selector Card */}
+              <div className="voice-target-selector-box">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#854D0E', textTransform: 'uppercase' }}>
+                    🎯 Record Voice Note For:
+                  </span>
+                  {(voiceTarget === 'overall' ? activeStudent.audioNote?.recorded : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.recorded) && (
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#166534', background: '#DCFCE7', padding: '2px 8px', borderRadius: '9999px' }}>
+                      ✓ Audio Attached ({(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration)})
+                    </span>
+                  )}
+                </div>
+
+                <select 
+                  className="search-field"
+                  style={{ width: '100%', height: '38px', fontSize: '13px', fontWeight: '700', background: '#FFFFFF' }}
+                  value={voiceTarget}
+                  onChange={(e) => {
+                    setVoiceTarget(e.target.value);
+                    setIsVoiceRecording(false);
+                    setIsPlayingAudio(false);
+                    setVoiceSeconds(0);
+                  }}
+                >
+                  <option value="overall">📢 Overall Review Memo (General Feedback)</option>
+                  <optgroup label="📌 Specific Subtopic Sections">
+                    {volunteerSubtopics.map(sub => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.title} {sub.audioNote?.recorded ? `(Attached: ${sub.audioNote.duration})` : '(No audio yet)'}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '6px' }}>
+                  {voiceTarget === 'overall' 
+                    ? "Recording will attach to candidate's overall review card."
+                    : `Recording will attach directly to the "${volunteerSubtopics.find(s => s.id === voiceTarget)?.title || 'Selected'}" checklist card.`}
+                </div>
+              </div>
 
               <div className="voice-recording-stage">
                 <div 
@@ -959,11 +1071,18 @@ export const ResumeWorkspaceView: React.FC = () => {
                   onClick={() => {
                     if (isVoiceRecording) {
                       setIsVoiceRecording(false);
-                      setHasRecordedVoice(true);
-                      saveAudioNote({ recorded: true, duration: `0:${voiceSeconds.toString().padStart(2, '0')}`, timestamp: 'Just now' });
+                      const duration = `0:${Math.max(voiceSeconds, 5).toString().padStart(2, '0')}`;
+                      const timestamp = 'Just now';
+                      const audioData = { recorded: true, duration, timestamp };
+                      if (voiceTarget === 'overall') {
+                        saveAudioNote(audioData);
+                      } else {
+                        updateSubtopicAudioNote(voiceTarget, audioData);
+                      }
                     } else {
                       setIsVoiceRecording(true);
                       setVoiceSeconds(0);
+                      setIsPlayingAudio(false);
                     }
                   }}
                   title={isVoiceRecording ? "Click to Stop Recording" : "Click to Record Voice Feedback"}
@@ -992,16 +1111,17 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '10px' }}>
-                {!isVoiceRecording && !hasRecordedVoice && (
+                {!isVoiceRecording && !(voiceTarget === 'overall' ? activeStudent.audioNote?.recorded : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.recorded) && (
                   <button 
                     type="button" 
                     className="btn btn-primary btn-sm"
                     onClick={() => {
                       setIsVoiceRecording(true);
                       setVoiceSeconds(0);
+                      setIsPlayingAudio(false);
                     }}
                   >
-                    ● Start Recording
+                    ● Start Recording ({voiceTarget === 'overall' ? 'Overall Memo' : 'Section Note'})
                   </button>
                 )}
 
@@ -1011,43 +1131,97 @@ export const ResumeWorkspaceView: React.FC = () => {
                     className="btn btn-danger btn-sm"
                     onClick={() => {
                       setIsVoiceRecording(false);
-                      setHasRecordedVoice(true);
-                      saveAudioNote({ recorded: true, duration: `0:${voiceSeconds.toString().padStart(2, '0')}`, timestamp: 'Just now' });
+                      const duration = `0:${Math.max(voiceSeconds, 5).toString().padStart(2, '0')}`;
+                      const timestamp = 'Just now';
+                      const audioData = { recorded: true, duration, timestamp };
+                      if (voiceTarget === 'overall') {
+                        saveAudioNote(audioData);
+                      } else {
+                        updateSubtopicAudioNote(voiceTarget, audioData);
+                      }
                     }}
                   >
                     ⏹ Done Recording
                   </button>
                 )}
 
-                {hasRecordedVoice && (
+                {(voiceTarget === 'overall' ? activeStudent.audioNote?.recorded : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.recorded) && (
                   <>
                     <button 
                       type="button" 
                       className="btn btn-secondary btn-sm"
                       onClick={() => setIsPlayingAudio(!isPlayingAudio)}
                     >
-                      {isPlayingAudio ? '⏸ Pause' : '▶ Play Back (0:45)'}
+                      {isPlayingAudio ? '⏸ Pause' : `▶ Play (${(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration) || '0:30'})`}
                     </button>
                     <button 
                       type="button" 
                       className="btn btn-outline btn-sm"
                       onClick={() => {
-                        setHasRecordedVoice(false);
+                        setIsPlayingAudio(false);
                         setVoiceSeconds(0);
-                        saveAudioNote({ recorded: false, duration: '0:00', timestamp: '' });
+                        if (voiceTarget === 'overall') {
+                          saveAudioNote({ recorded: false, duration: '0:00', timestamp: '' });
+                        } else {
+                          updateSubtopicAudioNote(voiceTarget, { recorded: false, duration: '0:00', timestamp: '' });
+                        }
                       }}
                     >
-                      ↺ Re-Record
+                      ↺ Remove & Re-Record
                     </button>
                   </>
                 )}
               </div>
 
-              {hasRecordedVoice && (
-                <div style={{ marginTop: '14px', background: '#FEF9C3', border: '1px solid #FDE047', borderRadius: '8px', padding: '8px', fontSize: '11.5px', color: '#854D0E', fontWeight: '700' }}>
-                  ✓ Voice Note attached to {activeStudent.name}'s feedback portal!
+              {/* All Recorded Voice Notes Directory */}
+              <div className="all-recorded-voice-notes-box">
+                <div style={{ fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  Recorded Audio Feedback ({((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length)}):
                 </div>
-              )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {activeStudent.audioNote?.recorded && (
+                    <div className={`voice-list-item ${voiceTarget === 'overall' ? 'active-target' : ''}`}>
+                      <div>
+                        <strong style={{ fontSize: '12px' }}>📢 Overall Review Coaching Memo</strong>
+                        <span style={{ fontSize: '11px', color: '#166534', marginLeft: '6px', fontWeight: '700' }}>
+                          ({activeStudent.audioNote.duration})
+                        </span>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline btn-xs"
+                        onClick={() => setVoiceTarget('overall')}
+                      >
+                        {voiceTarget === 'overall' ? 'Selected' : 'Select'}
+                      </button>
+                    </div>
+                  )}
+
+                  {volunteerSubtopics.filter(s => s.audioNote?.recorded).map(s => (
+                    <div key={s.id} className={`voice-list-item ${voiceTarget === s.id ? 'active-target' : ''}`}>
+                      <div>
+                        <strong style={{ fontSize: '12px' }}>📌 {s.title}</strong>
+                        <span style={{ fontSize: '11px', color: '#166534', marginLeft: '6px', fontWeight: '700' }}>
+                          ({s.audioNote?.duration})
+                        </span>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline btn-xs"
+                        onClick={() => setVoiceTarget(s.id)}
+                      >
+                        {voiceTarget === s.id ? 'Selected' : 'Select'}
+                      </button>
+                    </div>
+                  ))}
+
+                  {((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length) === 0 && (
+                    <div style={{ fontSize: '12px', color: '#94A3B8', fontStyle: 'italic', textAlign: 'center', padding: '8px' }}>
+                      No voice feedback notes recorded yet.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

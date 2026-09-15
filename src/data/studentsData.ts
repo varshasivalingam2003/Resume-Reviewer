@@ -7,6 +7,7 @@ export interface VolunteerSubtopic {
   isReviewed: boolean;
   category?: 'suggestion' | 'must_fix' | 'praise' | 'question';
   suggestedRewrite?: { before: string; after: string };
+  audioNote?: { recorded: boolean; duration: string; timestamp: string };
 }
 
 export interface EducationItem {
@@ -104,7 +105,8 @@ export const initialStudents: Student[] = [
         sectionKey: "projects",
         isHighlighted: true,
         command: "Quantify impact with numbers (e.g., 'Automated attendance for 400+ students') and include GitHub URL.",
-        isReviewed: false
+        isReviewed: false,
+        audioNote: { recorded: true, duration: '0:22', timestamp: '10:30 AM' }
       },
       {
         id: "sub-3",

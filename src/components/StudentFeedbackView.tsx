@@ -22,6 +22,7 @@ export const StudentFeedbackView: React.FC = () => {
   const [activeSpotlightSection, setActiveSpotlightSection] = useState<string | null>(null);
   const [studentMobileTab, setStudentMobileTab] = useState<'mistakes' | 'resume'>('mistakes');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [playingSubtopicAudioId, setPlayingSubtopicAudioId] = useState<string | null>(null);
 
   if (!activeStudent) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Student profile not found.</div>;
@@ -376,6 +377,40 @@ export const StudentFeedbackView: React.FC = () => {
                       </div>
                     )}
 
+                    {/* Subtopic Audio Voice Feedback Player */}
+                    {item.audioNote?.recorded && (
+                      <div className="student-subtopic-voice-memo">
+                        <div className="subtopic-voice-meta">
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '12px', color: '#166534' }}>
+                            🎙️ Volunteer Voice Note on this section ({item.audioNote.duration})
+                          </span>
+                          <span style={{ fontSize: '11px', color: '#64748B' }}>
+                            {item.audioNote.timestamp || 'Recorded by mentor'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <button
+                            type="button"
+                            className={`btn-play-voice ${playingSubtopicAudioId === item.id ? 'is-playing' : ''}`}
+                            onClick={() => setPlayingSubtopicAudioId(playingSubtopicAudioId === item.id ? null : item.id)}
+                          >
+                            {playingSubtopicAudioId === item.id ? '⏸ Pause Note' : '▶ Play Voice Note'}
+                          </button>
+                          <div className="voice-waveform-mini">
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                            <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#475569', fontWeight: '600' }}>
+                            {playingSubtopicAudioId === item.id ? 'Playing audio...' : item.audioNote.duration}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Student Action: Mark as Resolved */}
                     <div className="student-resolve-action-row">
                       <label className={`resolve-checkbox-label ${isResolved ? 'checked' : ''}`}>
@@ -550,6 +585,11 @@ export const StudentFeedbackView: React.FC = () => {
                               <span className="diff-label" style={{ fontSize: '9px' }}>Suggested Replacement:</span>
                               <strong>{subtopic.suggestedRewrite.after}</strong>
                             </div>
+                          </div>
+                        )}
+                        {subtopic.audioNote?.recorded && (
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', border: '1px solid #86EFAC', borderRadius: '6px', padding: '3px 8px', marginTop: '6px', fontSize: '11px', color: '#166534', fontWeight: '700' }}>
+                            <span>🎙️ Voice Note Attached: {subtopic.audioNote.duration}</span>
                           </div>
                         )}
                       </div>

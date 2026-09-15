@@ -65,6 +65,7 @@ export interface AppContextType {
   updateSubtopicCommand: (subtopicId: string, command: string) => void;
   updateSubtopicCategory: (subtopicId: string, category: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
   updateSubtopicRewrite: (subtopicId: string, rewrite: { before: string; after: string }) => void;
+  updateSubtopicAudioNote: (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string }) => void;
   saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string }) => void;
   saveRubricScores: (scores: Record<string, number>) => void;
   toggleSubtopicReviewed: (subtopicId: string) => void;
@@ -453,6 +454,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const updateSubtopicAudioNote = (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string }) => {
+    if (!activeStudent) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return {
+          ...s,
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+            sub.id === subtopicId ? { ...sub, audioNote } : sub
+          )
+        };
+      }
+      return s;
+    }));
+  };
+
   const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string }) => {
     if (!activeStudent) return;
     setStudents(prev => prev.map(s => {
@@ -638,6 +654,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     updateSubtopicCommand,
     updateSubtopicCategory,
     updateSubtopicRewrite,
+    updateSubtopicAudioNote,
     saveAudioNote,
     saveRubricScores,
     toggleSubtopicReviewed,

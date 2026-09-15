@@ -1371,6 +1371,108 @@
   100% { height: 28px; }
 }
 
+/* Voice Target Selector & Directory */
+.voice-target-selector-box {
+  background: #FFFBEB;
+  border: 1px solid #FEF08A;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.all-recorded-voice-notes-box {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+}
+
+.voice-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 7px;
+  transition: all var(--transition-fast);
+}
+
+.voice-list-item.active-target {
+  border-color: #EAB308;
+  background: #FEFCE8;
+  box-shadow: 0 0 0 1px #EAB308;
+}
+
+/* Subtopic Card Voice Elements */
+.subtopic-voice-row {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #E2E8F0;
+}
+
+.subtopic-voice-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.subtopic-voice-action-btn {
+  background: #FFFFFF;
+  border: 1px solid #86EFAC;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.subtopic-voice-action-btn:hover {
+  background: #DCFCE7;
+}
+
+.subtopic-voice-action-btn.record-again {
+  border-color: #CBD5E1;
+  color: #475569;
+}
+
+.subtopic-voice-action-btn.delete {
+  border-color: #FECACA;
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.subtopic-voice-action-btn.delete:hover {
+  background: #FEE2E2;
+}
+
+.btn-attach-subtopic-voice {
+  background: transparent;
+  border: 1px dashed #CBD5E1;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-attach-subtopic-voice:hover {
+  background: #F8FAFC;
+  border-color: #EAB308;
+  color: #854D0E;
+}
+
 /* Evaluation Rubric Scorecard */
 .rubric-panel {
   background: #FFFFFF;
