@@ -38,7 +38,7 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
-        {isAuthenticated && activeRole === 'volunteer' && <Navbar />}
+        {isAuthenticated && activeRole === 'volunteer' && currentView !== 'workspace' && <Navbar />}
 
         <div className="app-main-content">
           {activeRole === 'student' ? (

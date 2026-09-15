@@ -369,6 +369,7 @@ export const ResumeWorkspaceView: React.FC = () => {
           
           <div className="workspace-student-title-box">
             <span className="workspace-student-name">{activeStudent.name}</span>
+            <span className="workspace-student-degree">{activeStudent.degree}</span>
             <span className={`status-badge status-${activeStudent.status}`}>
               {formatStatus(activeStudent.status)}
             </span>
@@ -495,26 +496,12 @@ export const ResumeWorkspaceView: React.FC = () => {
 
         {/* Right Pane: Review & Feedback Panel */}
         <aside className="review-feedback-pane">
-          {/* Student Header */}
-          <div className="review-student-header">
-            <div className="review-student-info">
-              <img src={activeStudent.avatar} alt={activeStudent.name} className="review-student-avatar" />
-              <div>
-                <h2 className="review-student-name">{activeStudent.name}</h2>
-                <span className="review-student-sub">{activeStudent.degree}</span>
-              </div>
-            </div>
-            <span className={`status-badge status-${activeStudent.status}`}>
-              {formatStatus(activeStudent.status)}
-            </span>
-          </div>
-
           {/* Progress Header */}
           <div className="review-progress-section">
             <div className="review-progress-header">
-              <span className="review-progress-title">Volunteer Review Progress</span>
+              <span className="review-progress-title">Review Progress</span>
               <span className="review-progress-count">
-                {reviewedCount} / {totalSubtopics} subtopics reviewed
+                {reviewedCount} / {totalSubtopics} reviewed
               </span>
             </div>
             <div className="review-progress-bar">
@@ -522,23 +509,8 @@ export const ResumeWorkspaceView: React.FC = () => {
             </div>
           </div>
 
-          {/* Volunteer Commenting Options Switcher Panel */}
-          <div className="comment-feedback-tools-panel">
-            <div className="comment-tools-top-bar">
-              <div className="comment-tools-title-group">
-                <span className="comment-tools-badge-icon">💬</span>
-                <div>
-                  <div className="comment-tools-main-title">Feedback Options for Volunteers</div>
-                  <div className="comment-tools-sub-title">5 commenting feedback methods to evaluate this resume</div>
-                </div>
-              </div>
-              <span className="comment-tools-current-mode-pill">
-                Active: <strong>{getActiveToolLabel()}</strong>
-              </span>
-            </div>
-
-            {/* 5 Distinct Navigation Tabs */}
-            <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
+          {/* 5 Clean Navigation Tabs */}
+          <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
               <button 
                 type="button"
                 className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
@@ -596,7 +568,6 @@ export const ResumeWorkspaceView: React.FC = () => {
                 <span className="tab-label">Rubric</span>
               </button>
             </div>
-          </div>
 
           {/* =========================================================================
               METHOD 1: SECTION NOTES & SUBTOPIC COMMANDS (WITH SEVERITY TAGS)
@@ -1318,23 +1289,23 @@ export const ResumeWorkspaceView: React.FC = () => {
             <div className="rubric-panel">
               <div className="rubric-header-score">
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: '#854D0E', textTransform: 'uppercase' }}>
-                    Calculated Readiness
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: '#854D0E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Evaluation Score
                   </div>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#713F12' }}>
+                  <div style={{ fontSize: '20px', fontWeight: '800', color: '#713F12' }}>
                     {calculateRubricOverall()}% Ready
                   </div>
                 </div>
-                <div style={{ textAlign: 'right', fontSize: '12px', color: '#854D0E' }}>
-                  Standard Rubric (4 Pillars)
+                <div style={{ textAlign: 'right', fontSize: '11px', color: '#854D0E', fontWeight: '600' }}>
+                  4 Standard Criteria
                 </div>
               </div>
 
               {/* Criterion 1 */}
               <div className="rubric-criterion-row">
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
-                  <span>1. ATS & Layout Safety:</span>
-                  <span style={{ color: '#EAB308' }}>{rubricScores.atsFormat} / 5</span>
+                  <span>1. ATS & Layout Safety</span>
+                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.atsFormat} / 5★</span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1344,7 +1315,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                       className={`rubric-score-pill ${rubricScores.atsFormat === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('atsFormat', val)}
                     >
-                      {val === 1 ? 'Poor' : val === 3 ? 'Good' : val === 5 ? 'Flawless' : `${val}★`}
+                      {val}★
                     </button>
                   ))}
                 </div>
@@ -1353,8 +1324,8 @@ export const ResumeWorkspaceView: React.FC = () => {
               {/* Criterion 2 */}
               <div className="rubric-criterion-row">
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
-                  <span>2. Impact & Measurable Metrics:</span>
-                  <span style={{ color: '#EAB308' }}>{rubricScores.metricsImpact} / 5</span>
+                  <span>2. Impact & Measurable Metrics</span>
+                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.metricsImpact} / 5★</span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1364,7 +1335,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                       className={`rubric-score-pill ${rubricScores.metricsImpact === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('metricsImpact', val)}
                     >
-                      {val === 1 ? 'None' : val === 3 ? 'Average' : val === 5 ? 'High Impact' : `${val}★`}
+                      {val}★
                     </button>
                   ))}
                 </div>
@@ -1373,8 +1344,8 @@ export const ResumeWorkspaceView: React.FC = () => {
               {/* Criterion 3 */}
               <div className="rubric-criterion-row">
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
-                  <span>3. Technical Projects Depth:</span>
-                  <span style={{ color: '#EAB308' }}>{rubricScores.techDepth} / 5</span>
+                  <span>3. Technical Projects Depth</span>
+                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.techDepth} / 5★</span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1384,7 +1355,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                       className={`rubric-score-pill ${rubricScores.techDepth === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('techDepth', val)}
                     >
-                      {val === 1 ? 'Basic' : val === 3 ? 'Solid' : val === 5 ? 'Production' : `${val}★`}
+                      {val}★
                     </button>
                   ))}
                 </div>
@@ -1393,8 +1364,8 @@ export const ResumeWorkspaceView: React.FC = () => {
               {/* Criterion 4 */}
               <div className="rubric-criterion-row">
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
-                  <span>4. Clarity & Strong Action Verbs:</span>
-                  <span style={{ color: '#EAB308' }}>{rubricScores.grammarClarity} / 5</span>
+                  <span>4. Clarity & Strong Action Verbs</span>
+                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.grammarClarity} / 5★</span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1404,7 +1375,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                       className={`rubric-score-pill ${rubricScores.grammarClarity === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('grammarClarity', val)}
                     >
-                      {val === 1 ? 'Passive' : val === 3 ? 'Clear' : val === 5 ? 'Stellar' : `${val}★`}
+                      {val}★
                     </button>
                   ))}
                 </div>
@@ -1549,32 +1520,24 @@ const ResumeDocumentPaper: React.FC<ResumeDocumentPaperProps> = ({
             className={`resume-section ${isVolunteerHighlighted ? 'has-volunteer-highlight' : ''}`}
             id={`section-doc-${sec.key}`}
           >
-            {/* Section Header with Volunteer Highlight Status */}
-            <div className="resume-section-title">
+            {/* Section Header */}
+            <div 
+              className="resume-section-title" 
+              onClick={() => onSelectSection(sec.key)}
+              title="Click to view notes in review panel"
+              style={{ cursor: 'pointer' }}
+            >
               <span>{sec.title}</span>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button 
-                  type="button"
-                  className={`canvas-section-action-btn ${isVolunteerHighlighted ? 'active' : ''}`}
-                  onClick={() => onQuickHighlight(sec.key, sec.title)}
-                  title="Click to toggle highlight on this section"
-                >
-                  {isVolunteerHighlighted ? '💡 Highlighted' : '+ Highlight'}
-                </button>
-                <button 
-                  type="button"
-                  className="canvas-section-action-btn"
-                  onClick={() => onSelectSection(sec.key)}
-                  title="Open comments for this section"
-                >
-                  💬 Comment
-                </button>
-              </div>
+              {isVolunteerHighlighted && (
+                <span className="clean-doc-highlight-pill">
+                  ● {cat === 'must_fix' ? 'Must Fix' : cat === 'praise' ? 'Praise' : 'Note'}
+                </span>
+              )}
             </div>
 
-            {/* Render Content Based on Section Type */}
+            {/* Clean Section Content */}
             {sec.type === 'text' && (
-              <p>{sec.content}</p>
+              <p style={{ margin: '4px 0', fontSize: '12.5px', lineHeight: '1.5' }}>{sec.content}</p>
             )}
 
             {sec.type === 'education' && (
@@ -1616,51 +1579,11 @@ const ResumeDocumentPaper: React.FC<ResumeDocumentPaperProps> = ({
             )}
 
             {sec.type === 'list' && (
-              <ul style={{ paddingLeft: '20px', fontSize: '13px', color: '#334155' }}>
+              <ul style={{ paddingLeft: '20px', fontSize: '12.5px', color: '#334155', margin: '4px 0' }}>
                 {(sec.items as string[])?.map((item, idx) => (
-                  <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                  <li key={idx} style={{ marginBottom: '3px' }}>{item}</li>
                 ))}
               </ul>
-            )}
-
-            {/* Volunteer Highlight Zone & Severity Callout */}
-            {isVolunteerHighlighted && subtopic && (
-              <div 
-                className="resume-highlight-zone is-active"
-                onClick={() => onSelectSection(sec.key)}
-                title="Volunteer Highlighted Subtopic - Click to edit comment"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div className="highlight-comment-bubble">
-                    <CommentIcon size={12} /> Volunteer Directive
-                  </div>
-                  <span className={`subtopic-badge badge-${cat}`} style={{ fontSize: '9.5px' }}>
-                    {cat === 'must_fix' ? '⚠️ Must Fix' : cat === 'praise' ? '🌟 Praise' : cat === 'question' ? '❓ Question' : '💡 Suggestion'}
-                  </span>
-                </div>
-
-                <div className="highlight-comment-pin">
-                  🟡 Subtopic: {subtopic.title}
-                </div>
-
-                <div className="highlight-comment-text">
-                  {subtopic.command || "No command entered yet. Type feedback command in the right review panel."}
-                </div>
-
-                {/* Suggested Rewrite Diff Card directly on Resume Canvas */}
-                {subtopic.suggestedRewrite && (
-                  <div className="diff-box-group" style={{ marginTop: '8px' }}>
-                    <div className="diff-box before" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                      <span className="diff-label" style={{ fontSize: '9px' }}>Original:</span>
-                      <s>{subtopic.suggestedRewrite.before}</s>
-                    </div>
-                    <div className="diff-box after" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                      <span className="diff-label" style={{ fontSize: '9px' }}>Suggested Replacement:</span>
-                      <strong>{subtopic.suggestedRewrite.after}</strong>
-                    </div>
-                  </div>
-                )}
-              </div>
             )}
           </section>
         );
