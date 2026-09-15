@@ -1380,6 +1380,36 @@
   margin-bottom: 12px;
 }
 
+.limit-pill-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.limit-pill-btn:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: #EAB308;
+  color: #854D0E;
+}
+
+.limit-pill-btn.active {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+}
+
+.limit-pill-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .all-recorded-voice-notes-box {
   margin-top: 16px;
   padding: 12px 14px;

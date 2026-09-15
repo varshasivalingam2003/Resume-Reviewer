@@ -136,31 +136,38 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [voiceTarget, setVoiceTarget] = useState<string>('overall');
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
+  const [maxVoiceSeconds, setMaxVoiceSeconds] = useState<number>(300); // Default 5 mins (up to 10 mins)
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [playingSubtopicAudioId, setPlayingSubtopicAudioId] = useState<string | null>(null);
+
+  const formatVoiceTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     let timer: any;
     if (isVoiceRecording) {
       timer = setInterval(() => {
         setVoiceSeconds(prev => {
-          if (prev >= 60) {
+          if (prev >= maxVoiceSeconds) {
             setIsVoiceRecording(false);
-            const duration = '0:60';
+            const duration = formatVoiceTime(maxVoiceSeconds);
             const timestamp = 'Just now';
             if (voiceTarget === 'overall') {
               saveAudioNote({ recorded: true, duration, timestamp });
             } else {
               updateSubtopicAudioNote(voiceTarget, { recorded: true, duration, timestamp });
             }
-            return 60;
+            return maxVoiceSeconds;
           }
           return prev + 1;
         });
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isVoiceRecording, voiceTarget]);
+  }, [isVoiceRecording, voiceTarget, maxVoiceSeconds]);
 
   // Method 5: Evaluation Rubric Scorecard
   const [rubricScores, setRubricScoresLocal] = useState({
@@ -1065,13 +1072,32 @@ export const ResumeWorkspaceView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Recording Time Limit Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: '4px 0 10px 0', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B' }}>⏱️ Duration Limit:</span>
+                {[60, 180, 300, 600].map(limit => (
+                  <button
+                    key={limit}
+                    type="button"
+                    className={`limit-pill-btn ${maxVoiceSeconds === limit ? 'active' : ''}`}
+                    onClick={() => {
+                      if (!isVoiceRecording) setMaxVoiceSeconds(limit);
+                    }}
+                    disabled={isVoiceRecording}
+                    title={`Set maximum recording duration to ${limit / 60} min`}
+                  >
+                    {limit / 60} min{limit > 60 ? 's' : ''}
+                  </button>
+                ))}
+              </div>
+
               <div className="voice-recording-stage">
                 <div 
                   className={`voice-mic-circle ${isVoiceRecording ? 'recording' : ''}`}
                   onClick={() => {
                     if (isVoiceRecording) {
                       setIsVoiceRecording(false);
-                      const duration = `0:${Math.max(voiceSeconds, 5).toString().padStart(2, '0')}`;
+                      const duration = formatVoiceTime(Math.max(voiceSeconds, 3));
                       const timestamp = 'Just now';
                       const audioData = { recorded: true, duration, timestamp };
                       if (voiceTarget === 'overall') {
@@ -1090,8 +1116,8 @@ export const ResumeWorkspaceView: React.FC = () => {
                   {isVoiceRecording ? '⏹' : '🎤'}
                 </div>
 
-                <div style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'monospace', color: isVoiceRecording ? '#DC2626' : '#0F172A' }}>
-                  00:{voiceSeconds.toString().padStart(2, '0')} / 01:00
+                <div style={{ fontSize: '20px', fontWeight: '800', fontFamily: 'monospace', color: isVoiceRecording ? '#DC2626' : '#0F172A' }}>
+                  {formatVoiceTime(voiceSeconds)} / {formatVoiceTime(maxVoiceSeconds)}
                 </div>
 
                 {/* Animated Equalizer Waveform */}
@@ -1121,7 +1147,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                       setIsPlayingAudio(false);
                     }}
                   >
-                    ● Start Recording ({voiceTarget === 'overall' ? 'Overall Memo' : 'Section Note'})
+                    ● Start Recording (Up to {maxVoiceSeconds / 60} mins)
                   </button>
                 )}
 
@@ -1131,7 +1157,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                     className="btn btn-danger btn-sm"
                     onClick={() => {
                       setIsVoiceRecording(false);
-                      const duration = `0:${Math.max(voiceSeconds, 5).toString().padStart(2, '0')}`;
+                      const duration = formatVoiceTime(Math.max(voiceSeconds, 3));
                       const timestamp = 'Just now';
                       const audioData = { recorded: true, duration, timestamp };
                       if (voiceTarget === 'overall') {
