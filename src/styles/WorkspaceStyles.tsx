@@ -1,4 +1,6 @@
-/* Resume Review Workspace Styles */
+import React from 'react';
+
+const styles = `/* Resume Review Workspace Styles */
 .workspace-container {
   display: flex;
   flex-direction: column;
@@ -1745,3 +1747,8 @@
 
 
 
+`;
+
+export const WorkspaceStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

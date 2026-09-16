@@ -1,4 +1,6 @@
-/* Student Feedback View Styles */
+import React from 'react';
+
+const styles = `/* Student Feedback View Styles */
 .student-view-container {
   display: flex;
   flex-direction: column;
@@ -785,3 +787,8 @@
   justify-content: space-between;
 }
 
+`;
+
+export const StudentViewStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

@@ -1,4 +1,6 @@
-/* Modals Styling */
+import React from 'react';
+
+const styles = `/* Modals Styling */
 
 /* Close button */
 .modal-close-icon {
@@ -184,3 +186,8 @@
   border-color: var(--primary-yellow);
   box-shadow: 0 0 0 3px var(--primary-yellow-glow);
 }
+`;
+
+export const ModalsStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

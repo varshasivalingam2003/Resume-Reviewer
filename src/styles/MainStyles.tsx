@@ -1,4 +1,6 @@
-@import './variables.css';
+import React from 'react';
+
+const styles = `
 
 /* Base Reset */
 *, *::before, *::after {
@@ -423,3 +425,8 @@ html, body {
   position: relative;
   animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+`;
+
+export const MainStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

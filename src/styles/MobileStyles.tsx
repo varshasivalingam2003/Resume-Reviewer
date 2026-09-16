@@ -1,4 +1,6 @@
-/* Mobile & Responsive Adaptations (Screens 7-13) */
+import React from 'react';
+
+const styles = `/* Mobile & Responsive Adaptations (Screens 7-13) */
 
 /* Mobile Bottom Navigation Bar (Screens 8, 9, 10) */
 .mobile-bottom-nav {
@@ -639,3 +641,8 @@
   display: flex !important;
   height: 560px;
 }
+`;
+
+export const MobileStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

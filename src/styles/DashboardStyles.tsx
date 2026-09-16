@@ -1,4 +1,6 @@
-/* Volunteer Dashboard Styling */
+import React from 'react';
+
+const styles = `/* Volunteer Dashboard Styling */
 .dashboard-layout {
   display: flex;
   flex: 1;
@@ -993,3 +995,8 @@
   border-radius: 4px;
 }
 
+`;
+
+export const DashboardStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

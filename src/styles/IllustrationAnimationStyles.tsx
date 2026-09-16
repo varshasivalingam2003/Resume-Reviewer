@@ -1,4 +1,6 @@
-/* Live Resume Review Pipeline Animation Styles */
+import React from 'react';
+
+const styles = `/* Live Resume Review Pipeline Animation Styles */
 
 .review-animation-card {
   width: 100%;
@@ -334,3 +336,8 @@
     font-size: 11px;
   }
 }
+`;
+
+export const IllustrationAnimationStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};
