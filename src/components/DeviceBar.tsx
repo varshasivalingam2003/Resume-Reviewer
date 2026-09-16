@@ -15,7 +15,9 @@ export const DeviceBar: React.FC = () => {
     isStudentLoggedIn,
     logoutStudent,
     loginVolunteer,
-    logout
+    logout,
+    volunteerAssignmentMode,
+    setVolunteerAssignmentMode
   } = useApp();
 
   return (
@@ -53,6 +55,28 @@ export const DeviceBar: React.FC = () => {
             🎓 Student Portal
           </button>
         </div>
+
+        {isAuthenticated && activeRole === 'volunteer' && (
+          <div className="toggle-group" style={{ background: 'rgba(255, 255, 255, 0.12)' }}>
+            <span style={{ fontSize: '11px', color: '#94A3B8', padding: '0 4px 0 6px', fontWeight: '600' }}>
+              Tagged:
+            </span>
+            <button 
+              className={`device-toggle-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
+              onClick={() => setVolunteerAssignmentMode('single')}
+              title="Single User Mode: Only 1 student tagged"
+            >
+              👤 1 Student
+            </button>
+            <button 
+              className={`device-toggle-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
+              onClick={() => setVolunteerAssignmentMode('group')}
+              title="Group User Mode: Multiple students tagged (Cohort of 3)"
+            >
+              👥 Group (3)
+            </button>
+          </div>
+        )}
 
         {activeRole === 'student' && (
           isStudentLoggedIn ? (

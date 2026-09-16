@@ -38,6 +38,9 @@ export interface AppContextType {
   setActiveSidebarTab: (tab: string) => void;
   lastCompletedStudentId: string | null;
   stats: Stats;
+  volunteerAssignmentMode: 'single' | 'group';
+  setVolunteerAssignmentMode: (mode: 'single' | 'group') => void;
+  taggedStudents: Student[];
   activeRole: 'volunteer' | 'student';
   setActiveRole: (role: 'volunteer' | 'student') => void;
   isStudentLoggedIn: boolean;
@@ -167,6 +170,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [studentResolvedItems, setStudentResolvedItems] = useState<Record<string, boolean>>({});
   const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean>(false);
 
+  const [volunteerAssignmentMode, setVolunteerAssignmentMode] = useState<'single' | 'group'>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('resume_reviewer_react_state_v4');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.volunteerAssignmentMode) return parsed.volunteerAssignmentMode;
+      }
+    } catch (e) {}
+    return 'single'; // Default to single tagged student as requested
+  });
+
   // Sync to LocalStorage
   useEffect(() => {
     try {
@@ -185,7 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activeSidebarTab,
         activeRole,
         selectedStudentForViewId,
-        studentResolvedItems
+        studentResolvedItems,
+        volunteerAssignmentMode
       }));
     } catch (e) {
       console.error('Failed to sync to LocalStorage', e);
@@ -194,7 +209,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isAuthenticated, currentView, activeStudentId, students,
     deviceMode, mobileTab, activeResumePage, zoomLevel,
     activeHighlightSection, searchQuery, filterStatus, activeSidebarTab,
-    activeRole, selectedStudentForViewId, studentResolvedItems
+    activeRole, selectedStudentForViewId, studentResolvedItems, volunteerAssignmentMode
   ]);
 
   // Current active student object with guaranteed resumeSections
@@ -559,7 +574,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const goToNextPendingStudent = () => {
-    const remaining = students.find(s => s.status === 'pending' || s.status === 'in_review');
+    const remaining = taggedStudents.find(s => s.status === 'pending' || s.status === 'in_review');
     if (remaining) {
       openStudentReview(remaining.id);
     } else {
@@ -583,12 +598,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setFilterStatus('all');
     setActiveSidebarTab('dashboard');
     setLastCompletedStudentId(null);
+    setVolunteerAssignmentMode('single');
   };
 
-  // Stats calculation
+  // Tagged students calculation based on assignment mode (Single: 1 student, Group: 3 students)
   const safeStudents = (Array.isArray(students) && students.length > 0) ? students : initialStudents;
-  const total = safeStudents.length;
-  const completed = safeStudents.filter(s => s?.status === 'approved' || s?.status === 'changes_required').length;
+  const taggedStudents = volunteerAssignmentMode === 'single'
+    ? safeStudents.slice(0, 1)
+    : safeStudents.slice(0, 3);
+
+  const total = taggedStudents.length;
+  const completed = taggedStudents.filter(s => s?.status === 'approved' || s?.status === 'changes_required').length;
   const pending = Math.max(0, total - completed);
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -627,6 +647,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveSidebarTab,
     lastCompletedStudentId,
     stats,
+    volunteerAssignmentMode,
+    setVolunteerAssignmentMode,
+    taggedStudents,
     activeRole,
     setActiveRole,
     isStudentLoggedIn,

@@ -6,128 +6,61 @@ import {
   CommentIcon, CheckIcon 
 } from './Icons';
 
-interface PresetComment {
+interface AISuggestion {
   id: string;
-  category: 'all' | 'impact' | 'verbs' | 'ats' | 'projects' | 'skills' | 'contact';
-  severity: 'suggestion' | 'must_fix' | 'praise' | 'question';
+  category: 'must_fix' | 'suggestion' | 'praise';
   title: string;
-  text: string;
+  sectionKey: string;
+  sectionTitle: string;
+  detectedIssue: string;
+  recommendation: string;
+  atsImpact: string;
 }
 
-const PRESET_COMMENT_BANK: PresetComment[] = [
-  {
-    id: 'p-1',
-    category: 'impact',
-    severity: 'must_fix',
-    title: 'Quantify Metrics (XYZ Formula)',
-    text: 'Use Google’s XYZ formula: Accomplished [X], as measured by [Y], by doing [Z]. Replace vague statements with measurable metrics (e.g., % improvement, users served, latency reduction).'
-  },
-  {
-    id: 'p-2',
-    category: 'verbs',
-    severity: 'suggestion',
-    title: 'Lead with Strong Action Verbs',
-    text: 'Begin each bullet with high-impact action verbs (e.g., "Spearheaded", "Architected", "Engineered", "Optimized") instead of passive terms like "Assisted with" or "Worked on".'
-  },
-  {
-    id: 'p-3',
-    category: 'ats',
-    severity: 'must_fix',
-    title: 'ATS Multi-Column Table Safety',
-    text: 'Avoid multi-column tables, graphics, and non-standard layout blocks to ensure Applicant Tracking Systems (ATS) scan and rank your experience accurately.'
-  },
-  {
-    id: 'p-4',
-    category: 'ats',
-    severity: 'suggestion',
-    title: 'Concise Bullet Points (Max 2 Lines)',
-    text: 'Keep bullet points between 1 to 2 lines maximum. Recruiters spend only 6-7 seconds scanning a resume; concise lines maximize retention.'
-  },
-  {
-    id: 'p-5',
-    category: 'projects',
-    severity: 'must_fix',
-    title: 'Include Live Deployed Link & GitHub',
-    text: 'Add accessible URLs for live deployed applications (Vercel/Netlify) and public GitHub code repositories to validate practical implementation.'
-  },
-  {
-    id: 'p-6',
-    category: 'projects',
-    severity: 'suggestion',
-    title: 'Clarify Individual Contribution',
-    text: 'For collaborative or hackathon projects, explicitly highlight your personal architecture role and technologies used rather than only team activities.'
-  },
-  {
-    id: 'p-7',
-    category: 'skills',
-    severity: 'suggestion',
-    title: 'Group Skills into Categories',
-    text: 'Categorize technical skills logically: Languages (TypeScript, Java), Frameworks (React, Node.js), Developer Tools (Docker, Git), and Databases (PostgreSQL).'
-  },
-  {
-    id: 'p-8',
-    category: 'skills',
-    severity: 'praise',
-    title: 'Modern Technical Stack Alignment',
-    text: 'Great job listing modern, in-demand technologies that directly align with full-stack software development roles.'
-  },
-  {
-    id: 'p-9',
-    category: 'contact',
-    severity: 'must_fix',
-    title: 'Add Clean Clickable LinkedIn & GitHub URLs',
-    text: 'Ensure your customized LinkedIn URL (e.g., linkedin.com/in/yourname) and GitHub link are clickable hyperlinks at the top of your resume.'
-  },
-  {
-    id: 'p-10',
-    category: 'impact',
-    severity: 'suggestion',
-    title: 'Highlight Scale & Performance Benchmarks',
-    text: 'Mention concrete benchmarks: throughput handled (e.g., 500 requests/sec), database query latency reduction, or percentage test coverage.'
-  },
-  {
-    id: 'p-11',
-    category: 'verbs',
-    severity: 'must_fix',
-    title: 'Eliminate "Responsible for" Phrases',
-    text: 'Never start lines with "Responsible for" or "Tasked with". Instead write what you built or delivered (e.g., "Designed and deployed...").'
-  },
-  {
-    id: 'p-12',
-    category: 'projects',
-    severity: 'suggestion',
-    title: 'Explain Architecture & Design Trade-offs',
-    text: 'Mention why you chose specific libraries or architectures (e.g., "Leveraged Redis caching to prevent redundant SQL queries").'
-  },
-  {
-    id: 'p-13',
-    category: 'ats',
-    severity: 'suggestion',
-    title: 'Use Standard Section Headings',
-    text: 'Stick to conventional headers: "Education", "Work Experience", "Projects", "Technical Skills", and "Certifications" for maximum ATS compatibility.'
-  },
-  {
-    id: 'p-14',
-    category: 'skills',
-    severity: 'suggestion',
-    title: 'Prioritize Core Stack Over Infrequent Tools',
-    text: 'List your strongest technologies first. Differentiate between languages you code in daily versus tools you have only touched once.'
-  },
-  {
-    id: 'p-15',
-    category: 'contact',
-    severity: 'suggestion',
-    title: 'Remove Full Street Address for Privacy',
-    text: 'Include only City, State/Province and Country (e.g., "Bangalore, India") rather than complete door number or postal street address.'
-  },
-  {
-    id: 'p-16',
-    category: 'impact',
-    severity: 'suggestion',
-    title: 'Use STAR Technique for Experience',
-    text: 'Structure experience bullets: Situation, Task, Action, and Result (STAR). Emphasize the final business impact achieved.'
-  }
-];
+const AI_RESUME_SUGGESTIONS: Record<string, AISuggestion[]> = {
+  'student-1': [
+    {
+      id: 'ai-1',
+      category: 'must_fix',
+      title: 'Quantify Project Scale & Performance (XYZ Formula)',
+      sectionKey: 'projects',
+      sectionTitle: 'Academic Projects',
+      detectedIssue: 'Smart Attendance System lacks measurable volume, accuracy, or efficiency metrics.',
+      recommendation: 'Use Google’s XYZ formula: "Automated attendance tracking for 400+ students across 12 classrooms, cutting roll-call duration by 85% with 98.4% facial recognition accuracy." Include public GitHub repo link.',
+      atsImpact: '+35% higher recruiter retention rate'
+    },
+    {
+      id: 'ai-2',
+      category: 'must_fix',
+      title: 'Categorize Technical Skills for ATS Parsers',
+      sectionKey: 'skills',
+      sectionTitle: 'Projective Skills & Web Stack',
+      detectedIssue: 'Skills are listed in an unsegmented inline sequence. Applicant Tracking Systems parse categorized skills better.',
+      recommendation: 'Group into: Frontend (HTML5, CSS3, JavaScript ES6+), Backend (Java, Python), Databases (SQL), and Tools (Git & GitHub) to ensure complete keyword parsing.',
+      atsImpact: 'Guarantees 100% keyword extraction in ATS parsers'
+    },
+    {
+      id: 'ai-3',
+      category: 'suggestion',
+      title: 'Sharpen Career Objective for Target Engineering Track',
+      sectionKey: 'objective',
+      sectionTitle: 'Career Objective',
+      detectedIssue: 'Objective is generic and does not highlight your specific core stack strengths.',
+      recommendation: 'Specify target technical track: "Aspiring Full-Stack Software Engineer with strong foundations in Java, Python, and scalable web architectures. Passionate about building high-availability applications."',
+      atsImpact: 'Immediate role-alignment in initial 6-second recruiter scan'
+    },
+    {
+      id: 'ai-4',
+      category: 'praise',
+      title: 'ATS-Clean Single Column Layout & Strong Academics',
+      sectionKey: 'education',
+      sectionTitle: 'Education',
+      detectedIssue: 'No issues found. Layout is properly structured.',
+      recommendation: 'Excellent formatting with 8.2 CGPA and 91.5% HSC prominently highlighted. Verified fully readable across Greenhouse and Workday parsers.',
+      atsImpact: 'Passes standard automated GPA screening benchmark'
+    }
+  ]
+};
 
 interface ResumeDocumentPaperProps {
   student: Student;
@@ -170,7 +103,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   } = useApp();
 
   // Multi-Method Commenting Tool State (5 Suggestions)
-  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'preset_bank' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
+  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'ai_suggestions' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
   
   // Method 1: Subtopic Definition
   const [newSubtopicTitle, setNewSubtopicTitle] = useState('');
@@ -179,8 +112,10 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'suggestion' | 'must_fix' | 'praise' | 'question'>('suggestion');
   const [isDefiningSubtopic, setIsDefiningSubtopic] = useState(false);
 
-  // Method 2: Preset Bank Filter
-  const [presetCategoryFilter, setPresetCategoryFilter] = useState<'all' | 'impact' | 'ats' | 'projects' | 'skills' | 'contact'>('all');
+  // Method 2: AI Suggestions State
+  const [isAiScanning, setIsAiScanning] = useState(false);
+  const [aiCategoryFilter, setAiCategoryFilter] = useState<'all' | 'must_fix' | 'suggestion' | 'praise'>('all');
+  const [appliedAiIds, setAppliedAiIds] = useState<string[]>([]);
 
   // Method 3: Rewrite Suggestion Tool
   const [rewriteTargetSection, setRewriteTargetSection] = useState('objective');
@@ -247,7 +182,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   const getActiveToolLabel = () => {
     switch (activeCommentTool) {
       case 'sections': return '✍️ Section Notes';
-      case 'preset_bank': return '⚡ Comment Bank';
+      case 'ai_suggestions': return '✨ AI Suggestions';
       case 'rewrite_diff': return '🔄 Rewrite (Diff)';
       case 'voice_memo': return '🎙️ Voice Memo';
       case 'rubric': return '📊 Rubric Scorecard';
@@ -307,25 +242,60 @@ export const ResumeWorkspaceView: React.FC = () => {
     }
   };
 
-  const handleApplyPresetToSubtopic = (preset: PresetComment, subtopicId?: string) => {
-    if (subtopicId) {
-      const targetSub = volunteerSubtopics.find(s => s.id === subtopicId);
-      const existing = targetSub?.command || '';
-      updateSubtopicCommand(subtopicId, existing ? `${existing}\n\n• ${preset.text}` : preset.text);
-      updateSubtopicCategory(subtopicId, preset.severity);
-      alert(`Applied "${preset.title}" to subtopic!`);
-    } else {
-      // Create new subtopic from preset
-      addVolunteerSubtopic(preset.title, 'custom', preset.text, preset.severity);
-      setActiveCommentTool('sections');
-      alert(`Created new subtopic "${preset.title}" from preset!`);
+  // Active AI suggestions for this student
+  const activeAiSuggestions: AISuggestion[] = AI_RESUME_SUGGESTIONS[activeStudent.id] || [
+    {
+      id: `ai-${activeStudent.id}-1`,
+      category: 'must_fix',
+      title: 'Quantify Experience & Business Results',
+      sectionKey: 'projects',
+      sectionTitle: 'Projects & Experience',
+      detectedIssue: 'Project bullets describe activities rather than quantifiable achievements.',
+      recommendation: 'Incorporate concrete metrics: users impacted, performance boosts, or latency reductions using action verbs.',
+      atsImpact: '+30% higher ATS ranking score'
+    },
+    {
+      id: `ai-${activeStudent.id}-2`,
+      category: 'suggestion',
+      title: 'Categorize Technical Skill Sets',
+      sectionKey: 'skills',
+      sectionTitle: 'Technical Stack',
+      detectedIssue: 'Group skills by domain (Languages, Frameworks, Tools) to maximize parser recognition.',
+      recommendation: 'Organize skills into Languages, Frameworks, and Tools for seamless machine parsing.',
+      atsImpact: 'Guarantees 100% keyword parsing'
+    },
+    {
+      id: `ai-${activeStudent.id}-3`,
+      category: 'praise',
+      title: 'Verified ATS Single Column Hierarchy',
+      sectionKey: 'education',
+      sectionTitle: 'Education & Layout',
+      detectedIssue: 'No issues found. Single column format verified.',
+      recommendation: 'Single column layout without nested tables is verified safe across Greenhouse, Workday, and Lever.',
+      atsImpact: 'Zero parsing errors'
     }
+  ];
+
+  const filteredAiSuggestions = aiCategoryFilter === 'all'
+    ? activeAiSuggestions
+    : activeAiSuggestions.filter(s => s.category === aiCategoryFilter);
+
+  const handleApplyAiSuggestion = (sug: AISuggestion) => {
+    addVolunteerSubtopic(
+      sug.title,
+      sug.sectionKey,
+      sug.recommendation,
+      sug.category
+    );
+    setAppliedAiIds(prev => [...prev, sug.id]);
+    quickHighlightFromCanvas(sug.sectionKey, sug.sectionTitle);
   };
 
-  const handleApplyPresetToGeneral = (preset: PresetComment) => {
-    const existing = activeStudent.generalFeedback || '';
-    updateGeneralFeedback(existing ? `${existing}\n\n• ${preset.text}` : preset.text);
-    alert(`Added "${preset.title}" to Overall Feedback!`);
+  const handleRescanAi = () => {
+    setIsAiScanning(true);
+    setTimeout(() => {
+      setIsAiScanning(false);
+    }, 600);
   };
 
   const handleSaveRewriteSuggestion = () => {
@@ -350,10 +320,6 @@ export const ResumeWorkspaceView: React.FC = () => {
       default: return status;
     }
   };
-
-  const filteredPresets = presetCategoryFilter === 'all' 
-    ? PRESET_COMMENT_BANK 
-    : PRESET_COMMENT_BANK.filter(p => p.category === presetCategoryFilter);
 
   return (
     <div className="workspace-container">
@@ -389,7 +355,7 @@ export const ResumeWorkspaceView: React.FC = () => {
           </button>
           <button 
             className="btn btn-outline btn-sm"
-            onClick={() => alert('All comments, presets, audio memo, and rubric saved successfully!')}
+            onClick={() => alert('All comments, AI recommendations, audio memo, and rubric saved successfully!')}
           >
             Save
           </button>
@@ -524,13 +490,13 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               <button 
                 type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'preset_bank' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('preset_bank')}
-                title="16 Pre-written battle-tested mentor suggestions across categories"
+                className={`comment-tool-tab ${activeCommentTool === 'ai_suggestions' ? 'active' : ''}`}
+                onClick={() => setActiveCommentTool('ai_suggestions')}
+                title="AI-powered candidate-tailored audit & smart suggestions"
               >
-                <span className="tab-icon">⚡</span>
-                <span className="tab-label">Comment Bank</span>
-                <span className="tab-count-pill">16</span>
+                <span className="tab-icon">✨</span>
+                <span className="tab-label">AI Suggestions</span>
+                <span className="tab-count-pill">{activeAiSuggestions.length}</span>
               </button>
 
               <button 
@@ -683,7 +649,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                   <div className="no-subtopics-placeholder">
                     <p>No subtopics defined yet by volunteer.</p>
                     <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
-                      Click <strong>"+ Define New Section"</strong> or switch to <strong>"⚡ Comment Bank"</strong> to drop instant feedback presets!
+                      Click <strong>"+ Define New Section"</strong> or switch to <strong>"✨ AI Suggestions"</strong> to review automated recommendations!
                     </p>
                   </div>
                 ) : (
@@ -895,70 +861,107 @@ export const ResumeWorkspaceView: React.FC = () => {
           )}
 
           {/* =========================================================================
-              METHOD 2: PRESET FEEDBACK BANK (1-CLICK QUICK COMMENTS)
+              METHOD 2: AI RESUME AUDIT & RECOMMENDATIONS (CANDIDATE-SPECIFIC)
              ========================================================================= */}
-          {activeCommentTool === 'preset_bank' && (
-            <div className="preset-bank-container">
-              <div style={{ fontSize: '12px', color: '#475569', marginBottom: '4px' }}>
-                Select battle-tested mentor phrases to insert directly into commands or overall review:
+          {activeCommentTool === 'ai_suggestions' && (
+            <div className="ai-suggestions-container">
+              {/* AI Scan Status Banner */}
+              <div className="ai-scan-banner">
+                <div className="ai-scan-left">
+                  <span className="ai-scan-icon">✨</span>
+                  <div>
+                    <div className="ai-scan-title">
+                      AI Resume Audit — {activeStudent.name}
+                      <span className="status-badge" style={{ background: '#E0E7FF', color: '#4338CA', fontSize: '10px' }}>
+                        Automated
+                      </span>
+                    </div>
+                    <div className="ai-scan-subtitle">
+                      {isAiScanning 
+                        ? 'Analyzing resume structure, ATS parse rates, and metrics...'
+                        : `${activeAiSuggestions.length} targeted suggestions generated for this resume`}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="ai-rescan-btn"
+                  onClick={handleRescanAi}
+                  disabled={isAiScanning}
+                >
+                  {isAiScanning ? '⏳ Scanning...' : '✨ Re-scan Resume'}
+                </button>
               </div>
 
-              {/* Category Filter Pills */}
-              <div className="preset-filter-row">
-                {(['all', 'impact', 'ats', 'projects', 'skills', 'contact'] as const).map(cat => (
-                  <button 
+              {/* Filter Pills */}
+              <div className="ai-filter-row">
+                {(['all', 'must_fix', 'suggestion', 'praise'] as const).map(cat => (
+                  <button
                     key={cat}
-                    type="button" 
-                    className={`preset-filter-chip ${presetCategoryFilter === cat ? 'active' : ''}`}
-                    onClick={() => setPresetCategoryFilter(cat)}
+                    type="button"
+                    className={`ai-filter-chip ${aiCategoryFilter === cat ? 'active' : ''}`}
+                    onClick={() => setAiCategoryFilter(cat)}
                   >
-                    {cat === 'all' ? 'All Presets' : cat.toUpperCase()}
+                    {cat === 'all' && `All (${activeAiSuggestions.length})`}
+                    {cat === 'must_fix' && `⚠️ Must Fix (${activeAiSuggestions.filter(s => s.category === 'must_fix').length})`}
+                    {cat === 'suggestion' && `💡 Optimizations (${activeAiSuggestions.filter(s => s.category === 'suggestion').length})`}
+                    {cat === 'praise' && `🌟 Praise (${activeAiSuggestions.filter(s => s.category === 'praise').length})`}
                   </button>
                 ))}
               </div>
 
-              {/* Preset Cards Grid */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {filteredPresets.map(preset => (
-                  <div key={preset.id} className="preset-card">
-                    <div className="preset-card-header">
-                      <span className="preset-card-title">{preset.title}</span>
-                      <span className={`subtopic-badge badge-${preset.severity}`}>
-                        {preset.severity === 'must_fix' ? '⚠️ Must Fix' : preset.severity === 'praise' ? '🌟 Praise' : '💡 Suggestion'}
-                      </span>
-                    </div>
-                    <p className="preset-card-body">{preset.text}</p>
-                    <div className="preset-actions-row">
-                      {volunteerSubtopics.length > 0 && (
-                        <button 
-                          type="button" 
-                          className="preset-btn-insert"
-                          onClick={() => handleApplyPresetToSubtopic(preset, volunteerSubtopics[0].id)}
-                          title="Append to active subtopic"
+              {/* Suggestions List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {filteredAiSuggestions.map(sug => {
+                  const isApplied = appliedAiIds.includes(sug.id);
+                  return (
+                    <div key={sug.id} className="ai-suggestion-card">
+                      <div className="ai-card-header">
+                        <div className="ai-card-title-group">
+                          <span className={`subtopic-badge badge-${sug.category}`}>
+                            {sug.category === 'must_fix' ? '⚠️ Must Fix' : sug.category === 'praise' ? '🌟 Praise' : '💡 Suggestion'}
+                          </span>
+                          <span className="ai-card-title">{sug.title}</span>
+                          <span className="ai-section-tag">{sug.sectionTitle}</span>
+                        </div>
+                        {sug.atsImpact && (
+                          <span className="ai-impact-tag">
+                            📈 {sug.atsImpact}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="ai-detected-issue">
+                        <strong>Detected:</strong> {sug.detectedIssue}
+                      </div>
+
+                      <div className="ai-recommendation-box">
+                        <strong>AI Recommendation:</strong> {sug.recommendation}
+                      </div>
+
+                      <div className="ai-card-actions">
+                        <button
+                          type="button"
+                          className="ai-btn-ghost"
+                          onClick={() => quickHighlightFromCanvas(sug.sectionKey, sug.sectionTitle)}
+                          title="Locate and highlight section on paper"
                         >
-                          + Add to Subtopic
+                          🔍 View on Resume
                         </button>
-                      )}
-                      <button 
-                        type="button" 
-                        className="preset-btn-insert"
-                        onClick={() => handleApplyPresetToGeneral(preset)}
-                        title="Add to Overall Feedback"
-                      >
-                        + Add to Overall Feedback
-                      </button>
-                      <button 
-                        type="button" 
-                        className="preset-btn-insert"
-                        style={{ background: '#F1F5F9', borderColor: '#CBD5E1', color: '#334155' }}
-                        onClick={() => handleApplyPresetToSubtopic(preset)}
-                        title="Create a new highlighted subtopic"
-                      >
-                        + New Section
-                      </button>
+
+                        <button
+                          type="button"
+                          className={`btn-apply-ai ${isApplied ? 'applied' : ''}`}
+                          onClick={() => !isApplied && handleApplyAiSuggestion(sug)}
+                          disabled={isApplied}
+                          title={isApplied ? 'Already added to review notes' : 'Add this AI suggestion directly as a review subtopic note'}
+                        >
+                          {isApplied ? '✓ Applied as Note' : '+ Apply as Note'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

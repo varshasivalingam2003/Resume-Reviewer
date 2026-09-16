@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  DashboardIcon, StudentsIcon, ReviewsIcon, LogoutIcon, 
+  DashboardIcon, 
   UsersIcon, ClockIcon, CheckCircleIcon, SearchIcon 
 } from './Icons';
 import { Student } from '../data/studentsData';
@@ -15,13 +15,13 @@ interface StudentCardProps {
 export const DashboardView: React.FC = () => {
   const { 
     volunteer, 
-    students, 
+    taggedStudents,
+    volunteerAssignmentMode,
+    setVolunteerAssignmentMode,
     searchQuery, 
     setSearchQuery, 
     filterStatus, 
     setFilterStatus, 
-    activeSidebarTab, 
-    setActiveSidebarTab,
     openStudentReview,
     logout,
     stats,
@@ -29,165 +29,237 @@ export const DashboardView: React.FC = () => {
     setSelectedStudentForViewId 
   } = useApp();
 
-  const filteredStudents = students.filter(student => {
+  // Determine if single or group user mode
+  const isSingleStudent = taggedStudents.length === 1;
+  const singleStudent = taggedStudents[0] || null;
+
+  const filteredStudents = taggedStudents.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           student.degree.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Pending';
+      case 'in_review': return 'In Review';
+      case 'changes_required': return 'Changes Required';
+      case 'approved': return 'Approved';
+      default: return status;
+    }
+  };
+
   return (
     <div className="dashboard-layout">
-      {/* Desktop Sidebar */}
-      <aside className="dashboard-sidebar">
-        <ul className="sidebar-nav-list">
-          <li>
-            <a 
-              className={`sidebar-nav-item ${activeSidebarTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveSidebarTab('dashboard')}
-            >
-              <DashboardIcon size={18} />
-              <span>Dashboard</span>
-            </a>
-          </li>
-          <li>
-            <a 
-              className={`sidebar-nav-item ${activeSidebarTab === 'students' ? 'active' : ''}`}
-              onClick={() => setActiveSidebarTab('students')}
-            >
-              <StudentsIcon size={18} />
-              <span>Students</span>
-            </a>
-          </li>
-          <li>
-            <a 
-              className={`sidebar-nav-item ${activeSidebarTab === 'reviews' ? 'active' : ''}`}
-              onClick={() => setActiveSidebarTab('reviews')}
-            >
-              <ReviewsIcon size={18} />
-              <span>My Reviews</span>
-            </a>
-          </li>
-        </ul>
-
-        <div className="sidebar-bottom">
-          <button 
-            className="logout-btn" 
-            onClick={() => {
-              if (window.confirm('Are you sure you want to log out?')) {
-                logout();
-              }
-            }}
-          >
-            <LogoutIcon size={18} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
-
       {/* Dashboard Main View */}
       <main className="dashboard-main">
-        {/* Top Greeting Banner */}
+        {/* Top Greeting Header & Mode Switcher */}
         <div className="dashboard-header-banner">
           <div>
             <h1 className="greeting-title">
               Hi, {volunteer.name} <span style={{ display: 'inline-block', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>👋</span>
             </h1>
-            <p className="greeting-subtitle">{stats.assigned} resumes assigned</p>
+            <p className="greeting-subtitle">
+              {isSingleStudent 
+                ? 'You have 1 student directly tagged for 1:1 resume review'
+                : `You have ${taggedStudents.length} students tagged in your group review cohort`}
+            </p>
           </div>
 
-          <div className="progress-summary-box">
-            <div className="progress-label-wrap">
-              <span>{stats.completed} of {stats.assigned} completed</span>
-              <span className="progress-pct">{stats.percentage}%</span>
-            </div>
-            <div className="progress-track">
-              <div className="progress-fill" style={{ width: `${stats.percentage}%` }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Metric Cards Row */}
-        <div className="metric-cards-grid">
-          <div className="metric-card">
-            <div className="metric-icon-bubble blue">
-              <UsersIcon size={20} />
-            </div>
-            <div className="metric-content">
-              <span className="metric-value">{stats.assigned}</span>
-              <span className="metric-label">Assigned</span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon-bubble orange">
-              <ClockIcon size={20} />
-            </div>
-            <div className="metric-content">
-              <span className="metric-value">{stats.pending}</span>
-              <span className="metric-label">Pending</span>
-            </div>
-          </div>
-
-          <div className="metric-card">
-            <div className="metric-icon-bubble green">
-              <CheckCircleIcon size={20} />
-            </div>
-            <div className="metric-content">
-              <span className="metric-value">{stats.completed}</span>
-              <span className="metric-label">Completed</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Search and Filter Row */}
-        <div className="dashboard-controls-row">
-          <div className="search-input-box">
-            <div className="search-icon"><SearchIcon size={18} /></div>
-            <input 
-              type="text" 
-              className="search-field" 
-              placeholder="Search students..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="filter-dropdown-box">
-            <select 
-              className="filter-select"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+          {/* Quick Switcher for Volunteer Tagged Assignment */}
+          <div className="dashboard-mode-switcher" title="Toggle between single student and group student assignment">
+            <button 
+              type="button"
+              className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
+              onClick={() => setVolunteerAssignmentMode('single')}
             >
-              <option value="all">Filter All</option>
-              <option value="pending">Pending</option>
-              <option value="in_review">In Review</option>
-              <option value="changes_required">Changes Required</option>
-              <option value="approved">Approved</option>
-            </select>
+              👤 Single Student (1)
+            </button>
+            <button 
+              type="button"
+              className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
+              onClick={() => setVolunteerAssignmentMode('group')}
+            >
+              👥 Group Tagged (3)
+            </button>
           </div>
         </div>
 
-        {/* Students List */}
-        <div className="student-cards-list">
-          {filteredStudents.length === 0 ? (
-            <div className="white-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No students found matching your search and filter.
+        {/* ==================================================================
+            PAGE 1: SINGLE STUDENT TAGGED DASHBOARD (Clean & Simple)
+            ================================================================== */}
+        {isSingleStudent && singleStudent ? (
+          <div className="single-student-clean-wrapper">
+            <div className="single-student-card">
+              {/* Profile Top Row */}
+              <div className="student-card-top">
+                <div className="student-profile-left">
+                  <img src={singleStudent.avatar} alt={singleStudent.name} className="student-profile-avatar" />
+                  <div className="student-profile-headings">
+                    <div className="student-name-status-row">
+                      <h2 className="student-profile-name">{singleStudent.name}</h2>
+                      <span className={`status-badge status-${singleStudent.status}`}>
+                        {getStatusText(singleStudent.status)}
+                      </span>
+                    </div>
+                    <p className="student-profile-degree">{singleStudent.degree}</p>
+                    <p className="student-profile-college">{singleStudent.institution}</p>
+                  </div>
+                </div>
+
+                <div className="student-profile-actions">
+                  <button 
+                    className="btn btn-outline"
+                    onClick={() => {
+                      setSelectedStudentForViewId(singleStudent.id);
+                      setActiveRole('student');
+                    }}
+                    title="See what the student sees"
+                  >
+                    🎓 View as Student
+                  </button>
+
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => openStudentReview(singleStudent.id)}
+                  >
+                    {singleStudent.status === 'in_review' ? 'Continue Review' : singleStudent.status === 'approved' ? 'View Resume' : 'Review Resume'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Clean Student Details Grid */}
+              <div className="student-details-grid">
+                <div className="student-detail-field">
+                  <span className="field-label">Email Address</span>
+                  <span className="field-value">{singleStudent.email}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Phone Number</span>
+                  <span className="field-value">{singleStudent.phone}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Location</span>
+                  <span className="field-value">{singleStudent.location}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Graduation Year</span>
+                  <span className="field-value">{singleStudent.graduationYear}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Assigned Date</span>
+                  <span className="field-value">{singleStudent.assignedDate}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Resume Document</span>
+                  <span className="field-value" style={{ fontWeight: 600 }}>
+                    📄 {singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf
+                  </span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">GitHub Profile</span>
+                  <a href={`https://${singleStudent.github}`} target="_blank" rel="noreferrer" className="field-link">
+                    {singleStudent.github}
+                  </a>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">LinkedIn Profile</span>
+                  <a href={`https://${singleStudent.linkedin}`} target="_blank" rel="noreferrer" className="field-link">
+                    {singleStudent.linkedin}
+                  </a>
+                </div>
+              </div>
             </div>
-          ) : (
-            filteredStudents.map(student => (
-              <StudentCard 
-                key={student.id} 
-                student={student} 
-                onReview={() => openStudentReview(student.id)}
-                onViewAsStudent={() => {
-                  setSelectedStudentForViewId(student.id);
-                  setActiveRole('student');
-                }}
-              />
-            ))
-          )}
-        </div>
+          </div>
+        ) : (
+          /* ==================================================================
+             PAGE 2: GROUP USER / COHORT DASHBOARD (Clean & Simple)
+             ================================================================== */
+          <div className="group-students-view-container">
+            {/* Metric Cards Row */}
+            <div className="metric-cards-grid">
+              <div className="metric-card">
+                <div className="metric-icon-bubble blue">
+                  <UsersIcon size={20} />
+                </div>
+                <div className="metric-content">
+                  <span className="metric-value">{stats.assigned}</span>
+                  <span className="metric-label">Assigned in Cohort</span>
+                </div>
+              </div>
+
+              <div className="metric-card">
+                <div className="metric-icon-bubble orange">
+                  <ClockIcon size={20} />
+                </div>
+                <div className="metric-content">
+                  <span className="metric-value">{stats.pending}</span>
+                  <span className="metric-label">Pending Action</span>
+                </div>
+              </div>
+
+              <div className="metric-card">
+                <div className="metric-icon-bubble green">
+                  <CheckCircleIcon size={20} />
+                </div>
+                <div className="metric-content">
+                  <span className="metric-value">{stats.completed}</span>
+                  <span className="metric-label">Completed</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Search and Filter Row */}
+            <div className="dashboard-controls-row">
+              <div className="search-input-box">
+                <div className="search-icon"><SearchIcon size={18} /></div>
+                <input 
+                  type="text" 
+                  className="search-field" 
+                  placeholder="Search students by name, degree..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="filter-dropdown-box">
+                <select 
+                  className="filter-select"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="all">Filter All ({taggedStudents.length})</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_review">In Review</option>
+                  <option value="changes_required">Changes Required</option>
+                  <option value="approved">Approved</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Students List in Cohort */}
+            <div className="student-cards-list">
+              {filteredStudents.length === 0 ? (
+                <div className="white-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No students found matching your search and filter in this cohort.
+                </div>
+              ) : (
+                filteredStudents.map(student => (
+                  <StudentCard 
+                    key={student.id} 
+                    student={student} 
+                    onReview={() => openStudentReview(student.id)}
+                    onViewAsStudent={() => {
+                      setSelectedStudentForViewId(student.id);
+                      setActiveRole('student');
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Mobile Bottom Navigation */}
@@ -196,9 +268,9 @@ export const DashboardView: React.FC = () => {
           <DashboardIcon size={18} />
           <span>Home</span>
         </button>
-        <button className="mobile-nav-item">
-          <StudentsIcon size={18} />
-          <span>Students</span>
+        <button className="mobile-nav-item" onClick={() => setVolunteerAssignmentMode(isSingleStudent ? 'group' : 'single')}>
+          <UsersIcon size={18} />
+          <span>{isSingleStudent ? 'Switch to Group' : 'Switch to Single'}</span>
         </button>
         <button 
           className="mobile-nav-item"
@@ -245,17 +317,25 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
       break;
   }
 
+  const reviewedSubtopicsCount = student.volunteerSubtopics?.filter(s => s.isReviewed)?.length || 0;
+  const totalSubtopicsCount = student.volunteerSubtopics?.length || 0;
+
   return (
     <div className="student-card-item">
       <div className="student-info-col">
         <img src={student.avatar} alt={student.name} className="student-avatar" />
         <div className="student-name-meta">
           <span className="student-name">{student.name}</span>
-          <span className="student-degree">{student.degree}</span>
+          <span className="student-degree">{student.degree} • {student.institution}</span>
         </div>
       </div>
 
       <div className="student-actions-col">
+        {totalSubtopicsCount > 0 && (
+          <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '600' }}>
+            {reviewedSubtopicsCount}/{totalSubtopicsCount} reviewed
+          </span>
+        )}
         <span className={`status-badge ${statusBadgeClass}`}>
           {statusText}
         </span>
@@ -277,3 +357,4 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
     </div>
   );
 };
+
