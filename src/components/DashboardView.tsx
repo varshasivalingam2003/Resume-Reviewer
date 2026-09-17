@@ -4,6 +4,7 @@ import {
   DashboardIcon, 
   UsersIcon, ClockIcon, CheckCircleIcon, SearchIcon 
 } from './Icons';
+import { User, Users, GraduationCap, FileText, Hand } from 'lucide-react';
 import { Student } from '../data/studentsData';
 
 interface StudentCardProps {
@@ -57,8 +58,11 @@ export const DashboardView: React.FC = () => {
         {/* Top Greeting Header & Mode Switcher */}
         <div className="dashboard-header-banner">
           <div>
-            <h1 className="greeting-title">
-              Hi, {volunteer.name} <span style={{ display: 'inline-block', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>👋</span>
+            <h1 className="greeting-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Hi, {volunteer.name}</span>
+              <span style={{ display: 'inline-flex', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>
+                <Hand size={24} color="#F59E0B" />
+              </span>
             </h1>
             <p className="greeting-subtitle">
               {isSingleStudent 
@@ -73,15 +77,19 @@ export const DashboardView: React.FC = () => {
               type="button"
               className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
               onClick={() => setVolunteerAssignmentMode('single')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              👤 Single Student (1)
+              <User size={14} />
+              <span>Single Student (1)</span>
             </button>
             <button 
               type="button"
               className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
               onClick={() => setVolunteerAssignmentMode('group')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              👥 Group Tagged (3)
+              <Users size={14} />
+              <span>Group Tagged (3)</span>
             </button>
           </div>
         </div>
@@ -116,8 +124,10 @@ export const DashboardView: React.FC = () => {
                       setActiveRole('student');
                     }}
                     title="See what the student sees"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    🎓 View as Student
+                    <GraduationCap size={15} />
+                    <span>View as Student</span>
                   </button>
 
                   <button 
@@ -153,8 +163,9 @@ export const DashboardView: React.FC = () => {
                 </div>
                 <div className="student-detail-field">
                   <span className="field-label">Resume Document</span>
-                  <span className="field-value" style={{ fontWeight: 600 }}>
-                    📄 {singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf
+                  <span className="field-value" style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <FileText size={15} color="#2563EB" />
+                    <span>{singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf</span>
                   </span>
                 </div>
                 <div className="student-detail-field">
@@ -341,11 +352,12 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
         </span>
         <button 
           className="btn btn-outline btn-sm"
-          style={{ fontSize: '12px', padding: '6px 10px' }}
+          style={{ fontSize: '12px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           onClick={onViewAsStudent}
           title="See what this student sees"
         >
-          🎓 Student View
+          <GraduationCap size={13} />
+          <span>Student View</span>
         </button>
         <button 
           className={`btn ${buttonClass} student-action-btn`}

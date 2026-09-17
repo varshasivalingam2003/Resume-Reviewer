@@ -3,8 +3,45 @@ import { useApp } from '../context/AppContext';
 import { initialStudents, Student, VolunteerSubtopic, ResumeSection } from '../data/studentsData';
 import { 
   ArrowLeftIcon, PdfIcon, DownloadIcon, MaximizeIcon, 
-  CommentIcon, CheckIcon 
+  CommentIcon, CheckIcon, StarIcon, StarRating, GithubIcon
 } from './Icons';
+import { 
+  GraduationCap, 
+  Save, 
+  Check, 
+  FileText, 
+  Edit3, 
+  Sparkles, 
+  RefreshCw, 
+  Mic, 
+  BarChart3, 
+  Lightbulb, 
+  AlertCircle, 
+  Award, 
+  HelpCircle, 
+  X, 
+  Eye, 
+  Wrench, 
+  Rocket, 
+  BookOpen, 
+  ArrowRight, 
+  ArrowLeft, 
+  CheckCircle2, 
+  Square, 
+  Circle, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  MessageSquare, 
+  Clock, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  AlertTriangle, 
+  FilePlus, 
+  Target, 
+  Bookmark 
+} from 'lucide-react';
 
 // 4-Stage Guided Mentor Audit Types
 export interface AuditStageData {
@@ -152,16 +189,16 @@ export const ResumeWorkspaceView: React.FC = () => {
 
   const getActiveToolLabel = () => {
     switch (activeCommentTool) {
-      case 'sections': return '✍️ Section Notes';
-      case 'ai_suggestions': return '✨ AI Suggestions';
-      case 'rewrite_diff': return '🔄 Rewrite (Diff)';
-      case 'voice_memo': return '🎙️ Voice Memo';
-      case 'rubric': return '📊 Rubric Scorecard';
+      case 'sections': return 'Section Notes';
+      case 'ai_suggestions': return 'AI Suggestions';
+      case 'rewrite_diff': return 'Rewrite (Diff)';
+      case 'voice_memo': return 'Voice Memo';
+      case 'rubric': return 'Rubric Scorecard';
     }
   };
 
   const handleInsertRubricSummary = () => {
-    const summary = `\n\n📊 MENTOR EVALUATION RUBRIC (Score: ${calculateRubricOverall()}%):\n• ATS & Layout: ${rubricScores.atsFormat}/5\n• Impact & Metrics: ${rubricScores.metricsImpact}/5\n• Technical Stack Depth: ${rubricScores.techDepth}/5\n• Clarity & Action Verbs: ${rubricScores.grammarClarity}/5`;
+    const summary = `\n\nMENTOR EVALUATION RUBRIC (Score: ${calculateRubricOverall()}%):\n• ATS & Layout: ${rubricScores.atsFormat}/5\n• Impact & Metrics: ${rubricScores.metricsImpact}/5\n• Technical Stack Depth: ${rubricScores.techDepth}/5\n• Clarity & Action Verbs: ${rubricScores.grammarClarity}/5`;
     updateGeneralFeedback((activeStudent?.generalFeedback || '') + summary);
     alert('Rubric scorecard appended to Overall Feedback!');
   };
@@ -309,20 +346,26 @@ export const ResumeWorkspaceView: React.FC = () => {
               setActiveRole('student');
             }}
             title="Preview how student sees the listed mistakes and feedback"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            🎓 Student View
+            <GraduationCap size={13} />
+            <span>Student View</span>
           </button>
           <button 
             className="btn btn-outline btn-sm"
             onClick={() => alert('Review comments, audit notes, audio memo, and rubric saved successfully!')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            💾 Save
+            <Save size={13} />
+            <span>Save</span>
           </button>
           <button 
             className="btn btn-primary btn-sm"
             onClick={() => openModal('approve')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            ✓ Submit Review
+            <Check size={14} />
+            <span>Submit Review</span>
           </button>
         </div>
       </header>
@@ -333,14 +376,18 @@ export const ResumeWorkspaceView: React.FC = () => {
           <button 
             className={`mobile-tab-btn ${mobileTab === 'resume' ? 'active' : ''}`}
             onClick={() => setMobileTab('resume')}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
           >
-            📄 Resume
+            <FileText size={13} />
+            <span>Resume</span>
           </button>
           <button 
             className={`mobile-tab-btn ${mobileTab === 'review' ? 'active' : ''}`}
             onClick={() => setMobileTab('review')}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
           >
-            ✍️ Review ({volunteerSubtopics.length})
+            <Edit3 size={13} />
+            <span>Review ({volunteerSubtopics.length})</span>
           </button>
         </div>
       </div>
@@ -441,64 +488,64 @@ export const ResumeWorkspaceView: React.FC = () => {
           {/* 5 Clean Navigation Tabs */}
           <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
             <button 
-              type="button"
+              type="button" 
               className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
               onClick={() => setActiveCommentTool('sections')}
               title="Section Notes & Highlights"
             >
-              <span className="tab-icon">✍️</span>
+              <Edit3 size={15} className="tab-icon" />
               <span className="tab-label">Notes</span>
               <span className="tab-count-pill">{volunteerSubtopics.length}</span>
             </button>
 
             <button 
-              type="button"
+              type="button" 
               className={`comment-tool-tab ${activeCommentTool === 'mentor_audit' ? 'active' : ''}`}
               onClick={() => setActiveCommentTool('mentor_audit')}
               title="4-Stage Guided Mentor Audit: Glance, Tech Depth, Interview Defense & Action Plan"
             >
-              <span className="tab-icon">🎯</span>
+              <Target size={15} className="tab-icon" />
               <span className="tab-label">Audit</span>
               <span className="tab-count-pill">{currentAuditStage}/4</span>
             </button>
 
             <button 
-              type="button"
+              type="button" 
               className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
               onClick={() => setActiveCommentTool('rewrite_diff')}
               title="Suggest specific Before/After text replacements"
             >
-              <span className="tab-icon">🔄</span>
+              <RefreshCw size={15} className="tab-icon" />
               <span className="tab-label">Rewrite</span>
             </button>
 
             <button 
-              type="button"
+              type="button" 
               className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
               onClick={() => setActiveCommentTool('voice_memo')}
               title="Record audio coaching for overall resume or specific sections"
             >
-              <span className="tab-icon">🎙️</span>
+              <Mic size={15} className="tab-icon" />
               <span className="tab-label">Voice</span>
               {((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length) > 0 && (
-                <span className="tab-saved-dot">✓</span>
+                <span className="tab-saved-dot"><Check size={10} /></span>
               )}
             </button>
 
             <button 
-              type="button"
+              type="button" 
               className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
               onClick={() => setActiveCommentTool('rubric')}
               title="Scorecard evaluation across 4 dimensions"
             >
-              <span className="tab-icon">📊</span>
+              <BarChart3 size={15} className="tab-icon" />
               <span className="tab-label">Rubric</span>
             </button>
           </div>
 
           {/* =========================================================================
               METHOD 1: SECTION NOTES & SUBTOPIC COMMANDS (WITH SEVERITY TAGS)
-             ========================================================================= */}
+              ========================================================================= */}
           {activeCommentTool === 'sections' && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -528,29 +575,37 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className={`cat-select-btn ${newCategory === 'suggestion' ? 'active cat-suggestion' : ''}`}
                       onClick={() => setNewCategory('suggestion')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      💡 Suggestion
+                      <Lightbulb size={12} />
+                      <span>Suggestion</span>
                     </button>
                     <button 
                       type="button" 
                       className={`cat-select-btn ${newCategory === 'must_fix' ? 'active cat-must_fix' : ''}`}
                       onClick={() => setNewCategory('must_fix')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      ⚠️ Must Fix
+                      <AlertCircle size={12} />
+                      <span>Must Fix</span>
                     </button>
                     <button 
                       type="button" 
                       className={`cat-select-btn ${newCategory === 'praise' ? 'active cat-praise' : ''}`}
                       onClick={() => setNewCategory('praise')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      🌟 Praise
+                      <Award size={12} />
+                      <span>Praise</span>
                     </button>
                     <button 
                       type="button" 
                       className={`cat-select-btn ${newCategory === 'question' ? 'active cat-question' : ''}`}
                       onClick={() => setNewCategory('question')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      ❓ Question
+                      <HelpCircle size={12} />
+                      <span>Question</span>
                     </button>
                   </div>
 
@@ -610,7 +665,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                   <div className="no-subtopics-placeholder">
                     <p>No subtopics defined yet by volunteer.</p>
                     <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
-                      Click <strong>"+ Define New Section"</strong> or switch to <strong>"✨ AI Suggestions"</strong> to review automated recommendations!
+                      Click <strong>"+ Define New Section"</strong> or switch to <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><Sparkles size={12} /> AI Suggestions</strong> to review automated recommendations!
                     </p>
                   </div>
                 ) : (
@@ -632,12 +687,16 @@ export const ResumeWorkspaceView: React.FC = () => {
                                 toggleSubtopicReviewed(sub.id);
                               }}
                               title={sub.isReviewed ? "Mark as Incomplete" : "Mark as Reviewed"}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              {sub.isReviewed && '✓'}
+                              {sub.isReviewed && <Check size={12} strokeWidth={3} />}
                             </div>
                             <span className="subtopic-card-title">{sub.title}</span>
-                            <span className={`subtopic-badge badge-${cat}`}>
-                              {cat === 'must_fix' ? '⚠️ Must Fix' : cat === 'praise' ? '🌟 Praise' : cat === 'question' ? '❓ Question' : '💡 Suggestion'}
+                            <span className={`subtopic-badge badge-${cat}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              {cat === 'must_fix' ? <><AlertCircle size={11} /><span>Must Fix</span></> : 
+                               cat === 'praise' ? <><Award size={11} /><span>Praise</span></> : 
+                               cat === 'question' ? <><HelpCircle size={11} /><span>Question</span></> : 
+                               <><Lightbulb size={11} /><span>Suggestion</span></>}
                             </span>
                           </div>
 
@@ -651,8 +710,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                                 toggleSubtopicHighlight(sub.id);
                               }}
                               title="Toggle soft yellow highlight on the resume document"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              💡 {sub.isHighlighted ? 'Highlighted' : 'Highlight'}
+                              <Lightbulb size={12} />
+                              <span>{sub.isHighlighted ? 'Highlighted' : 'Highlight'}</span>
                             </button>
 
                             <button 
@@ -665,8 +726,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                                 }
                               }}
                               title="Delete subtopic"
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              ✕
+                              <X size={13} />
                             </button>
                           </div>
                         </div>
@@ -680,29 +742,37 @@ export const ResumeWorkspaceView: React.FC = () => {
                               type="button"
                               className={`cat-select-btn ${cat === 'suggestion' ? 'active cat-suggestion' : ''}`}
                               onClick={() => updateSubtopicCategory(sub.id, 'suggestion')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              💡 Suggestion
+                              <Lightbulb size={11} />
+                              <span>Suggestion</span>
                             </button>
                             <button 
                               type="button"
                               className={`cat-select-btn ${cat === 'must_fix' ? 'active cat-must_fix' : ''}`}
                               onClick={() => updateSubtopicCategory(sub.id, 'must_fix')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              ⚠️ Must Fix
+                              <AlertCircle size={11} />
+                              <span>Must Fix</span>
                             </button>
                             <button 
                               type="button"
                               className={`cat-select-btn ${cat === 'praise' ? 'active cat-praise' : ''}`}
                               onClick={() => updateSubtopicCategory(sub.id, 'praise')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              🌟 Praise
+                              <Award size={11} />
+                              <span>Praise</span>
                             </button>
                             <button 
                               type="button"
                               className={`cat-select-btn ${cat === 'question' ? 'active cat-question' : ''}`}
                               onClick={() => updateSubtopicCategory(sub.id, 'question')}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              ❓ Question
+                              <HelpCircle size={11} />
+                              <span>Question</span>
                             </button>
                           </div>
 
@@ -758,7 +828,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                             {sub.audioNote?.recorded ? (
                               <div className="subtopic-voice-pill">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ fontSize: '13px' }}>🎙️</span>
+                                  <Mic size={14} color="#166534" />
                                   <span style={{ fontSize: '11px', fontWeight: '700', color: '#166534' }}>
                                     Voice Note ({sub.audioNote.duration})
                                   </span>
@@ -773,8 +843,13 @@ export const ResumeWorkspaceView: React.FC = () => {
                                     onClick={() => {
                                       setPlayingSubtopicAudioId(playingSubtopicAudioId === sub.id ? null : sub.id);
                                     }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                   >
-                                    {playingSubtopicAudioId === sub.id ? '⏸ Pause' : '▶ Play'}
+                                    {playingSubtopicAudioId === sub.id ? (
+                                      <><Pause size={11} /><span>Pause</span></>
+                                    ) : (
+                                      <><Play size={11} /><span>Play</span></>
+                                    )}
                                   </button>
                                   <button 
                                     type="button" 
@@ -784,8 +859,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                                       setActiveCommentTool('voice_memo');
                                     }}
                                     title="Re-record voice note for this subtopic"
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                   >
-                                    🔄 Re-record
+                                    <RefreshCw size={11} />
+                                    <span>Re-record</span>
                                   </button>
                                   <button 
                                     type="button" 
@@ -794,8 +871,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                                       updateSubtopicAudioNote(sub.id, { recorded: false, duration: '0:00', timestamp: '' });
                                     }}
                                     title="Remove voice note"
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                   >
-                                    ✕
+                                    <X size={12} />
                                   </button>
                                 </div>
                               </div>
@@ -807,8 +885,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                                   setVoiceTarget(sub.id);
                                   setActiveCommentTool('voice_memo');
                                 }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                               >
-                                🎙️ + Record Voice Note for "{sub.title}"
+                                <Mic size={14} />
+                                <span>+ Record Voice Note for "{sub.title}"</span>
                               </button>
                             )}
                           </div>
@@ -850,7 +930,9 @@ export const ResumeWorkspaceView: React.FC = () => {
               {currentAuditStage === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div className="mentor-stage-header">
-                    <span className="mentor-stage-icon">👁️</span>
+                    <span className="mentor-stage-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Eye size={20} />
+                    </span>
                     <div>
                       <h4 className="mentor-stage-title">Stage 1: The 6-Second Recruiter Glance</h4>
                       <p className="mentor-stage-desc">
@@ -863,17 +945,19 @@ export const ResumeWorkspaceView: React.FC = () => {
                     <label className="mentor-stage-label">Visual First Impression Verdict:</label>
                     <div className="audit-verdict-grid">
                       {[
-                        { val: 'clean', label: '✅ Clean' },
-                        { val: 'slightly_cluttered', label: '⚠️ Spacing' },
-                        { val: 'dense', label: '❌ Cluttered' }
+                        { val: 'clean', label: 'Clean', icon: Check },
+                        { val: 'slightly_cluttered', label: 'Spacing', icon: AlertTriangle },
+                        { val: 'dense', label: 'Cluttered', icon: X }
                       ].map(opt => (
                         <button
                           key={opt.val}
                           type="button"
                           className={`audit-verdict-card ${auditStage1.verdict === opt.val ? 'selected' : ''}`}
                           onClick={() => setAuditStage1(prev => ({ ...prev, verdict: opt.val as any }))}
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                         >
-                          {opt.label}
+                          <opt.icon size={14} />
+                          <span>{opt.label}</span>
                         </button>
                       ))}
                     </div>
@@ -896,10 +980,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                           }}
                           className="mentor-stage-select"
                         >
-                          <option value="contact">📞 Header & Contact Info</option>
-                          <option value="education">🎓 Education Section</option>
-                          <option value="skills">⚡ Technical Skills</option>
-                          <option value="projects">📁 Projects & Experience</option>
+                          <option value="contact">Header & Contact Info</option>
+                          <option value="education">Education Section</option>
+                          <option value="skills">Technical Skills</option>
+                          <option value="projects">Projects & Experience</option>
                         </select>
                         <span className="mentor-select-chevron" aria-hidden="true">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -940,8 +1024,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button"
                       className="btn btn-primary btn-sm"
                       onClick={() => setCurrentAuditStage(2)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      Next: Project Authenticity ➔
+                      <span>Next: Project Authenticity</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -951,7 +1037,9 @@ export const ResumeWorkspaceView: React.FC = () => {
               {currentAuditStage === 2 && (
                 <div className="mentor-stage-content">
                   <div className="mentor-stage-header">
-                    <span className="mentor-stage-icon">🛠️</span>
+                    <span className="mentor-stage-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Wrench size={20} />
+                    </span>
                     <div>
                       <h4 className="mentor-stage-title">Stage 2: Project Authenticity & Technical Depth</h4>
                       <p className="mentor-stage-desc">
@@ -985,17 +1073,19 @@ export const ResumeWorkspaceView: React.FC = () => {
                     <label className="mentor-stage-label">Authenticity Level:</label>
                     <div className="audit-verdict-grid">
                       {[
-                        { val: 'genuine_challenge', label: '🌟 Authentic' },
-                        { val: 'academic_standard', label: '📘 Academic' },
-                        { val: 'tutorial_clone', label: '⚠️ Clone' }
+                        { val: 'genuine_challenge', label: 'Authentic', icon: Award },
+                        { val: 'academic_standard', label: 'Academic', icon: BookOpen },
+                        { val: 'tutorial_clone', label: 'Clone', icon: AlertTriangle }
                       ].map(opt => (
                         <button
                           key={opt.val}
                           type="button"
                           className={`audit-verdict-card ${auditStage2.authenticity === opt.val ? 'selected' : ''}`}
                           onClick={() => setAuditStage2(prev => ({ ...prev, authenticity: opt.val as any }))}
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                         >
-                          {opt.label}
+                          <opt.icon size={14} />
+                          <span>{opt.label}</span>
                         </button>
                       ))}
                     </div>
@@ -1015,7 +1105,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                   <div className="mentor-stage-field">
                     <label className="mentor-stage-label">Proof of Work (Live Demo / GitHub Repo Link):</label>
                     <input 
-                      type="text"
+                       type="text"
                       className="mentor-stage-input"
                       value={auditStage2.proofOfWork}
                       onChange={(e) => setAuditStage2(prev => ({ ...prev, proofOfWork: e.target.value }))}
@@ -1028,15 +1118,19 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button"
                       className="btn-stage-nav"
                       onClick={() => setCurrentAuditStage(1)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      ← Back: 6-Sec Glance
+                      <ArrowLeft size={14} />
+                      <span>Back: 6-Sec Glance</span>
                     </button>
                     <button
                       type="button"
                       className="btn btn-primary btn-sm"
                       onClick={() => setCurrentAuditStage(3)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      Next: Interview Defense ➔
+                      <span>Next: Interview Defense</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -1046,7 +1140,9 @@ export const ResumeWorkspaceView: React.FC = () => {
               {currentAuditStage === 3 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div className="mentor-stage-header">
-                    <span className="mentor-stage-icon">🎙️</span>
+                    <span className="mentor-stage-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Mic size={20} />
+                    </span>
                     <div>
                       <h4 className="mentor-stage-title">Stage 3: Interview Defense & Grilling</h4>
                       <p className="mentor-stage-desc">
@@ -1082,15 +1178,19 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button"
                       className="btn-stage-nav"
                       onClick={() => setCurrentAuditStage(2)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      ← Back: Tech Depth
+                      <ArrowLeft size={14} />
+                      <span>Back: Tech Depth</span>
                     </button>
                     <button
                       type="button"
                       className="btn btn-primary btn-sm"
                       onClick={() => setCurrentAuditStage(4)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      Next: Action Plan ➔
+                      <span>Next: Action Plan</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -1100,7 +1200,9 @@ export const ResumeWorkspaceView: React.FC = () => {
               {currentAuditStage === 4 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div className="mentor-stage-header">
-                    <span className="mentor-stage-icon">🚀</span>
+                    <span className="mentor-stage-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Rocket size={20} />
+                    </span>
                     <div>
                       <h4 className="mentor-stage-title">Stage 4: 7-Day Prioritized Action Plan</h4>
                       <p className="mentor-stage-desc">
@@ -1147,16 +1249,20 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button"
                       className="btn-stage-nav"
                       onClick={() => setCurrentAuditStage(3)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      ← Back: Interview Q
+                      <ArrowLeft size={14} />
+                      <span>Back: Interview Q</span>
                     </button>
 
                     <button
                       type="button"
                       className="btn-apply-audit"
                       onClick={handleApplyAuditToReview}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                      ✓ Compile & Apply Audit as Review Notes
+                      <Check size={14} />
+                      <span>Compile & Apply Audit as Review Notes</span>
                     </button>
                   </div>
 
@@ -1173,7 +1279,8 @@ export const ResumeWorkspaceView: React.FC = () => {
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      ✅ 4-Stage Mentor Audit compiled & applied to student review notes and general feedback!
+                      <CheckCircle2 size={16} />
+                      <span>4-Stage Mentor Audit compiled & applied to student review notes and general feedback!</span>
                     </div>
                   )}
                 </div>
@@ -1238,13 +1345,19 @@ export const ResumeWorkspaceView: React.FC = () => {
               <div className="diff-box-group">
                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#334155' }}>Live Student Diff Preview:</span>
                 <div className="diff-box before">
-                  <span className="diff-label">❌ Before (Weak / Passive):</span>
+                  <span className="diff-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <X size={12} color="#DC2626" />
+                    <span>Before (Weak / Passive):</span>
+                  </span>
                   <div style={{ fontSize: '12px', textDecoration: 'line-through', color: '#7F1D1D' }}>
                     {rewriteOriginal}
                   </div>
                 </div>
                 <div className="diff-box after">
-                  <span className="diff-label">✅ After (Actionable & High-Impact):</span>
+                  <span className="diff-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Check size={12} color="#166534" />
+                    <span>After (Actionable & High-Impact):</span>
+                  </span>
                   <div style={{ fontSize: '12px', fontWeight: '600', color: '#14532D' }}>
                     {rewriteProposed}
                   </div>
@@ -1261,8 +1374,9 @@ export const ResumeWorkspaceView: React.FC = () => {
               </button>
 
               {rewriteSavedAlert && (
-                <div style={{ background: '#DCFCE7', color: '#15803D', padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>
-                  ✓ Rewrite suggestion saved and attached to student checklist!
+                <div style={{ background: '#DCFCE7', color: '#15803D', padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={15} />
+                  <span>Rewrite suggestion saved and attached to student checklist!</span>
                 </div>
               )}
             </div>
@@ -1273,8 +1387,9 @@ export const ResumeWorkspaceView: React.FC = () => {
              ========================================================================= */}
           {activeCommentTool === 'voice_memo' && (
             <div className="voice-memo-panel">
-              <div style={{ fontSize: '14px', fontWeight: '800', color: '#0F172A', marginBottom: '4px' }}>
-                🎙️ Audio Voice Coaching Notes
+              <div style={{ fontSize: '14px', fontWeight: '800', color: '#0F172A', marginBottom: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Mic size={16} color="#4F46E5" />
+                <span>Audio Voice Coaching Notes</span>
               </div>
               <p style={{ fontSize: '12px', color: '#64748B', maxWidth: '380px', margin: '0 auto 12px auto' }}>
                 Record voice notes either for <strong>specific resume subtopics</strong> or as an <strong>overall review coaching memo</strong>.
@@ -1283,12 +1398,14 @@ export const ResumeWorkspaceView: React.FC = () => {
               {/* Target Selector Card */}
               <div className="voice-target-selector-box">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#854D0E', textTransform: 'uppercase' }}>
-                    🎯 Record Voice Note For:
+                  <span style={{ fontSize: '11px', fontWeight: '800', color: '#854D0E', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Target size={13} />
+                    <span>Record Voice Note For:</span>
                   </span>
                   {(voiceTarget === 'overall' ? activeStudent.audioNote?.recorded : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.recorded) && (
-                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#166534', background: '#DCFCE7', padding: '2px 8px', borderRadius: '9999px' }}>
-                      ✓ Audio Attached ({(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration)})
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#166534', background: '#DCFCE7', padding: '2px 8px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Check size={12} />
+                      <span>Audio Attached ({(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration)})</span>
                     </span>
                   )}
                 </div>
@@ -1304,8 +1421,8 @@ export const ResumeWorkspaceView: React.FC = () => {
                     setVoiceSeconds(0);
                   }}
                 >
-                  <option value="overall">📢 Overall Review Memo (General Feedback)</option>
-                  <optgroup label="📌 Specific Subtopic Sections">
+                  <option value="overall">Overall Review Memo (General Feedback)</option>
+                  <optgroup label="Specific Subtopic Sections">
                     {volunteerSubtopics.map(sub => (
                       <option key={sub.id} value={sub.id}>
                         {sub.title} {sub.audioNote?.recorded ? `(Attached: ${sub.audioNote.duration})` : '(No audio yet)'}
@@ -1323,7 +1440,10 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Recording Time Limit Selector */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', margin: '4px 0 10px 0', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B' }}>⏱️ Duration Limit:</span>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Clock size={13} />
+                  <span>Duration Limit:</span>
+                </span>
                 {[60, 180, 300, 600].map(limit => (
                   <button
                     key={limit}
@@ -1361,8 +1481,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                     }
                   }}
                   title={isVoiceRecording ? "Click to Stop Recording" : "Click to Record Voice Feedback"}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                  {isVoiceRecording ? '⏹' : '🎤'}
+                  {isVoiceRecording ? <Square size={22} fill="currentColor" /> : <Mic size={24} />}
                 </div>
 
                 <div style={{ fontSize: '20px', fontWeight: '800', fontFamily: 'monospace', color: isVoiceRecording ? '#DC2626' : '#0F172A' }}>
@@ -1395,8 +1516,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       setVoiceSeconds(0);
                       setIsPlayingAudio(false);
                     }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    ● Start Recording (Up to {maxVoiceSeconds / 60} mins)
+                    <Circle size={10} fill="currentColor" color="#EF4444" />
+                    <span>Start Recording (Up to {maxVoiceSeconds / 60} mins)</span>
                   </button>
                 )}
 
@@ -1415,8 +1538,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                         updateSubtopicAudioNote(voiceTarget, audioData);
                       }
                     }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    ⏹ Done Recording
+                    <Square size={12} fill="currentColor" />
+                    <span>Done Recording</span>
                   </button>
                 )}
 
@@ -1426,8 +1551,13 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className="btn btn-secondary btn-sm"
                       onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      {isPlayingAudio ? '⏸ Pause' : `▶ Play (${(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration) || '0:30'})`}
+                      {isPlayingAudio ? (
+                        <><Pause size={12} /><span>Pause</span></>
+                      ) : (
+                        <><Play size={12} /><span>Play ({(voiceTarget === 'overall' ? activeStudent.audioNote?.duration : volunteerSubtopics.find(s => s.id === voiceTarget)?.audioNote?.duration) || '0:30'})</span></>
+                      )}
                     </button>
                     <button 
                       type="button" 
@@ -1441,8 +1571,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                           updateSubtopicAudioNote(voiceTarget, { recorded: false, duration: '0:00', timestamp: '' });
                         }
                       }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                     >
-                      ↺ Remove & Re-Record
+                      <RotateCcw size={12} />
+                      <span>Remove & Re-Record</span>
                     </button>
                   </>
                 )}
@@ -1456,8 +1588,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {activeStudent.audioNote?.recorded && (
                     <div className={`voice-list-item ${voiceTarget === 'overall' ? 'active-target' : ''}`}>
-                      <div>
-                        <strong style={{ fontSize: '12px' }}>📢 Overall Review Coaching Memo</strong>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageSquare size={14} color="#4F46E5" />
+                        <strong style={{ fontSize: '12px' }}>Overall Review Coaching Memo</strong>
                         <span style={{ fontSize: '11px', color: '#166534', marginLeft: '6px', fontWeight: '700' }}>
                           ({activeStudent.audioNote.duration})
                         </span>
@@ -1474,8 +1607,9 @@ export const ResumeWorkspaceView: React.FC = () => {
 
                   {volunteerSubtopics.filter(s => s.audioNote?.recorded).map(s => (
                     <div key={s.id} className={`voice-list-item ${voiceTarget === s.id ? 'active-target' : ''}`}>
-                      <div>
-                        <strong style={{ fontSize: '12px' }}>📌 {s.title}</strong>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Bookmark size={14} color="#D97706" />
+                        <strong style={{ fontSize: '12px' }}>{s.title}</strong>
                         <span style={{ fontSize: '11px', color: '#166534', marginLeft: '6px', fontWeight: '700' }}>
                           ({s.audioNote?.duration})
                         </span>
@@ -1521,9 +1655,11 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Criterion 1 */}
               <div className="rubric-criterion-row">
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
                   <span>1. ATS & Layout Safety</span>
-                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.atsFormat} / 5★</span>
+                  <span style={{ color: '#D97706', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    {rubricScores.atsFormat} / 5 <StarIcon filled size={12} />
+                  </span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1532,8 +1668,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className={`rubric-score-pill ${rubricScores.atsFormat === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('atsFormat', val)}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}
                     >
-                      {val}★
+                      <span>{val}</span>
+                      <StarIcon filled={rubricScores.atsFormat >= val} size={11} />
                     </button>
                   ))}
                 </div>
@@ -1541,9 +1679,11 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Criterion 2 */}
               <div className="rubric-criterion-row">
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
                   <span>2. Impact & Measurable Metrics</span>
-                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.metricsImpact} / 5★</span>
+                  <span style={{ color: '#D97706', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    {rubricScores.metricsImpact} / 5 <StarIcon filled size={12} />
+                  </span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1552,8 +1692,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className={`rubric-score-pill ${rubricScores.metricsImpact === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('metricsImpact', val)}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}
                     >
-                      {val}★
+                      <span>{val}</span>
+                      <StarIcon filled={rubricScores.metricsImpact >= val} size={11} />
                     </button>
                   ))}
                 </div>
@@ -1561,9 +1703,11 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Criterion 3 */}
               <div className="rubric-criterion-row">
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
                   <span>3. Technical Projects Depth</span>
-                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.techDepth} / 5★</span>
+                  <span style={{ color: '#D97706', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    {rubricScores.techDepth} / 5 <StarIcon filled size={12} />
+                  </span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1572,8 +1716,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className={`rubric-score-pill ${rubricScores.techDepth === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('techDepth', val)}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}
                     >
-                      {val}★
+                      <span>{val}</span>
+                      <StarIcon filled={rubricScores.techDepth >= val} size={11} />
                     </button>
                   ))}
                 </div>
@@ -1581,9 +1727,11 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Criterion 4 */}
               <div className="rubric-criterion-row">
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
                   <span>4. Clarity & Strong Action Verbs</span>
-                  <span style={{ color: '#D97706', fontWeight: '800' }}>{rubricScores.grammarClarity} / 5★</span>
+                  <span style={{ color: '#D97706', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    {rubricScores.grammarClarity} / 5 <StarIcon filled size={12} />
+                  </span>
                 </div>
                 <div className="rubric-stars-selector">
                   {[1, 2, 3, 4, 5].map(val => (
@@ -1592,8 +1740,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       type="button" 
                       className={`rubric-score-pill ${rubricScores.grammarClarity === val ? 'active' : ''}`}
                       onClick={() => handleRubricScoreChange('grammarClarity', val)}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}
                     >
-                      {val}★
+                      <span>{val}</span>
+                      <StarIcon filled={rubricScores.grammarClarity >= val} size={11} />
                     </button>
                   ))}
                 </div>
@@ -1603,9 +1753,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={handleInsertRubricSummary}
-                style={{ marginTop: '4px' }}
+                style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                📝 Append Rubric Scorecard into Overall Feedback
+                <FilePlus size={14} />
+                <span>Append Rubric Scorecard into Overall Feedback</span>
               </button>
             </div>
           )}
@@ -1619,8 +1770,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                   key={starNum}
                   className={`star-icon ${starNum <= activeStudent.rating ? 'filled' : ''}`}
                   onClick={() => setRating(starNum)}
+                  style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
                 >
-                  ★
+                  <StarIcon filled={starNum <= activeStudent.rating} size={20} />
                 </span>
               ))}
             </div>
@@ -1661,14 +1813,18 @@ export const ResumeWorkspaceView: React.FC = () => {
             <button 
               className="btn btn-danger-outline"
               onClick={() => openModal('changes')}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              ⚠️ Needs Changes
+              <AlertTriangle size={15} />
+              <span>Needs Changes</span>
             </button>
             <button 
               className="btn btn-primary"
               onClick={() => openModal('approve')}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              ✓ Approve Resume
+              <Check size={15} />
+              <span>Approve Resume</span>
             </button>
           </div>
         </aside>
@@ -1712,15 +1868,27 @@ const ResumeDocumentPaper: React.FC<ResumeDocumentPaperProps> = ({
         <div className="resume-target-title">{student.degree} Candidate</div>
         
         <div className="resume-contact-bar">
-          <span className="resume-contact-item">✉ {student.email}</span>
+          <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Mail size={12} />
+            <span>{student.email}</span>
+          </span>
           <span>•</span>
-          <span className="resume-contact-item">☎ {student.phone}</span>
+          <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <Phone size={12} />
+            <span>{student.phone}</span>
+          </span>
           <span>•</span>
-          <span className="resume-contact-item">📍 {student.location}</span>
+          <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <MapPin size={12} />
+            <span>{student.location}</span>
+          </span>
           {student.github && (
             <>
               <span>•</span>
-              <span className="resume-contact-item">🐙 {student.github}</span>
+              <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <GithubIcon size={12} />
+                <span>{student.github}</span>
+              </span>
             </>
           )}
         </div>
@@ -1747,8 +1915,9 @@ const ResumeDocumentPaper: React.FC<ResumeDocumentPaperProps> = ({
             >
               <span>{sec.title}</span>
               {isVolunteerHighlighted && (
-                <span className="clean-doc-highlight-pill">
-                  ● {cat === 'must_fix' ? 'Must Fix' : cat === 'praise' ? 'Praise' : 'Note'}
+                <span className="clean-doc-highlight-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Circle size={6} fill="currentColor" />
+                  <span>{cat === 'must_fix' ? 'Must Fix' : cat === 'praise' ? 'Praise' : 'Note'}</span>
                 </span>
               )}
             </div>

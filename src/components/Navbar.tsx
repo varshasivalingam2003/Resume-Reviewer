@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { PortalLogoIcon } from './Icons';
+import { ChevronDown } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { isAuthenticated, volunteer, setCurrentView, logout } = useApp();
@@ -32,7 +33,7 @@ export const Navbar: React.FC = () => {
           >
             <img src={volunteer.avatar} alt={volunteer.name} className="volunteer-avatar" />
             <span className="volunteer-name">{volunteer.name}</span>
-            <span className="chevron-icon">▼</span>
+            <ChevronDown size={14} className="chevron-icon" />
           </div>
         )}
       </div>

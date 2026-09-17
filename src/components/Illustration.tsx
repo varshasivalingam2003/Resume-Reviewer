@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Pause, Play, Upload, Edit3, Award } from 'lucide-react';
 
 export const LoginIllustration: React.FC = () => {
   const [activeStep, setActiveStep] = useState<number>(1); // 1: Upload, 2: Review, 3: Approved
@@ -38,8 +39,19 @@ export const LoginIllustration: React.FC = () => {
             className="anim-play-toggle-btn"
             onClick={() => setIsAutoPlaying(!isAutoPlaying)}
             title={isAutoPlaying ? "Pause simulation" : "Resume auto-play"}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
           >
-            {isAutoPlaying ? "⏸ Pause" : "▶ Play"}
+            {isAutoPlaying ? (
+              <>
+                <Pause size={12} />
+                <span>Pause</span>
+              </>
+            ) : (
+              <>
+                <Play size={12} />
+                <span>Play</span>
+              </>
+            )}
           </button>
           <span className="review-anim-counter">Phase {activeStep} / 3</span>
         </div>
@@ -59,7 +71,7 @@ export const LoginIllustration: React.FC = () => {
           <line x1="20" y1="208" x2="560" y2="208" stroke="#E2E8F0" strokeWidth="1.2" strokeDasharray="5 5" />
 
           {/* ========================================================
-              CONNECTING PIPELINE STREAM (Student ➔ Volunteer)
+              CONNECTING PIPELINE STREAM (Student -> Volunteer)
               ======================================================== */}
           <path 
             d="M 180 114 C 235 62, 310 62, 365 114" 
@@ -88,7 +100,7 @@ export const LoginIllustration: React.FC = () => {
           </g>
 
           <text x="273" y="146" fontSize="10.5" fontWeight="700" fill="#94A3B8" textAnchor="middle" letterSpacing="0.3">
-            Real-time Sync →
+            Real-time Sync
           </text>
 
           {/* ========================================================
@@ -97,7 +109,7 @@ export const LoginIllustration: React.FC = () => {
           <g transform="translate(10, 8)">
             {/* Clean Section Header Text */}
             <text x="95" y="18" fontSize="13" fontWeight="800" fill="#1E40AF" textAnchor="middle">
-              🎓 Student Workspace
+              Student Workspace
             </text>
 
             {/* Student Character Figure */}
@@ -144,7 +156,7 @@ export const LoginIllustration: React.FC = () => {
 
             {/* Simple Clean Status Text Below Student */}
             <text x="95" y="174" fontSize="11.5" fontWeight="700" fill="#059669" textAnchor="middle">
-              ✓ Resume Uploaded
+              Resume Uploaded
             </text>
           </g>
 
@@ -154,7 +166,7 @@ export const LoginIllustration: React.FC = () => {
           <g transform="translate(365, 8)">
             {/* Clean Section Header Text */}
             <text x="100" y="18" fontSize="13" fontWeight="800" fill="#854D0E" textAnchor="middle">
-              🧑‍🏫 Volunteer Review
+              Volunteer Review
             </text>
 
             {/* Volunteer Monitor Display */}
@@ -196,7 +208,7 @@ export const LoginIllustration: React.FC = () => {
                   rx="4" 
                   className="anim-highlight-rect" 
                 />
-                <text x="15" y="58" fontSize="7.5" fontWeight="800" fill="#854D0E">✦ Projective Skills & Metrics</text>
+                <text x="15" y="58" fontSize="7.5" fontWeight="800" fill="#854D0E">Projective Skills & Metrics</text>
                 <rect x="15" y="62" width="72" height="2.5" rx="1" fill="#CA8A04" />
 
                 {/* Animated Highlighter Pen Sweeping */}
@@ -225,7 +237,7 @@ export const LoginIllustration: React.FC = () => {
 
             {/* Simple Clean Volunteer Command Text */}
             <text x="100" y="174" fontSize="11" fontWeight="700" fill="#78350F" textAnchor="middle">
-              💬 Volunteer Command:
+              Volunteer Command:
             </text>
             <text x="100" y="190" fontSize="10.5" fontWeight="600" fill="#854D0E" textAnchor="middle">
               "Add impact metrics to projects"
@@ -241,21 +253,30 @@ export const LoginIllustration: React.FC = () => {
           className={`anim-step-btn ${activeStep === 1 ? 'active' : ''}`}
           onClick={() => handleStepClick(1)}
         >
-          <span>📤 1. Upload Resume</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Upload size={13} />
+            <span>1. Upload Resume</span>
+          </span>
         </button>
         <button 
           type="button" 
           className={`anim-step-btn ${activeStep === 2 ? 'active' : ''}`}
           onClick={() => handleStepClick(2)}
         >
-          <span>✏️ 2. Review & Highlight</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Edit3 size={13} />
+            <span>2. Review & Highlight</span>
+          </span>
         </button>
         <button 
           type="button" 
           className={`anim-step-btn ${activeStep === 3 ? 'active' : ''}`}
           onClick={() => handleStepClick(3)}
         >
-          <span>🏆 3. Resume Reviewed</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Award size={13} />
+            <span>3. Resume Reviewed</span>
+          </span>
         </button>
       </div>
 

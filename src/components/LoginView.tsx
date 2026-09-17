@@ -1,6 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { PortalLogoIcon, ReviewsIcon, CommentIcon, CheckIcon, WarningTriangleIcon } from './Icons';
+import { 
+  Zap, 
+  MessageSquare, 
+  Check, 
+  GraduationCap, 
+  User, 
+  ArrowRight 
+} from 'lucide-react';
 import { LoginIllustration } from './Illustration';
 import { Student } from '../data/studentsData';
 
@@ -146,15 +154,15 @@ export const LoginView: React.FC = () => {
 
             <div className="hero-feature-chips">
               <div className="feature-pill">
-                <span className="pill-icon">⚡</span>
+                <Zap size={14} className="pill-icon" />
                 <span className="pill-label">Highlight Sections</span>
               </div>
               <div className="feature-pill">
-                <span className="pill-icon">💬</span>
+                <MessageSquare size={14} className="pill-icon" />
                 <span className="pill-label">Mentor Feedback</span>
               </div>
               <div className="feature-pill">
-                <span className="pill-icon">✓</span>
+                <Check size={14} className="pill-icon" />
                 <span className="pill-label">Approve Resumes</span>
               </div>
             </div>
@@ -175,15 +183,19 @@ export const LoginView: React.FC = () => {
                 type="button"
                 className={`login-role-tab ${role === 'volunteer' ? 'active' : ''}`}
                 onClick={() => handleRoleChange('volunteer')}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                🧑‍🏫 Volunteer Login
+                <GraduationCap size={15} />
+                <span>Volunteer Login</span>
               </button>
               <button 
                 type="button"
                 className={`login-role-tab ${role === 'student' ? 'active' : ''}`}
                 onClick={() => handleRoleChange('student')}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                🎓 Student Login
+                <User size={15} />
+                <span>Student Login</span>
               </button>
             </div>
 
@@ -252,9 +264,10 @@ export const LoginView: React.FC = () => {
               <button 
                 type="submit" 
                 className="btn-login-submit"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 <span>{role === 'volunteer' ? 'Continue to Dashboard' : 'View My Resume Changes'}</span>
-                <span className="btn-arrow-icon">→</span>
+                <ArrowRight size={16} className="btn-arrow-icon" />
               </button>
 
               {role === 'volunteer' ? (
@@ -266,7 +279,10 @@ export const LoginView: React.FC = () => {
                     onClick={autofillVolunteerOtp} 
                     title="Click to instant-fill 842019"
                   >
-                    <span>⚡ Fill 8 4 2 0 1 9</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Zap size={12} />
+                      <span>Fill 8 4 2 0 1 9</span>
+                    </span>
                   </button>
                 </div>
               ) : (
@@ -280,8 +296,8 @@ export const LoginView: React.FC = () => {
               )}
 
               {autofillSuccess && (
-                <div className="autofill-success-badge">
-                  <span>✓</span>
+                <div className="autofill-success-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Check size={14} />
                   <span>Demo code auto-filled & ready!</span>
                 </div>
               )}

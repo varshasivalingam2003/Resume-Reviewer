@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface RootErrorBoundaryProps {
   children: React.ReactNode;
@@ -52,7 +53,9 @@ class RootErrorBoundary extends React.Component<RootErrorBoundaryProps, RootErro
             maxWidth: '500px',
             boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
           }}>
-            <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
+            <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+              <AlertTriangle size={44} color="#EAB308" />
+            </div>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
               Application State Reset Needed
             </h2>
@@ -82,10 +85,15 @@ class RootErrorBoundary extends React.Component<RootErrorBoundaryProps, RootErro
                 borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: '700',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                margin: '0 auto'
               }}
             >
-              ↺ Reset & Reload Portal
+              <RotateCcw size={16} />
+              <span>Reset & Reload Portal</span>
             </button>
           </div>
         </div>

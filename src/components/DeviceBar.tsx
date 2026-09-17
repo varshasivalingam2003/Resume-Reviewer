@@ -1,6 +1,16 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { MonitorIcon, SmartphoneIcon } from './Icons';
+import { 
+  Home, 
+  GraduationCap, 
+  UserCheck, 
+  User, 
+  Users, 
+  Unlock, 
+  Lock, 
+  RotateCcw 
+} from 'lucide-react';
 
 export const DeviceBar: React.FC = () => {
   const { 
@@ -32,8 +42,10 @@ export const DeviceBar: React.FC = () => {
               logout();
             }}
             title="Landing / Login Page with Animation"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            🏠 Landing Page
+            <Home size={13} />
+            <span>Landing Page</span>
           </button>
           <button 
             className={`device-toggle-btn ${isAuthenticated && activeRole === 'volunteer' ? 'active' : ''}`}
@@ -42,8 +54,10 @@ export const DeviceBar: React.FC = () => {
               loginVolunteer();
             }}
             title="Volunteer Reviewer Portal Dashboard"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            🧑‍🏫 Volunteer Portal
+            <GraduationCap size={13} />
+            <span>Volunteer Portal</span>
           </button>
           <button 
             className={`device-toggle-btn ${activeRole === 'student' ? 'active' : ''}`}
@@ -51,8 +65,10 @@ export const DeviceBar: React.FC = () => {
               setActiveRole('student');
             }}
             title="Student Portal: Requires student OTP verification"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            🎓 Student Portal
+            <UserCheck size={13} />
+            <span>Student Portal</span>
           </button>
         </div>
 
@@ -65,15 +81,19 @@ export const DeviceBar: React.FC = () => {
               className={`device-toggle-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
               onClick={() => setVolunteerAssignmentMode('single')}
               title="Single User Mode: Only 1 student tagged"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             >
-              👤 1 Student
+              <User size={13} />
+              <span>1 Student</span>
             </button>
             <button 
               className={`device-toggle-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
               onClick={() => setVolunteerAssignmentMode('group')}
               title="Group User Mode: Multiple students tagged (Cohort of 3)"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             >
-              👥 Group (3)
+              <Users size={13} />
+              <span>Group (3)</span>
             </button>
           </div>
         )}
@@ -87,12 +107,13 @@ export const DeviceBar: React.FC = () => {
                 fontWeight: '700',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '5px',
                 background: 'rgba(34, 197, 94, 0.2)',
                 padding: '2px 8px',
                 borderRadius: '4px'
               }}>
-                🔓 Verified: {students.find(s => s.id === selectedStudentForViewId)?.name}
+                <Unlock size={12} />
+                <span>Verified: {students.find(s => s.id === selectedStudentForViewId)?.name}</span>
               </span>
               <button
                 onClick={logoutStudent}
@@ -104,11 +125,15 @@ export const DeviceBar: React.FC = () => {
                   padding: '2px 8px',
                   fontSize: '11px',
                   cursor: 'pointer',
-                  fontWeight: '700'
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
                 }}
                 title="Lock student portal and ask for OTP again"
               >
-                🔒 Lock OTP
+                <Lock size={11} />
+                <span>Lock OTP</span>
               </button>
             </div>
           ) : (
@@ -118,12 +143,13 @@ export const DeviceBar: React.FC = () => {
               fontWeight: '700',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '5px',
               background: 'rgba(234, 179, 8, 0.2)',
               padding: '2px 8px',
               borderRadius: '4px'
             }}>
-              🔒 OTP Verification Required
+              <Lock size={11} />
+              <span>OTP Verification Required</span>
             </span>
           )
         )}
@@ -154,8 +180,10 @@ export const DeviceBar: React.FC = () => {
             }
           }}
           title="Reset all state to initial demo data"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
         >
-          ↺ Reset Demo
+          <RotateCcw size={12} />
+          <span>Reset Demo</span>
         </button>
       </div>
     </div>

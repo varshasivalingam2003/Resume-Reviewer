@@ -3,8 +3,30 @@ import { useApp } from '../context/AppContext';
 import { initialStudents } from '../data/studentsData';
 import { 
   CheckCircleIcon, WarningTriangleIcon, ClockIcon, CommentIcon, 
-  PortalLogoIcon, LogoutIcon
+  PortalLogoIcon, LogoutIcon, StarRating
 } from './Icons';
+import { 
+  GraduationCap, 
+  Hand, 
+  ClipboardList, 
+  FileText, 
+  Mic, 
+  Pause, 
+  Play, 
+  BarChart3, 
+  AlertCircle, 
+  Award, 
+  HelpCircle, 
+  Lightbulb, 
+  Search, 
+  Check, 
+  Send, 
+  ArrowLeft, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  AlertTriangle 
+} from 'lucide-react';
 
 export const StudentFeedbackView: React.FC = () => {
   const { 
@@ -97,9 +119,10 @@ export const StudentFeedbackView: React.FC = () => {
             className="btn btn-secondary btn-sm"
             onClick={() => setActiveRole('volunteer')}
             title="Switch to volunteer review mode"
-            style={{ fontSize: '12px', padding: '6px 12px' }}
+            style={{ fontSize: '12px', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            🧑‍🏫 Volunteer Mode
+            <GraduationCap size={13} />
+            <span>Volunteer Mode</span>
           </button>
 
           <button 
@@ -118,7 +141,10 @@ export const StudentFeedbackView: React.FC = () => {
         <div className="student-info-meta">
           <img src={activeStudent.avatar} alt={activeStudent.name} className="student-view-avatar" />
           <div>
-            <h1 className="student-greeting-title">Hello, {activeStudent.name} 👋</h1>
+            <h1 className="student-greeting-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>Hello, {activeStudent.name}</span>
+              <Hand size={20} color="#F59E0B" />
+            </h1>
             <span className="student-degree-sub">{activeStudent.degree} • {activeStudent.institution}</span>
           </div>
         </div>
@@ -172,18 +198,22 @@ export const StudentFeedbackView: React.FC = () => {
       <div className="mobile-workspace-tabs-bar student-mobile-tabs-bar">
         <div className="mobile-tabs-pill-container">
           <button 
-            type="button"
+            type="button" 
             className={`mobile-tab-btn ${studentMobileTab === 'mistakes' ? 'active' : ''}`}
             onClick={() => setStudentMobileTab('mistakes')}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
-            📋 Feedback & Fixes ({totalSubtopics})
+            <ClipboardList size={14} />
+            <span>Feedback & Fixes ({totalSubtopics})</span>
           </button>
           <button 
-            type="button"
+            type="button" 
             className={`mobile-tab-btn ${studentMobileTab === 'resume' ? 'active' : ''}`}
             onClick={() => setStudentMobileTab('resume')}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
-            📄 Annotated Resume
+            <FileText size={14} />
+            <span>Annotated Resume</span>
           </button>
         </div>
       </div>
@@ -205,9 +235,7 @@ export const StudentFeedbackView: React.FC = () => {
 
               <div className="reviewer-rating-pill">
                 <span>Rating:</span>
-                <span style={{ color: '#F59E0B' }}>
-                  {'★'.repeat(activeStudent.rating || 4)}{'☆'.repeat(5 - (activeStudent.rating || 4))}
-                </span>
+                <StarRating rating={activeStudent.rating || 4} size={14} />
               </div>
             </div>
 
@@ -242,7 +270,8 @@ export const StudentFeedbackView: React.FC = () => {
               <div className="student-voice-memo-card">
                 <div className="voice-memo-header">
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#0F172A', fontSize: '13px' }}>
-                    🎙️ Mentor Voice Memo ({activeStudent.audioNote.duration})
+                    <Mic size={14} color="#0F172A" />
+                    <span>Mentor Voice Memo ({activeStudent.audioNote.duration})</span>
                   </span>
                   <span style={{ fontSize: '11px', color: '#64748B' }}>
                     {activeStudent.audioNote.timestamp || 'Recorded during review'}
@@ -253,8 +282,19 @@ export const StudentFeedbackView: React.FC = () => {
                     type="button" 
                     className={`btn-play-voice ${isPlayingAudio ? 'is-playing' : ''}`}
                     onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    {isPlayingAudio ? '⏸ Pause Feedback' : '▶ Play Voice Feedback'}
+                    {isPlayingAudio ? (
+                      <>
+                        <Pause size={12} />
+                        <span>Pause Feedback</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play size={12} />
+                        <span>Play Voice Feedback</span>
+                      </>
+                    )}
                   </button>
                   <div className="voice-waveform-mini">
                     <span className={`wave-bar ${isPlayingAudio ? 'anim' : ''}`} />
@@ -276,7 +316,8 @@ export const StudentFeedbackView: React.FC = () => {
               <div className="student-rubric-summary-box">
                 <div className="rubric-summary-header">
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#0F172A', fontSize: '13px' }}>
-                    📊 Evaluation Rubric Scorecard
+                    <BarChart3 size={15} />
+                    <span>Evaluation Rubric Scorecard</span>
                   </span>
                   <span className="rubric-overall-badge">
                     {rubricAvg}% Overall Quality
@@ -341,8 +382,8 @@ export const StudentFeedbackView: React.FC = () => {
                         <span className="subtopic-card-title" style={{ fontSize: '14px' }}>
                           {item.title}
                         </span>
-                        <span className={`subtopic-badge badge-${cat}`}>
-                          {cat === 'must_fix' ? '⚠️ Must Fix' : cat === 'praise' ? '🌟 Praise' : cat === 'question' ? '❓ Question' : '💡 Suggestion'}
+                        <span className={`subtopic-badge badge-${cat}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          {cat === 'must_fix' ? <><AlertCircle size={11} /> Must Fix</> : cat === 'praise' ? <><Award size={11} /> Praise</> : cat === 'question' ? <><HelpCircle size={11} /> Question</> : <><Lightbulb size={11} /> Suggestion</>}
                         </span>
                       </div>
 
@@ -350,8 +391,10 @@ export const StudentFeedbackView: React.FC = () => {
                         className="btn-spotlight-resume"
                         onClick={() => scrollToResumeSection(item.sectionKey)}
                         title="Scroll to see this section in your resume"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
-                        🔍 View in Resume
+                        <Search size={12} />
+                        <span>View in Resume</span>
                       </button>
                     </div>
 
@@ -382,7 +425,8 @@ export const StudentFeedbackView: React.FC = () => {
                       <div className="student-subtopic-voice-memo">
                         <div className="subtopic-voice-meta">
                           <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '700', fontSize: '12px', color: '#166534' }}>
-                            🎙️ Volunteer Voice Note on this section ({item.audioNote.duration})
+                            <Mic size={12} />
+                            <span>Volunteer Voice Note on this section ({item.audioNote.duration})</span>
                           </span>
                           <span style={{ fontSize: '11px', color: '#64748B' }}>
                             {item.audioNote.timestamp || 'Recorded by mentor'}
@@ -393,8 +437,19 @@ export const StudentFeedbackView: React.FC = () => {
                             type="button"
                             className={`btn-play-voice ${playingSubtopicAudioId === item.id ? 'is-playing' : ''}`}
                             onClick={() => setPlayingSubtopicAudioId(playingSubtopicAudioId === item.id ? null : item.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           >
-                            {playingSubtopicAudioId === item.id ? '⏸ Pause Note' : '▶ Play Voice Note'}
+                            {playingSubtopicAudioId === item.id ? (
+                              <>
+                                <Pause size={12} />
+                                <span>Pause Note</span>
+                              </>
+                            ) : (
+                              <>
+                                <Play size={12} />
+                                <span>Play Voice Note</span>
+                              </>
+                            )}
                           </button>
                           <div className="voice-waveform-mini">
                             <span className={`wave-bar ${playingSubtopicAudioId === item.id ? 'anim' : ''}`} />
@@ -419,12 +474,22 @@ export const StudentFeedbackView: React.FC = () => {
                           checked={isResolved}
                           onChange={() => toggleResolveItem(item.id)}
                         />
-                        <span>{isResolved ? 'Marked as Fixed ✓' : 'I have made this change in my resume'}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          {isResolved ? (
+                            <>
+                              <span>Marked as Fixed</span>
+                              <Check size={13} color="#059669" />
+                            </>
+                          ) : (
+                            <span>I have made this change in my resume</span>
+                          )}
+                        </span>
                       </label>
 
                       {isResolved && (
-                        <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700' }}>
-                          Resolved ✓
+                        <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span>Resolved</span>
+                          <Check size={12} />
                         </span>
                       )}
                     </div>
@@ -448,8 +513,10 @@ export const StudentFeedbackView: React.FC = () => {
             <button 
               className="btn btn-primary"
               onClick={handleSubmitRevisions}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              📤 Submit Revisions
+              <Send size={14} />
+              <span>Submit Revisions</span>
             </button>
           </div>
         </div>
@@ -457,17 +524,23 @@ export const StudentFeedbackView: React.FC = () => {
         {/* Right Column: Annotated Resume Paper */}
         <div className="student-resume-right-col">
           <div className="student-resume-header-bar">
-            <span>📄 {activeStudent.name}_Resume_Annotated.pdf</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <FileText size={14} />
+              <span>{activeStudent.name}_Resume_Annotated.pdf</span>
+            </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button 
-                type="button"
+                type="button" 
                 className="mobile-back-to-feedback-btn"
                 onClick={() => setStudentMobileTab('mistakes')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                ← View Fixes
+                <ArrowLeft size={13} />
+                <span>View Fixes</span>
               </button>
-              <span className="yellow-highlight-indicator">
-                💡 Highlights = Mentor Feedback
+              <span className="yellow-highlight-indicator" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Lightbulb size={13} />
+                <span>Highlights = Mentor Feedback</span>
               </span>
             </div>
           </div>
@@ -479,11 +552,20 @@ export const StudentFeedbackView: React.FC = () => {
                 <h1 className="resume-name">{activeStudent.name.toUpperCase()}</h1>
                 <div className="resume-target-title">{activeStudent.degree} Candidate</div>
                 <div className="resume-contact-bar">
-                  <span className="resume-contact-item">✉ {activeStudent.email}</span>
+                  <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Mail size={12} />
+                    <span>{activeStudent.email}</span>
+                  </span>
                   <span>•</span>
-                  <span className="resume-contact-item">☎ {activeStudent.phone}</span>
+                  <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Phone size={12} />
+                    <span>{activeStudent.phone}</span>
+                  </span>
                   <span>•</span>
-                  <span className="resume-contact-item">📍 {activeStudent.location}</span>
+                  <span className="resume-contact-item" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <MapPin size={12} />
+                    <span>{activeStudent.location}</span>
+                  </span>
                 </div>
               </header>
 
@@ -507,8 +589,9 @@ export const StudentFeedbackView: React.FC = () => {
                     <div className="resume-section-title">
                       <span>{sec.title}</span>
                       {hasFeedback && (
-                        <span style={{ fontSize: '11px', color: '#854D0E', background: '#FEF08A', padding: '2px 8px', borderRadius: '10px', fontWeight: '700' }}>
-                          ⚠️ Feedback Listed
+                        <span style={{ fontSize: '11px', color: '#854D0E', background: '#FEF08A', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <AlertTriangle size={12} />
+                          <span>Feedback Listed</span>
                         </span>
                       )}
                     </div>
@@ -564,8 +647,8 @@ export const StudentFeedbackView: React.FC = () => {
                         <div className="highlight-comment-bubble" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span><CommentIcon size={12} /> Volunteer Correction</span>
                           {subtopic.category && (
-                            <span className={`subtopic-badge badge-${subtopic.category}`} style={{ fontSize: '9px', padding: '1px 6px' }}>
-                              {subtopic.category === 'must_fix' ? '⚠️ Must Fix' : subtopic.category === 'praise' ? '🌟 Praise' : subtopic.category === 'question' ? '❓ Question' : '💡 Suggestion'}
+                            <span className={`subtopic-badge badge-${subtopic.category}`} style={{ fontSize: '9px', padding: '1px 6px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              {subtopic.category === 'must_fix' ? <><AlertCircle size={10} /> Must Fix</> : subtopic.category === 'praise' ? <><Award size={10} /> Praise</> : subtopic.category === 'question' ? <><HelpCircle size={10} /> Question</> : <><Lightbulb size={10} /> Suggestion</>}
                             </span>
                           )}
                         </div>
@@ -589,7 +672,8 @@ export const StudentFeedbackView: React.FC = () => {
                         )}
                         {subtopic.audioNote?.recorded && (
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#DCFCE7', border: '1px solid #86EFAC', borderRadius: '6px', padding: '3px 8px', marginTop: '6px', fontSize: '11px', color: '#166534', fontWeight: '700' }}>
-                            <span>🎙️ Voice Note Attached: {subtopic.audioNote.duration}</span>
+                            <Mic size={12} />
+                            <span>Voice Note Attached: {subtopic.audioNote.duration}</span>
                           </div>
                         )}
                       </div>
