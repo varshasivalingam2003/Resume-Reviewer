@@ -353,7 +353,9 @@ export const ResumeWorkspaceView: React.FC = () => {
           <div className="resume-toolbar">
             <div className="resume-file-info">
               <span className="pdf-icon-badge"><PdfIcon size={18} /></span>
-              <span>{activeStudent.name.replace(/\s+/g, '_')}_Resume.pdf</span>
+              <span className="resume-filename" title={`${activeStudent.name.replace(/\s+/g, '_')}_Resume.pdf`}>
+                {activeStudent.name.replace(/\s+/g, '_')}_Resume.pdf
+              </span>
             </div>
 
             <div className="resume-view-controls">
@@ -363,14 +365,16 @@ export const ResumeWorkspaceView: React.FC = () => {
                   className="page-nav-btn" 
                   onClick={() => setResumePage(activeResumePage - 1)}
                   disabled={activeResumePage <= 1}
+                  aria-label="Previous Page"
                 >
                   &lt;
                 </button>
-                <span>{activeResumePage} / {activeStudent.totalPages || 2}</span>
+                <span className="page-indicator-text">{activeResumePage} / {activeStudent.totalPages || 2}</span>
                 <button 
                   className="page-nav-btn" 
                   onClick={() => setResumePage(activeResumePage + 1)}
                   disabled={activeResumePage >= (activeStudent.totalPages || 2)}
+                  aria-label="Next Page"
                 >
                   &gt;
                 </button>
@@ -378,9 +382,9 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               {/* Zoom Controls */}
               <div className="zoom-controls">
-                <button className="zoom-btn" onClick={() => setZoom(zoomLevel - 10)}>-</button>
-                <span style={{ fontSize: '12px', minWidth: '36px', textAlign: 'center' }}>{zoomLevel}%</span>
-                <button className="zoom-btn" onClick={() => setZoom(zoomLevel + 10)}>+</button>
+                <button className="zoom-btn" onClick={() => setZoom(zoomLevel - 10)} aria-label="Zoom Out">-</button>
+                <span className="zoom-indicator-text">{zoomLevel}%</span>
+                <button className="zoom-btn" onClick={() => setZoom(zoomLevel + 10)} aria-label="Zoom In">+</button>
               </div>
 
               <button 

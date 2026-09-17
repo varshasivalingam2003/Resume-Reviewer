@@ -116,18 +116,30 @@ const styles = `/* Resume Review Workspace Styles */
   gap: 8px;
   font-weight: 600;
   color: var(--text-primary);
+  min-width: 0;
+}
+
+.resume-filename {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pdf-icon-badge {
   color: #EF4444;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .resume-view-controls {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .page-navigator {
@@ -135,6 +147,27 @@ const styles = `/* Resume Review Workspace Styles */
   align-items: center;
   gap: 6px;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.page-indicator-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: center;
+}
+
+.zoom-indicator-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+  text-align: center;
 }
 
 .page-nav-btn {

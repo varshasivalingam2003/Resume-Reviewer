@@ -939,7 +939,9 @@ const styles = `/* ========================================================
      RESUME DOCUMENT VIEWER ON MOBILE
      ======================================================== */
   .resume-toolbar {
-    padding: 6px 10px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
@@ -951,38 +953,129 @@ const styles = `/* ========================================================
   }
 
   .resume-file-info {
-    font-size: 11px !important;
-    max-width: 120px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+    flex: 0 1 auto !important;
+    max-width: 110px !important;
+    overflow: hidden !important;
+  }
+
+  .resume-file-info .pdf-icon-badge {
+    flex-shrink: 0 !important;
+  }
+
+  .resume-filename {
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
   }
 
   .resume-view-controls {
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
+    flex-shrink: 0 !important;
     flex-wrap: nowrap !important;
   }
 
-  .page-navigator, 
-  .zoom-controls {
-    padding: 2px 4px !important;
+  .page-navigator {
+    display: inline-flex !important;
+    align-items: center !important;
     gap: 3px !important;
-    font-size: 10.5px !important;
+    padding: 2px 4px !important;
     border-radius: 6px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .page-indicator-text {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
+    white-space: nowrap !important;
+    min-width: 28px !important;
+    text-align: center !important;
+    display: inline-block !important;
+    font-variant-numeric: tabular-nums !important;
+    line-height: 1 !important;
+  }
+
+  .zoom-controls {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    padding: 2px 4px !important;
+    border-radius: 6px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .zoom-indicator-text {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
+    white-space: nowrap !important;
+    min-width: 32px !important;
+    text-align: center !important;
+    display: inline-block !important;
+    font-variant-numeric: tabular-nums !important;
+    line-height: 1 !important;
   }
 
   .page-nav-btn, 
   .zoom-btn {
     width: 22px !important;
     height: 22px !important;
-    font-size: 10.5px !important;
+    min-width: 22px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
     border-radius: 4px !important;
+    border: 1px solid #CBD5E1 !important;
+    background: #FFFFFF !important;
+    color: #0F172A !important;
     padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+  }
+
+  .page-nav-btn:hover:not(:disabled),
+  .zoom-btn:hover:not(:disabled) {
+    background: #F1F5F9 !important;
+  }
+
+  .page-nav-btn:disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+  }
+
+  .toolbar-action-icon-btn {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    border-radius: 6px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    color: #475569 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
   }
 
   .resume-scroll-canvas {
