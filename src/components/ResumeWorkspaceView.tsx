@@ -6,61 +6,13 @@ import {
   CommentIcon, CheckIcon 
 } from './Icons';
 
-interface AISuggestion {
-  id: string;
-  category: 'must_fix' | 'suggestion' | 'praise';
-  title: string;
-  sectionKey: string;
-  sectionTitle: string;
-  detectedIssue: string;
-  recommendation: string;
-  atsImpact: string;
+// 4-Stage Guided Mentor Audit Types
+export interface AuditStageData {
+  stage1: { verdict: 'clean' | 'slightly_cluttered' | 'dense'; notes: string; highlightSection: string };
+  stage2: { selectedProject: string; authenticity: 'genuine_challenge' | 'academic_standard' | 'tutorial_clone'; challengeNotes: string; proofOfWork: string };
+  stage3: { interviewQuestion: string; prepTip: string };
+  stage4: { task1: string; task2: string; encouragement: string };
 }
-
-const AI_RESUME_SUGGESTIONS: Record<string, AISuggestion[]> = {
-  'student-1': [
-    {
-      id: 'ai-1',
-      category: 'must_fix',
-      title: 'Quantify Project Scale & Performance (XYZ Formula)',
-      sectionKey: 'projects',
-      sectionTitle: 'Academic Projects',
-      detectedIssue: 'Smart Attendance System lacks measurable volume, accuracy, or efficiency metrics.',
-      recommendation: 'Use Google’s XYZ formula: "Automated attendance tracking for 400+ students across 12 classrooms, cutting roll-call duration by 85% with 98.4% facial recognition accuracy." Include public GitHub repo link.',
-      atsImpact: '+35% higher recruiter retention rate'
-    },
-    {
-      id: 'ai-2',
-      category: 'must_fix',
-      title: 'Categorize Technical Skills for ATS Parsers',
-      sectionKey: 'skills',
-      sectionTitle: 'Projective Skills & Web Stack',
-      detectedIssue: 'Skills are listed in an unsegmented inline sequence. Applicant Tracking Systems parse categorized skills better.',
-      recommendation: 'Group into: Frontend (HTML5, CSS3, JavaScript ES6+), Backend (Java, Python), Databases (SQL), and Tools (Git & GitHub) to ensure complete keyword parsing.',
-      atsImpact: 'Guarantees 100% keyword extraction in ATS parsers'
-    },
-    {
-      id: 'ai-3',
-      category: 'suggestion',
-      title: 'Sharpen Career Objective for Target Engineering Track',
-      sectionKey: 'objective',
-      sectionTitle: 'Career Objective',
-      detectedIssue: 'Objective is generic and does not highlight your specific core stack strengths.',
-      recommendation: 'Specify target technical track: "Aspiring Full-Stack Software Engineer with strong foundations in Java, Python, and scalable web architectures. Passionate about building high-availability applications."',
-      atsImpact: 'Immediate role-alignment in initial 6-second recruiter scan'
-    },
-    {
-      id: 'ai-4',
-      category: 'praise',
-      title: 'ATS-Clean Single Column Layout & Strong Academics',
-      sectionKey: 'education',
-      sectionTitle: 'Education',
-      detectedIssue: 'No issues found. Layout is properly structured.',
-      recommendation: 'Excellent formatting with 8.2 CGPA and 91.5% HSC prominently highlighted. Verified fully readable across Greenhouse and Workday parsers.',
-      atsImpact: 'Passes standard automated GPA screening benchmark'
-    }
-  ]
-};
 
 interface ResumeDocumentPaperProps {
   student: Student;
@@ -102,8 +54,8 @@ export const ResumeWorkspaceView: React.FC = () => {
     setSelectedStudentForViewId
   } = useApp();
 
-  // Multi-Method Commenting Tool State (5 Suggestions)
-  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'ai_suggestions' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
+  // Multi-Method Commenting Tool State (5 Human Review Tools)
+  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'mentor_audit' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('mentor_audit');
   
   // Method 1: Subtopic Definition
   const [newSubtopicTitle, setNewSubtopicTitle] = useState('');
@@ -112,10 +64,29 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [newCategory, setNewCategory] = useState<'suggestion' | 'must_fix' | 'praise' | 'question'>('suggestion');
   const [isDefiningSubtopic, setIsDefiningSubtopic] = useState(false);
 
-  // Method 2: AI Suggestions State
-  const [isAiScanning, setIsAiScanning] = useState(false);
-  const [aiCategoryFilter, setAiCategoryFilter] = useState<'all' | 'must_fix' | 'suggestion' | 'praise'>('all');
-  const [appliedAiIds, setAppliedAiIds] = useState<string[]>([]);
+  // Method 2: 4-Stage Guided Mentor Audit State (Human Mentorship)
+  const [currentAuditStage, setCurrentAuditStage] = useState<1 | 2 | 3 | 4>(1);
+  const [auditStage1, setAuditStage1] = useState({
+    verdict: 'clean' as 'clean' | 'slightly_cluttered' | 'dense',
+    notes: 'Contact info is clear and formatting is clean. Margins and visual hierarchy are well balanced.',
+    highlightSection: 'contact'
+  });
+  const [auditStage2, setAuditStage2] = useState({
+    selectedProject: 'Smart Attendance System',
+    authenticity: 'genuine_challenge' as 'genuine_challenge' | 'academic_standard' | 'tutorial_clone',
+    challengeNotes: 'Describe how concurrency was handled: 50+ simultaneous face captures without request timeouts.',
+    proofOfWork: 'https://github.com/rahulsharma/smart-attendance-system'
+  });
+  const [auditStage3, setAuditStage3] = useState({
+    interviewQuestion: 'How would your facial recognition pipeline scale if 500 students entered the hall at the exact same minute?',
+    prepTip: 'Explain message broker queues (RabbitMQ/Kafka) and asynchronous worker threads.'
+  });
+  const [auditStage4, setAuditStage4] = useState({
+    task1: 'Add metrics to Smart Attendance System: mention % recognition accuracy and latency reduction.',
+    task2: 'Categorize skills into Languages, Frameworks, and Tools.',
+    encouragement: 'Great engineering fundamentals! Polish these two areas and you are ready for tech interviews.'
+  });
+  const [auditAppliedSuccess, setAuditAppliedSuccess] = useState(false);
 
   // Method 3: Rewrite Suggestion Tool
   const [rewriteTargetSection, setRewriteTargetSection] = useState('objective');
@@ -242,60 +213,48 @@ export const ResumeWorkspaceView: React.FC = () => {
     }
   };
 
-  // Active AI suggestions for this student
-  const activeAiSuggestions: AISuggestion[] = AI_RESUME_SUGGESTIONS[activeStudent.id] || [
-    {
-      id: `ai-${activeStudent.id}-1`,
-      category: 'must_fix',
-      title: 'Quantify Experience & Business Results',
-      sectionKey: 'projects',
-      sectionTitle: 'Projects & Experience',
-      detectedIssue: 'Project bullets describe activities rather than quantifiable achievements.',
-      recommendation: 'Incorporate concrete metrics: users impacted, performance boosts, or latency reductions using action verbs.',
-      atsImpact: '+30% higher ATS ranking score'
-    },
-    {
-      id: `ai-${activeStudent.id}-2`,
-      category: 'suggestion',
-      title: 'Categorize Technical Skill Sets',
-      sectionKey: 'skills',
-      sectionTitle: 'Technical Stack',
-      detectedIssue: 'Group skills by domain (Languages, Frameworks, Tools) to maximize parser recognition.',
-      recommendation: 'Organize skills into Languages, Frameworks, and Tools for seamless machine parsing.',
-      atsImpact: 'Guarantees 100% keyword parsing'
-    },
-    {
-      id: `ai-${activeStudent.id}-3`,
-      category: 'praise',
-      title: 'Verified ATS Single Column Hierarchy',
-      sectionKey: 'education',
-      sectionTitle: 'Education & Layout',
-      detectedIssue: 'No issues found. Single column format verified.',
-      recommendation: 'Single column layout without nested tables is verified safe across Greenhouse, Workday, and Lever.',
-      atsImpact: 'Zero parsing errors'
-    }
-  ];
-
-  const filteredAiSuggestions = aiCategoryFilter === 'all'
-    ? activeAiSuggestions
-    : activeAiSuggestions.filter(s => s.category === aiCategoryFilter);
-
-  const handleApplyAiSuggestion = (sug: AISuggestion) => {
+  // 4-Stage Guided Mentor Audit Handler
+  const handleApplyAuditToReview = () => {
+    // 1. Stage 1 note
+    const s1Cat = auditStage1.verdict === 'clean' ? 'praise' : 'must_fix';
+    const s1Label = auditStage1.verdict === 'clean' ? 'Clean & Scannable' : auditStage1.verdict === 'slightly_cluttered' ? 'Needs Spacing Fix' : 'Dense Layout';
     addVolunteerSubtopic(
-      sug.title,
-      sug.sectionKey,
-      sug.recommendation,
-      sug.category
+      `Stage 1: 6-Sec Glance (${s1Label})`,
+      auditStage1.highlightSection || 'contact',
+      auditStage1.notes,
+      s1Cat
     );
-    setAppliedAiIds(prev => [...prev, sug.id]);
-    quickHighlightFromCanvas(sug.sectionKey, sug.sectionTitle);
-  };
+    quickHighlightFromCanvas(auditStage1.highlightSection || 'contact', 'Stage 1: 6-Sec Glance');
 
-  const handleRescanAi = () => {
-    setIsAiScanning(true);
-    setTimeout(() => {
-      setIsAiScanning(false);
-    }, 600);
+    // 2. Stage 2 note
+    const s2Cat = auditStage2.authenticity === 'genuine_challenge' ? 'praise' : 'must_fix';
+    addVolunteerSubtopic(
+      `Stage 2: Tech Depth (${auditStage2.selectedProject})`,
+      'projects',
+      `${auditStage2.challengeNotes}\n\n[Proof of Work]: ${auditStage2.proofOfWork}`,
+      s2Cat
+    );
+
+    // 3. Stage 3 note
+    addVolunteerSubtopic(
+      'Stage 3: Interview Defense Question',
+      'projects',
+      `Mock Question: "${auditStage3.interviewQuestion}"\n\n[Coaching Tip]: ${auditStage3.prepTip}`,
+      'suggestion'
+    );
+
+    // 4. Stage 4 note
+    addVolunteerSubtopic(
+      'Stage 4: 7-Day Action Plan',
+      'overall',
+      `1. ${auditStage4.task1}\n2. ${auditStage4.task2}\n\n[Mentor Encouragement]: ${auditStage4.encouragement}`,
+      'must_fix'
+    );
+
+    // Update general feedback
+    updateGeneralFeedback(`${auditStage4.encouragement}\n\nKey Interview Question to Prepare: "${auditStage3.interviewQuestion}"`);
+    setAuditAppliedSuccess(true);
+    setTimeout(() => setAuditAppliedSuccess(false), 4000);
   };
 
   const handleSaveRewriteSuggestion = () => {
@@ -351,19 +310,19 @@ export const ResumeWorkspaceView: React.FC = () => {
             }}
             title="Preview how student sees the listed mistakes and feedback"
           >
-            🎓 View as Student
+            🎓 Student View
           </button>
           <button 
             className="btn btn-outline btn-sm"
-            onClick={() => alert('All comments, AI recommendations, audio memo, and rubric saved successfully!')}
+            onClick={() => alert('Review comments, audit notes, audio memo, and rubric saved successfully!')}
           >
-            Save
+            💾 Save
           </button>
           <button 
             className="btn btn-primary btn-sm"
             onClick={() => openModal('approve')}
           >
-            Submit Review
+            ✓ Submit Review
           </button>
         </div>
       </header>
@@ -381,7 +340,7 @@ export const ResumeWorkspaceView: React.FC = () => {
             className={`mobile-tab-btn ${mobileTab === 'review' ? 'active' : ''}`}
             onClick={() => setMobileTab('review')}
           >
-            ✍️ Review & Comments ({volunteerSubtopics.length})
+            ✍️ Review ({volunteerSubtopics.length})
           </button>
         </div>
       </div>
@@ -477,63 +436,61 @@ export const ResumeWorkspaceView: React.FC = () => {
 
           {/* 5 Clean Navigation Tabs */}
           <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('sections')}
-                title="Section commands with severity tags & highlights"
-              >
-                <span className="tab-icon">✍️</span>
-                <span className="tab-label">Section Notes</span>
-                <span className="tab-count-pill">{volunteerSubtopics.length}</span>
-              </button>
+            <button 
+              type="button"
+              className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
+              onClick={() => setActiveCommentTool('sections')}
+              title="Section Notes & Highlights"
+            >
+              <span className="tab-icon">✍️</span>
+              <span className="tab-label">Notes</span>
+              <span className="tab-count-pill">{volunteerSubtopics.length}</span>
+            </button>
 
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'ai_suggestions' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('ai_suggestions')}
-                title="AI-powered candidate-tailored audit & smart suggestions"
-              >
-                <span className="tab-icon">✨</span>
-                <span className="tab-label">AI Suggestions</span>
-                <span className="tab-count-pill">{activeAiSuggestions.length}</span>
-              </button>
+            <button 
+              type="button"
+              className={`comment-tool-tab ${activeCommentTool === 'mentor_audit' ? 'active' : ''}`}
+              onClick={() => setActiveCommentTool('mentor_audit')}
+              title="4-Stage Guided Mentor Audit: Glance, Tech Depth, Interview Defense & Action Plan"
+            >
+              <span className="tab-icon">🎯</span>
+              <span className="tab-label">Audit</span>
+              <span className="tab-count-pill">{currentAuditStage}/4</span>
+            </button>
 
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('rewrite_diff')}
-                title="Suggest specific Before/After text replacements"
-              >
-                <span className="tab-icon">🔄</span>
-                <span className="tab-label">Rewrite (Diff)</span>
-              </button>
+            <button 
+              type="button"
+              className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
+              onClick={() => setActiveCommentTool('rewrite_diff')}
+              title="Suggest specific Before/After text replacements"
+            >
+              <span className="tab-icon">🔄</span>
+              <span className="tab-label">Rewrite</span>
+            </button>
 
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('voice_memo')}
-                title="Record audio coaching for overall resume or specific sections"
-              >
-                <span className="tab-icon">🎙️</span>
-                <span className="tab-label">Voice Memo</span>
-                {((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length) > 0 && (
-                  <span className="tab-saved-dot">
-                    {(activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length} ✓
-                  </span>
-                )}
-              </button>
+            <button 
+              type="button"
+              className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
+              onClick={() => setActiveCommentTool('voice_memo')}
+              title="Record audio coaching for overall resume or specific sections"
+            >
+              <span className="tab-icon">🎙️</span>
+              <span className="tab-label">Voice</span>
+              {((activeStudent?.audioNote?.recorded ? 1 : 0) + volunteerSubtopics.filter(s => s.audioNote?.recorded).length) > 0 && (
+                <span className="tab-saved-dot">✓</span>
+              )}
+            </button>
 
-              <button 
-                type="button"
-                className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
-                onClick={() => setActiveCommentTool('rubric')}
-                title="Scorecard evaluation across 4 dimensions"
-              >
-                <span className="tab-icon">📊</span>
-                <span className="tab-label">Rubric</span>
-              </button>
-            </div>
+            <button 
+              type="button"
+              className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
+              onClick={() => setActiveCommentTool('rubric')}
+              title="Scorecard evaluation across 4 dimensions"
+            >
+              <span className="tab-icon">📊</span>
+              <span className="tab-label">Rubric</span>
+            </button>
+          </div>
 
           {/* =========================================================================
               METHOD 1: SECTION NOTES & SUBTOPIC COMMANDS (WITH SEVERITY TAGS)
@@ -861,108 +818,362 @@ export const ResumeWorkspaceView: React.FC = () => {
           )}
 
           {/* =========================================================================
-              METHOD 2: AI RESUME AUDIT & RECOMMENDATIONS (CANDIDATE-SPECIFIC)
+              METHOD 2: 4-STAGE GUIDED MENTOR AUDIT (HUMAN MENTORSHIP FLOW)
              ========================================================================= */}
-          {activeCommentTool === 'ai_suggestions' && (
-            <div className="ai-suggestions-container">
-              {/* AI Scan Status Banner */}
-              <div className="ai-scan-banner">
-                <div className="ai-scan-left">
-                  <span className="ai-scan-icon">✨</span>
-                  <div>
-                    <div className="ai-scan-title">
-                      AI Resume Audit — {activeStudent.name}
-                      <span className="status-badge" style={{ background: '#E0E7FF', color: '#4338CA', fontSize: '10px' }}>
-                        Automated
-                      </span>
-                    </div>
-                    <div className="ai-scan-subtitle">
-                      {isAiScanning 
-                        ? 'Analyzing resume structure, ATS parse rates, and metrics...'
-                        : `${activeAiSuggestions.length} targeted suggestions generated for this resume`}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="ai-rescan-btn"
-                  onClick={handleRescanAi}
-                  disabled={isAiScanning}
-                >
-                  {isAiScanning ? '⏳ Scanning...' : '✨ Re-scan Resume'}
-                </button>
-              </div>
-
-              {/* Filter Pills */}
-              <div className="ai-filter-row">
-                {(['all', 'must_fix', 'suggestion', 'praise'] as const).map(cat => (
+          {activeCommentTool === 'mentor_audit' && (
+            <div className="mentor-audit-card">
+              {/* Stage Stepper Tabs */}
+              <div className="audit-stage-stepper-row">
+                {[
+                  { stage: 1, label: '1. Glance', full: 'Stage 1: 6-Second Glance' },
+                  { stage: 2, label: '2. Tech', full: 'Stage 2: Technical Depth' },
+                  { stage: 3, label: '3. Defense', full: 'Stage 3: Interview Defense' },
+                  { stage: 4, label: '4. Action Plan', full: 'Stage 4: Action Plan' }
+                ].map(s => (
                   <button
-                    key={cat}
+                    key={s.stage}
                     type="button"
-                    className={`ai-filter-chip ${aiCategoryFilter === cat ? 'active' : ''}`}
-                    onClick={() => setAiCategoryFilter(cat)}
+                    className={`audit-stage-pill-btn ${currentAuditStage === s.stage ? 'active' : ''}`}
+                    onClick={() => setCurrentAuditStage(s.stage as any)}
+                    title={s.full}
                   >
-                    {cat === 'all' && `All (${activeAiSuggestions.length})`}
-                    {cat === 'must_fix' && `⚠️ Must Fix (${activeAiSuggestions.filter(s => s.category === 'must_fix').length})`}
-                    {cat === 'suggestion' && `💡 Optimizations (${activeAiSuggestions.filter(s => s.category === 'suggestion').length})`}
-                    {cat === 'praise' && `🌟 Praise (${activeAiSuggestions.filter(s => s.category === 'praise').length})`}
+                    {s.label}
                   </button>
                 ))}
               </div>
 
-              {/* Suggestions List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {filteredAiSuggestions.map(sug => {
-                  const isApplied = appliedAiIds.includes(sug.id);
-                  return (
-                    <div key={sug.id} className="ai-suggestion-card">
-                      <div className="ai-card-header">
-                        <div className="ai-card-title-group">
-                          <span className={`subtopic-badge badge-${sug.category}`}>
-                            {sug.category === 'must_fix' ? '⚠️ Must Fix' : sug.category === 'praise' ? '🌟 Praise' : '💡 Suggestion'}
-                          </span>
-                          <span className="ai-card-title">{sug.title}</span>
-                          <span className="ai-section-tag">{sug.sectionTitle}</span>
-                        </div>
-                        {sug.atsImpact && (
-                          <span className="ai-impact-tag">
-                            📈 {sug.atsImpact}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="ai-detected-issue">
-                        <strong>Detected:</strong> {sug.detectedIssue}
-                      </div>
-
-                      <div className="ai-recommendation-box">
-                        <strong>AI Recommendation:</strong> {sug.recommendation}
-                      </div>
-
-                      <div className="ai-card-actions">
-                        <button
-                          type="button"
-                          className="ai-btn-ghost"
-                          onClick={() => quickHighlightFromCanvas(sug.sectionKey, sug.sectionTitle)}
-                          title="Locate and highlight section on paper"
-                        >
-                          🔍 View on Resume
-                        </button>
-
-                        <button
-                          type="button"
-                          className={`btn-apply-ai ${isApplied ? 'applied' : ''}`}
-                          onClick={() => !isApplied && handleApplyAiSuggestion(sug)}
-                          disabled={isApplied}
-                          title={isApplied ? 'Already added to review notes' : 'Add this AI suggestion directly as a review subtopic note'}
-                        >
-                          {isApplied ? '✓ Applied as Note' : '+ Apply as Note'}
-                        </button>
-                      </div>
+              {/* STAGE 1: 6-Second Recruiter First Impression */}
+              {currentAuditStage === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="mentor-stage-header">
+                    <span className="mentor-stage-icon">👁️</span>
+                    <div>
+                      <h4 className="mentor-stage-title">Stage 1: The 6-Second Recruiter Glance</h4>
+                      <p className="mentor-stage-desc">
+                        Does this resume make an immediate, legible first impression or is it cluttered?
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Visual First Impression Verdict:</label>
+                    <div className="audit-verdict-grid">
+                      {[
+                        { val: 'clean', label: '✅ Clean' },
+                        { val: 'slightly_cluttered', label: '⚠️ Spacing' },
+                        { val: 'dense', label: '❌ Cluttered' }
+                      ].map(opt => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          className={`audit-verdict-card ${auditStage1.verdict === opt.val ? 'selected' : ''}`}
+                          onClick={() => setAuditStage1(prev => ({ ...prev, verdict: opt.val as any }))}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <div className="mentor-stage-label-row">
+                      <label className="mentor-stage-label">Target Section for Spacing / Alignment:</label>
+                      <span className="mentor-stage-sync-badge">
+                        <span className="mentor-sync-dot"></span> Canvas Sync
+                      </span>
+                    </div>
+                    <div className="mentor-section-action-row">
+                      <div className="mentor-select-wrapper">
+                        <select 
+                          value={auditStage1.highlightSection}
+                          onChange={(e) => {
+                            setAuditStage1(prev => ({ ...prev, highlightSection: e.target.value }));
+                            scrollToDocSection(e.target.value);
+                          }}
+                          className="mentor-stage-select"
+                        >
+                          <option value="contact">📞 Header & Contact Info</option>
+                          <option value="education">🎓 Education Section</option>
+                          <option value="skills">⚡ Technical Skills</option>
+                          <option value="projects">📁 Projects & Experience</option>
+                        </select>
+                        <span className="mentor-select-chevron" aria-hidden="true">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="mentor-canvas-highlight-btn"
+                        onClick={() => quickHighlightFromCanvas(auditStage1.highlightSection, 'Stage 1: 6-Sec Glance')}
+                        title="Highlight this section on resume canvas"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>Highlight on Canvas</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Visual Hierarchy Observations:</label>
+                    <textarea 
+                      className="mentor-stage-textarea"
+                      rows={3}
+                      value={auditStage1.notes}
+                      onChange={(e) => setAuditStage1(prev => ({ ...prev, notes: e.target.value }))}
+                      placeholder="e.g., Contact links are clean, but line-height in projects feels cramped. Add 4px margin..."
+                    />
+                  </div>
+
+                  <div className="mentor-stage-nav-footer">
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>Step 1 of 4</span>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setCurrentAuditStage(2)}
+                    >
+                      Next: Project Authenticity ➔
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STAGE 2: Project Authenticity & Technical Depth */}
+              {currentAuditStage === 2 && (
+                <div className="mentor-stage-content">
+                  <div className="mentor-stage-header">
+                    <span className="mentor-stage-icon">🛠️</span>
+                    <div>
+                      <h4 className="mentor-stage-title">Stage 2: Project Authenticity & Technical Depth</h4>
+                      <p className="mentor-stage-desc">
+                        Do projects reflect genuine engineering depth or standard tutorial clones?
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <div className="mentor-stage-label-row">
+                      <label className="mentor-stage-label">Select Candidate Project to Audit:</label>
+                    </div>
+                    <div className="mentor-select-wrapper">
+                      <select
+                        value={auditStage2.selectedProject}
+                        onChange={(e) => setAuditStage2(prev => ({ ...prev, selectedProject: e.target.value }))}
+                        className="mentor-stage-select"
+                      >
+                        <option value="Smart Attendance System">Smart Attendance System (IoT & Web)</option>
+                        <option value="Portfolio & Mini Projects">Personal Portfolio & Mini Projects</option>
+                      </select>
+                      <span className="mentor-select-chevron" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Authenticity Level:</label>
+                    <div className="audit-verdict-grid">
+                      {[
+                        { val: 'genuine_challenge', label: '🌟 Authentic' },
+                        { val: 'academic_standard', label: '📘 Academic' },
+                        { val: 'tutorial_clone', label: '⚠️ Clone' }
+                      ].map(opt => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          className={`audit-verdict-card ${auditStage2.authenticity === opt.val ? 'selected' : ''}`}
+                          onClick={() => setAuditStage2(prev => ({ ...prev, authenticity: opt.val as any }))}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Engineering Challenges & Edge Cases to Detail:</label>
+                    <textarea 
+                      className="mentor-stage-textarea"
+                      rows={3}
+                      value={auditStage2.challengeNotes}
+                      onChange={(e) => setAuditStage2(prev => ({ ...prev, challengeNotes: e.target.value }))}
+                      placeholder="e.g., Detail how image processing handled low light conditions, or describe database indexing for search..."
+                    />
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Proof of Work (Live Demo / GitHub Repo Link):</label>
+                    <input 
+                      type="text"
+                      className="mentor-stage-input"
+                      value={auditStage2.proofOfWork}
+                      onChange={(e) => setAuditStage2(prev => ({ ...prev, proofOfWork: e.target.value }))}
+                      placeholder="e.g. https://github.com/student/repo or https://live-demo.vercel.app"
+                    />
+                  </div>
+
+                  <div className="mentor-stage-nav-footer">
+                    <button
+                      type="button"
+                      className="btn-stage-nav"
+                      onClick={() => setCurrentAuditStage(1)}
+                    >
+                      ← Back: 6-Sec Glance
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setCurrentAuditStage(3)}
+                    >
+                      Next: Interview Defense ➔
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STAGE 3: Interview Defense & Grilling Question */}
+              {currentAuditStage === 3 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="mentor-stage-header">
+                    <span className="mentor-stage-icon">🎙️</span>
+                    <div>
+                      <h4 className="mentor-stage-title">Stage 3: Interview Defense & Grilling</h4>
+                      <p className="mentor-stage-desc">
+                        Prepare the student for difficult technical questions a recruiter or tech lead will ask.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Interviewer Challenge Question:</label>
+                    <textarea 
+                      className="mentor-stage-textarea"
+                      rows={3}
+                      value={auditStage3.interviewQuestion}
+                      onChange={(e) => setAuditStage3(prev => ({ ...prev, interviewQuestion: e.target.value }))}
+                      placeholder='e.g., "If 1,000 requests hit your attendance backend simultaneously, how did your database prevent race conditions?"'
+                    />
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Mentor Coaching Tip (How Candidate Should Answer):</label>
+                    <textarea 
+                      className="mentor-stage-textarea"
+                      rows={2}
+                      value={auditStage3.prepTip}
+                      onChange={(e) => setAuditStage3(prev => ({ ...prev, prepTip: e.target.value }))}
+                      placeholder="e.g., Mention queue workers, Redis caching, or SQL transaction isolation levels."
+                    />
+                  </div>
+
+                  <div className="mentor-stage-nav-footer">
+                    <button
+                      type="button"
+                      className="btn-stage-nav"
+                      onClick={() => setCurrentAuditStage(2)}
+                    >
+                      ← Back: Tech Depth
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setCurrentAuditStage(4)}
+                    >
+                      Next: Action Plan ➔
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STAGE 4: Prioritized Action Plan & Homework */}
+              {currentAuditStage === 4 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div className="mentor-stage-header">
+                    <span className="mentor-stage-icon">🚀</span>
+                    <div>
+                      <h4 className="mentor-stage-title">Stage 4: 7-Day Prioritized Action Plan</h4>
+                      <p className="mentor-stage-desc">
+                        Give the candidate concrete homework tasks to polish their resume this week.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Task 1 (Critical Must-Fix Priority):</label>
+                    <input 
+                      type="text"
+                      className="mentor-stage-input"
+                      value={auditStage4.task1}
+                      onChange={(e) => setAuditStage4(prev => ({ ...prev, task1: e.target.value }))}
+                      placeholder="e.g. Add quantifiable metrics to project 1"
+                    />
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Task 2 (Impact Polish Priority):</label>
+                    <input 
+                      type="text"
+                      className="mentor-stage-input"
+                      value={auditStage4.task2}
+                      onChange={(e) => setAuditStage4(prev => ({ ...prev, task2: e.target.value }))}
+                      placeholder="e.g. Separate skills into languages, frameworks, and developer tools"
+                    />
+                  </div>
+
+                  <div className="mentor-stage-field">
+                    <label className="mentor-stage-label">Personal Words of Encouragement from Mentor:</label>
+                    <textarea 
+                      className="mentor-stage-textarea"
+                      rows={2}
+                      value={auditStage4.encouragement}
+                      onChange={(e) => setAuditStage4(prev => ({ ...prev, encouragement: e.target.value }))}
+                      placeholder="Leave a motivating mentor closing message..."
+                    />
+                  </div>
+
+                  <div className="mentor-stage-nav-footer">
+                    <button
+                      type="button"
+                      className="btn-stage-nav"
+                      onClick={() => setCurrentAuditStage(3)}
+                    >
+                      ← Back: Interview Q
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-apply-audit"
+                      onClick={handleApplyAuditToReview}
+                    >
+                      ✓ Compile & Apply Audit as Review Notes
+                    </button>
+                  </div>
+
+                  {auditAppliedSuccess && (
+                    <div style={{
+                      background: '#DCFCE7',
+                      color: '#15803D',
+                      border: '1px solid #86EFAC',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: '700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      ✅ 4-Stage Mentor Audit compiled & applied to student review notes and general feedback!
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {/* =========================================================================

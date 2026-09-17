@@ -181,6 +181,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return 'single'; // Default to single tagged student as requested
   });
 
+  // URL query parameter support for direct view switching
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view');
+      const roleParam = params.get('role');
+      const mobileTabParam = params.get('mobileTab');
+      const deviceModeParam = params.get('deviceMode');
+      if (viewParam) {
+        setCurrentView(viewParam);
+        if (viewParam === 'dashboard' || viewParam === 'workspace') {
+          setIsAuthenticated(true);
+        }
+      }
+      if (roleParam === 'student') {
+        setActiveRole('student');
+        setIsStudentLoggedIn(true);
+      } else if (roleParam === 'volunteer') {
+        setActiveRole('volunteer');
+      }
+      if (mobileTabParam) {
+        setMobileTab(mobileTabParam);
+      }
+      if (deviceModeParam) {
+        setDeviceMode(deviceModeParam);
+      }
+    } catch (e) {}
+  }, []);
+
   // Sync to LocalStorage
   useEffect(() => {
     try {

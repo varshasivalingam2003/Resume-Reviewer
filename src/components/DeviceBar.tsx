@@ -22,7 +22,7 @@ export const DeviceBar: React.FC = () => {
 
   return (
     <div className="device-toggle-bar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div className="device-bar-left-group">
         {/* Role & Page Switcher */}
         <div className="toggle-group" style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
           <button 
@@ -129,7 +129,7 @@ export const DeviceBar: React.FC = () => {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="device-bar-right-group">
         {/* Viewport Frame Toggle */}
         <div className="toggle-group">
           <button 
