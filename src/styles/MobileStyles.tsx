@@ -1318,7 +1318,7 @@ const styles = `/* ========================================================
 }
 
 .mobile-frame-mode .mobile-workspace-tabs-bar {
-  display: flex !important;
+  display: none !important;
 }
 
 .mobile-frame-mode .workspace-dual-pane {
@@ -1329,34 +1329,18 @@ const styles = `/* ========================================================
   width: 100% !important;
 }
 
-.mobile-frame-mode .workspace-dual-pane[data-mobile-tab="resume"] .resume-viewer-pane {
+.mobile-frame-mode .resume-viewer-pane {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 !important;
   width: 100% !important;
-  height: calc(844px - 148px) !important;
+  height: calc(844px - 100px) !important;
   min-height: 0 !important;
   overflow-y: auto !important;
 }
 
-.mobile-frame-mode .workspace-dual-pane[data-mobile-tab="resume"] .review-feedback-pane {
+.mobile-frame-mode .review-feedback-pane {
   display: none !important;
-}
-
-.mobile-frame-mode .workspace-dual-pane[data-mobile-tab="review"] .resume-viewer-pane {
-  display: none !important;
-}
-
-.mobile-frame-mode .workspace-dual-pane[data-mobile-tab="review"] .review-feedback-pane {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  width: 100% !important;
-  height: calc(844px - 148px) !important;
-  min-height: 0 !important;
-  padding: 12px 10px 24px !important;
-  box-sizing: border-box !important;
-  overflow-y: auto !important;
 }
 
 .mobile-frame-mode .commenting-tools-tabs {
@@ -1536,6 +1520,13 @@ const styles = `/* ========================================================
   text-align: center !important;
   justify-content: center !important;
   border-radius: 8px !important;
+}
+
+.mobile-frame-mode .review-dialog-modal {
+  width: 95% !important;
+  max-width: 95% !important;
+  max-height: 85vh !important;
+  margin: auto !important;
 }
 `;
 
