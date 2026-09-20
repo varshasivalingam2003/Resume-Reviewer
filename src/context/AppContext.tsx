@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { initialStudents, volunteerProfile, Student, VolunteerProfile, VolunteerSubtopic, ResumeSection } from '../data/studentsData';
+import { loginVolunteerWithApi } from '../services/zohoApi';
 
 const STORAGE_KEY = 'resume_reviewer_react_state_v4';
 
@@ -50,11 +51,11 @@ export interface AppContextType {
   studentResolvedItems: Record<string, boolean>;
   toggleResolveItem: (subtopicId: string) => void;
   login: () => void;
-  loginVolunteer: () => void;
+  loginVolunteer: (volunteerName?: string) => void;
   loginStudent: (studentId: string) => void;
   logoutStudent: () => void;
   loginStudentWithOtp: (otpCode: string, studentId?: string | null) => { success: boolean; student?: Student; message?: string };
-  loginWithOtp: (otpCode: string, role?: string, specificStudentId?: string | null) => { success: boolean; role?: string; student?: Student; message?: string };
+  loginWithOtp: (otpCode: string, role?: string, specificStudentId?: string | null) => Promise<{ success: boolean; role?: string; student?: Student; message?: string }>;
   logout: () => void;
   openStudentReview: (studentId: string) => void;
   toggleSectionReviewed: (sectionKey: string) => void;
@@ -92,7 +93,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return false;
   });
 
-  const [volunteer] = useState<VolunteerProfile>(volunteerProfile);
+  const [volunteer, setVolunteer] = useState<VolunteerProfile>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('resume_reviewer_react_state_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.volunteer) return parsed.volunteer;
+      }
+    } catch (e) {}
+    return volunteerProfile;
+  });
 
   const [currentView, setCurrentView] = useState<string>(() => {
     try {
@@ -186,6 +196,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         isAuthenticated,
+        volunteer,
         currentView,
         activeStudentId,
         students,
@@ -206,7 +217,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error('Failed to sync to LocalStorage', e);
     }
   }, [
-    isAuthenticated, currentView, activeStudentId, students,
+    isAuthenticated, volunteer, currentView, activeStudentId, students,
     deviceMode, mobileTab, activeResumePage, zoomLevel,
     activeHighlightSection, searchQuery, filterStatus, activeSidebarTab,
     activeRole, selectedStudentForViewId, studentResolvedItems, volunteerAssignmentMode
@@ -236,7 +247,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   // Login & Authentication Actions
-  const loginVolunteer = () => {
+  const loginVolunteer = (volunteerName?: string) => {
+    if (volunteerName) {
+      setVolunteer(prev => ({ ...prev, name: volunteerName }));
+    }
     setIsAuthenticated(true);
     setActiveRole('volunteer');
     setCurrentView('dashboard');
@@ -258,12 +272,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let target: Student | undefined = undefined;
 
     // 1. Check if clean matches any student's registered OTP
-    const matchedByOtp = students.find(s => s.otp === clean);
+    const matchedByOtp = students.find(s => s.otp === clean || s.sOtp === clean);
     if (matchedByOtp) {
       target = matchedByOtp;
     } else if (studentId) {
       const candidate = students.find(s => s.id === studentId);
-      if (candidate && (candidate.otp === clean || clean === '101010')) {
+      if (candidate && (candidate.otp === clean || candidate.sOtp === clean || clean === '101010')) {
         target = candidate;
       }
     }
@@ -279,21 +293,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     const currentStudent = students.find(s => s.id === studentId);
-    const expectedOtp = currentStudent?.otp || '101010';
+    const expectedOtp = currentStudent?.sOtp || currentStudent?.otp || '101010';
     return { 
       success: false, 
-      message: `Incorrect OTP. Please enter the dummy OTP (${expectedOtp}) shown on screen.` 
+      message: `Incorrect OTP. Please enter the student OTP (${expectedOtp}) shown on screen.` 
     };
   };
 
-  const loginWithOtp = (otpCode: string, role = 'volunteer', specificStudentId: string | null = null) => {
+  const loginWithOtp = async (otpCode: string, role = 'volunteer', specificStudentId: string | null = null) => {
     const cleanOtp = (otpCode || '').trim();
     if (role === 'volunteer') {
-      if (cleanOtp === '842019' || cleanOtp.length === 6) {
-        loginVolunteer();
-        return { success: true, role: 'volunteer' };
+      // Connect to Zoho Creator backend proxy via API
+      const result = await loginVolunteerWithApi(cleanOtp);
+      if (!result.success) {
+        return { success: false, message: result.message || 'Invalid Volunteer OTP' };
       }
-      return { success: false, message: 'Invalid volunteer code. Use demo code 842019.' };
+
+      // Update volunteer profile with actual name from Zoho Creator
+      if (result.volunteerName) {
+        setVolunteer(prev => ({
+          ...prev,
+          name: result.volunteerName!
+        }));
+      }
+
+      // Handle assigned students from Zoho Creator
+      if (result.students && result.students.length > 0) {
+        const enrichedStudents = result.students.map((student, idx) => {
+          const fallback = initialStudents[idx % initialStudents.length] || initialStudents[0];
+          return {
+            ...fallback,
+            ...student,
+            resumeSections: (student.resumeSections && student.resumeSections.length > 0)
+              ? student.resumeSections
+              : fallback.resumeSections,
+            volunteerSubtopics: (student.volunteerSubtopics && student.volunteerSubtopics.length > 0)
+              ? student.volunteerSubtopics
+              : (fallback.volunteerSubtopics || [])
+          };
+        });
+
+        setStudents(enrichedStudents);
+        setActiveStudentId(enrichedStudents[0].id);
+        setSelectedStudentForViewId(enrichedStudents[0].id);
+        setVolunteerAssignmentMode(enrichedStudents.length === 1 ? 'single' : 'group');
+      } else {
+        // Volunteer verified but no assigned students
+        setStudents([]);
+        return { success: false, message: 'No students assigned' };
+      }
+
+      setIsAuthenticated(true);
+      setActiveRole('volunteer');
+      setCurrentView('dashboard');
+      return { success: true, role: 'volunteer' };
     }
 
     // Role is student
@@ -587,6 +640,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     setCurrentView('login');
     setActiveStudentId('student-1');
+    setVolunteer(volunteerProfile);
     setStudents(JSON.parse(JSON.stringify(initialStudents)));
     setActiveModal(null);
     setDeviceMode('responsive');
@@ -601,11 +655,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setVolunteerAssignmentMode('single');
   };
 
-  // Tagged students calculation based on assignment mode (Single: 1 student, Group: 3 students)
-  const safeStudents = (Array.isArray(students) && students.length > 0) ? students : initialStudents;
+  // Tagged students calculation: Single shows 1, Group shows all assigned students in cohort
+  const safeStudents = (Array.isArray(students) && students.length > 0) ? students : (isAuthenticated ? [] : initialStudents);
   const taggedStudents = volunteerAssignmentMode === 'single'
     ? safeStudents.slice(0, 1)
-    : safeStudents.slice(0, 3);
+    : safeStudents;
 
   const total = taggedStudents.length;
   const completed = taggedStudents.filter(s => s?.status === 'approved' || s?.status === 'changes_required').length;

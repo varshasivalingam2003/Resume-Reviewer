@@ -3,27 +3,69 @@ import { useApp } from '../context/AppContext';
 import { PortalLogoIcon, ReviewsIcon, CommentIcon, CheckIcon, WarningTriangleIcon } from './Icons';
 import { LoginIllustration } from './Illustration';
 import { Student } from '../data/studentsData';
+import { loginVolunteerWithApi } from '../services/zohoApi';
+
+type AnimState = 'idle' | 'verifying' | 'success' | 'error';
 
 export const LoginView: React.FC = () => {
   const { students, loginWithOtp } = useApp();
   
   const [role, setRole] = useState<'volunteer' | 'student'>('volunteer');
-  const [otp, setOtp] = useState<string[]>(['8', '4', '2', '0', '1', '9']);
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('student-1');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [autofillSuccess, setAutofillSuccess] = useState<boolean>(false);
+  const [animState, setAnimState] = useState<AnimState>('idle');
+  const [bounceIndex, setBounceIndex] = useState<number | null>(null);
+  const [boxOffsets, setBoxOffsets] = useState<{ tx: number; ty: number; ctx: number; cty: number }[]>([]);
+  
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  const computeOffsets = () => {
+    if (!wrapperRef.current) return [];
+    const cRect = wrapperRef.current.getBoundingClientRect();
+    const cX = cRect.left + cRect.width / 2;
+    const cY = cRect.top + cRect.height / 2;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+    const radius = isMobile ? 52 : 64;
+
+    return inputRefs.current.map((el, i) => {
+      if (!el) return { tx: 0, ty: 0, ctx: 0, cty: 0 };
+      const bRect = el.getBoundingClientRect();
+      const bX = bRect.left + bRect.width / 2;
+      const bY = bRect.top + bRect.height / 2;
+
+      // Convergence to center (Success)
+      const ctx = Math.round((cX - bX) * 10) / 10;
+      const cty = Math.round((cY - bY) * 10) / 10;
+
+      // Circular orbit position (6 boxes evenly spaced at 60° increments, starting from top -90°)
+      const angleRad = (-90 + i * 60) * (Math.PI / 180);
+      const targetX = cX + radius * Math.cos(angleRad);
+      const targetY = cY + radius * Math.sin(angleRad);
+
+      const tx = Math.round((targetX - bX) * 10) / 10;
+      const ty = Math.round((targetY - bY) * 10) / 10;
+
+      return { tx, ty, ctx, cty };
+    });
+  };
 
   const handleRoleChange = (newRole: 'volunteer' | 'student') => {
     setRole(newRole);
     setErrorMessage('');
     setAutofillSuccess(false);
+    setAnimState('idle');
+    setBoxOffsets([]);
     if (newRole === 'volunteer') {
-      setOtp(['8', '4', '2', '0', '1', '9']);
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
     } else {
       // Set to Arun Kumar's OTP by default for student login
       const arun = students.find(s => s.id === 'student-1');
-      const studentOtp = arun?.otp || '101010';
+      const studentOtp = arun?.sOtp || arun?.otp || '101010';
       setOtp(studentOtp.split(''));
       setSelectedStudentId('student-1');
     }
@@ -32,6 +74,7 @@ export const LoginView: React.FC = () => {
   const handleSelectStudent = (student: Student) => {
     setSelectedStudentId(student.id);
     setErrorMessage('');
+    setAnimState('idle');
     const code = (student.otp || '101010').split('');
     setOtp(code);
     setAutofillSuccess(true);
@@ -45,6 +88,13 @@ export const LoginView: React.FC = () => {
     newOtp[index] = val;
     setOtp(newOtp);
     setErrorMessage('');
+
+    if (val) {
+      setBounceIndex(index);
+      setTimeout(() => {
+        setBounceIndex(prev => prev === index ? null : prev);
+      }, 250);
+    }
 
     if (val && index < 5) {
       inputRefs.current[index + 1]?.focus();
@@ -72,7 +122,7 @@ export const LoginView: React.FC = () => {
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData('text').trim();
-    if (/^\d+$/.test(pasteData)) {
+    if (/^[a-zA-Z0-9]+$/.test(pasteData)) {
       const digits = pasteData.split('').slice(0, 6);
       const newOtp = [...otp];
       digits.forEach((d, i) => {
@@ -92,7 +142,8 @@ export const LoginView: React.FC = () => {
   };
 
   const autofillVolunteerOtp = () => {
-    setOtp(['8', '4', '2', '0', '1', '9']);
+    setAnimState('idle');
+    setOtp(['G', 'E', '7', '0', '8', '4']);
     setAutofillSuccess(true);
     setTimeout(() => setAutofillSuccess(false), 2400);
     inputRefs.current[5]?.focus();
@@ -106,8 +157,9 @@ export const LoginView: React.FC = () => {
     inputRefs.current[5]?.focus();
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isLoading) return;
     setErrorMessage('');
     const code = otp.join('');
     if (code.length < 6) {
@@ -115,9 +167,58 @@ export const LoginView: React.FC = () => {
       return;
     }
 
-    const result = loginWithOtp(code, role, role === 'student' ? selectedStudentId : null);
-    if (!result.success) {
-      setErrorMessage(result.message);
+    if (role === 'volunteer') {
+      // 1. Calculate orbit coordinates and transition 6 boxes into circular arrangement
+      const offsets = computeOffsets();
+      setBoxOffsets(offsets);
+      setAnimState('verifying');
+      setIsLoading(true);
+
+      try {
+        // 2. Perform existing verification API call
+        const apiResult = await loginVolunteerWithApi(code);
+
+        if (!apiResult.success) {
+          // 3. Invalid OTP: return boxes to horizontal row with error shake
+          setAnimState('error');
+          setErrorMessage(apiResult.message || 'Invalid Volunteer OTP');
+          setTimeout(() => {
+            setAnimState('idle');
+            setIsLoading(false);
+            inputRefs.current[0]?.focus();
+          }, 600);
+          return;
+        }
+
+        // 4. Successful verification: converge 6 boxes toward center and show verified badge
+        setAnimState('success');
+
+        // Keep final success animation for 800ms
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // 5. Continue existing navigation to dashboard
+        await loginWithOtp(code, role, null);
+      } catch (err: any) {
+        setAnimState('error');
+        setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
+        setTimeout(() => {
+          setAnimState('idle');
+          setIsLoading(false);
+        }, 600);
+      }
+    } else {
+      // Student login mode
+      setIsLoading(true);
+      try {
+        const result = await loginWithOtp(code, role, selectedStudentId);
+        if (!result.success) {
+          setErrorMessage(result.message || 'Verification failed');
+        }
+      } catch (err: any) {
+        setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -233,28 +334,71 @@ export const LoginView: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit}>
-              <div className="otp-inputs-wrapper" onPaste={handlePaste}>
-                {otp.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => (inputRefs.current[idx] = el)}
-                    type="text"
-                    maxLength={1}
-                    className={`otp-box ${digit ? 'filled' : ''} ${autofillSuccess ? 'highlight-flash' : ''}`}
-                    value={digit}
-                    onChange={(e) => handleChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(idx, e)}
-                    autoFocus={idx === 0}
-                  />
-                ))}
+              <div 
+                ref={wrapperRef}
+                className={`otp-inputs-wrapper ${animState === 'verifying' ? 'is-verifying' : ''} ${animState === 'success' ? 'is-success' : ''} ${animState === 'error' ? 'is-error' : ''}`} 
+                onPaste={handlePaste}
+              >
+                {otp.map((digit, idx) => {
+                  const tx = animState === 'verifying' 
+                    ? `${boxOffsets[idx]?.tx || 0}px` 
+                    : animState === 'success' 
+                      ? `${boxOffsets[idx]?.ctx || 0}px` 
+                      : '0px';
+                  const ty = animState === 'verifying' 
+                    ? `${boxOffsets[idx]?.ty || 0}px` 
+                    : animState === 'success' 
+                      ? `${boxOffsets[idx]?.cty || 0}px` 
+                      : '0px';
+
+                  return (
+                    <input
+                      key={idx}
+                      ref={(el) => (inputRefs.current[idx] = el)}
+                      type="text"
+                      maxLength={1}
+                      readOnly={animState === 'verifying' || animState === 'success'}
+                      className={`otp-box ${digit ? 'filled' : ''} ${autofillSuccess ? 'highlight-flash' : ''} ${bounceIndex === idx ? 'input-bounce' : ''}`}
+                      value={digit}
+                      style={{ '--tx': tx, '--ty': ty } as React.CSSProperties}
+                      onChange={(e) => handleChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(idx, e)}
+                      autoFocus={idx === 0}
+                    />
+                  );
+                })}
+
+                {animState === 'success' && (
+                  <div className="otp-success-badge-container">
+                    <div className="otp-success-badge">
+                      <div className="otp-success-ring"></div>
+                      <div className="otp-success-icon">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="otp-success-text">Verified successfully</div>
+                  </div>
+                )}
               </div>
 
               <button 
                 type="submit" 
                 className="btn-login-submit"
+                disabled={isLoading}
+                style={isLoading ? { opacity: 0.85, cursor: 'not-allowed' } : undefined}
               >
-                <span>{role === 'volunteer' ? 'Continue to Dashboard' : 'View My Resume Changes'}</span>
-                <span className="btn-arrow-icon">→</span>
+                <span>
+                  {isLoading 
+                    ? (animState === 'success' 
+                        ? 'Verified!' 
+                        : role === 'volunteer' 
+                          ? 'Verifying Volunteer OTP...' 
+                          : 'Verifying Student...') 
+                    : (role === 'volunteer' ? 'Continue to Dashboard' : 'View My Resume Changes')}
+                </span>
+                {!isLoading && <span className="btn-arrow-icon">→</span>}
               </button>
 
               {role === 'volunteer' ? (
@@ -264,9 +408,9 @@ export const LoginView: React.FC = () => {
                     type="button" 
                     className="demo-otp-chip"
                     onClick={autofillVolunteerOtp} 
-                    title="Click to instant-fill 842019"
+                    title="Click to instant-fill GE7084"
                   >
-                    <span>⚡ Fill 8 4 2 0 1 9</span>
+                    <span>⚡ Fill G E 7 0 8 4</span>
                   </button>
                 </div>
               ) : (

@@ -318,12 +318,22 @@
   line-height: 1.45;
 }
 
-/* OTP Inputs */
+/* OTP Inputs & 6-Box Orbit Animation System */
 .otp-inputs-wrapper {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 9px;
   margin-bottom: 18px;
+  position: relative;
+  min-height: 56px;
+  transition: min-height 0.45s cubic-bezier(0.34, 1.25, 0.64, 1), margin-bottom 0.45s ease;
+}
+
+.otp-inputs-wrapper.is-verifying,
+.otp-inputs-wrapper.is-success {
+  min-height: 168px;
+  margin-bottom: 22px;
 }
 
 .otp-box {
@@ -337,8 +347,13 @@
   color: var(--text-primary);
   background: #F8FAFC;
   outline: none;
-  transition: all var(--transition-fast);
+  transition: transform 0.5s cubic-bezier(0.34, 1.35, 0.64, 1),
+              border-color 0.25s ease,
+              box-shadow 0.25s ease,
+              background-color 0.25s ease,
+              opacity 0.35s ease;
   font-family: monospace;
+  will-change: transform, opacity;
 }
 
 .otp-box:focus {
@@ -353,6 +368,17 @@
   border-color: #94A3B8;
 }
 
+/* 1. Typing bounce on individual box */
+@keyframes otpBoxBounce {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-4px) scale(1.09); border-color: #EAB308; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.28); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.otp-box.input-bounce {
+  animation: otpBoxBounce 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 .otp-box.highlight-flash {
   border-color: #10B981;
   background: #F0FDF4;
@@ -364,6 +390,133 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.06); }
   100% { transform: scale(1); }
+}
+
+/* 2. Verification State: 6 boxes in circular orbit */
+.otp-inputs-wrapper.is-verifying .otp-box {
+  transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94);
+  border-color: #EAB308;
+  background: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.28);
+  pointer-events: none;
+  animation: orbitBoxFloat 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes orbitBoxFloat {
+  0% {
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94);
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.25);
+  }
+  100% {
+    transform: translate(calc(var(--tx, 0px) * 1.05), calc(var(--ty, 0px) * 1.05)) scale(0.98);
+    box-shadow: 0 6px 18px rgba(234, 179, 8, 0.42);
+    border-color: #FACC15;
+  }
+}
+
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(1) { animation-delay: 0s; }
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(2) { animation-delay: 0.2s; }
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(3) { animation-delay: 0.4s; }
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(4) { animation-delay: 0.6s; }
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(5) { animation-delay: 0.8s; }
+.otp-inputs-wrapper.is-verifying .otp-box:nth-child(6) { animation-delay: 1.0s; }
+
+/* 3. Success State: Converge to center and fade out */
+.otp-inputs-wrapper.is-success .otp-box {
+  transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+}
+
+/* Success Badge Overlay */
+.otp-success-badge-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.otp-success-badge {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+  animation: successBadgePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes successBadgePop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.otp-success-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  animation: successRingPulse 1s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+@keyframes successRingPulse {
+  0% { transform: scale(0.85); opacity: 0.9; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+.otp-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: successCheckDraw 0.4s ease-out 0.15s both;
+}
+
+@keyframes successCheckDraw {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.otp-success-text {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #059669;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  animation: successFadeUp 0.4s ease-out 0.15s both;
+}
+
+@keyframes successFadeUp {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 4. Error State: Shake and return to horizontal */
+.otp-inputs-wrapper.is-error {
+  animation: otpRowShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes otpRowShake {
+  0%, 100% { transform: translateX(0); }
+  15%, 55%, 85% { transform: translateX(-6px); }
+  35%, 75% { transform: translateX(6px); }
+}
+
+.otp-inputs-wrapper.is-error .otp-box {
+  border-color: #EF4444;
+  background: #FEF2F2;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, background 0.2s;
 }
 
 /* Continue Button */

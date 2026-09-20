@@ -34,12 +34,18 @@ export interface ResumeSection {
 
 export interface Student {
   id: string;
+  studentId?: string;
   name: string;
+  sOtp?: string;
+  email: string;
+  phone: string;
+  whatsapp?: string;
+  gender?: string;
+  resumeAttachment?: string;
+  hasResumeUploaded?: boolean;
   degree: string;
   institution: string;
   graduationYear: string;
-  email: string;
-  phone: string;
   location: string;
   github: string;
   linkedin: string;

@@ -5,6 +5,7 @@ import {
   UsersIcon, ClockIcon, CheckCircleIcon, SearchIcon 
 } from './Icons';
 import { Student } from '../data/studentsData';
+import { getResumeViewUrl, getResumeDownloadUrl } from '../services/zohoApi';
 
 interface StudentCardProps {
   student: Student;
@@ -30,12 +31,14 @@ export const DashboardView: React.FC = () => {
   } = useApp();
 
   // Determine if single or group user mode
+  const hasNoStudents = taggedStudents.length === 0;
   const isSingleStudent = taggedStudents.length === 1;
   const singleStudent = taggedStudents[0] || null;
 
   const filteredStudents = taggedStudents.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          student.degree.toLowerCase().includes(searchQuery.toLowerCase());
+                          student.degree.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (student.studentId && student.studentId.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -61,35 +64,56 @@ export const DashboardView: React.FC = () => {
               Hi, {volunteer.name} <span style={{ display: 'inline-block', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>👋</span>
             </h1>
             <p className="greeting-subtitle">
-              {isSingleStudent 
-                ? 'You have 1 student directly tagged for 1:1 resume review'
-                : `You have ${taggedStudents.length} students tagged in your group review cohort`}
+              {hasNoStudents
+                ? 'No students assigned to your volunteer account'
+                : isSingleStudent 
+                  ? 'You have 1 student directly assigned for 1:1 resume review'
+                  : `You have ${taggedStudents.length} students assigned in your review cohort`}
             </p>
           </div>
 
           {/* Quick Switcher for Volunteer Tagged Assignment */}
-          <div className="dashboard-mode-switcher" title="Toggle between single student and group student assignment">
-            <button 
-              type="button"
-              className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
-              onClick={() => setVolunteerAssignmentMode('single')}
-            >
-              👤 Single Student (1)
-            </button>
-            <button 
-              type="button"
-              className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
-              onClick={() => setVolunteerAssignmentMode('group')}
-            >
-              👥 Group Tagged (3)
-            </button>
-          </div>
+          {!hasNoStudents && (
+            <div className="dashboard-mode-switcher" title="Toggle between single student and group student assignment">
+              <button 
+                type="button"
+                className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
+                onClick={() => setVolunteerAssignmentMode('single')}
+              >
+                👤 Single Student (1)
+              </button>
+              <button 
+                type="button"
+                className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
+                onClick={() => setVolunteerAssignmentMode('group')}
+              >
+                👥 All Students ({taggedStudents.length})
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* ==================================================================
-            PAGE 1: SINGLE STUDENT TAGGED DASHBOARD (Clean & Simple)
-            ================================================================== */}
-        {isSingleStudent && singleStudent ? (
+        {/* Empty State: No students assigned */}
+        {hasNoStudents ? (
+          <div className="white-card" style={{ padding: '60px 24px', textAlign: 'center', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <div style={{ fontSize: '42px', marginBottom: '16px' }}>📋</div>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              No students assigned
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '460px', margin: '0 auto 20px' }}>
+              There are currently no students linked to your volunteer record in Zoho Creator. Once students are assigned via V_OTP_Lookup, they will appear here automatically.
+            </p>
+            <button 
+              className="btn btn-outline"
+              onClick={() => logout()}
+            >
+              Sign out
+            </button>
+          </div>
+        ) : isSingleStudent && singleStudent ? (
+          /* ==================================================================
+             PAGE 1: SINGLE STUDENT TAGGED DASHBOARD (Clean & Simple)
+             ================================================================== */
           <div className="single-student-clean-wrapper">
             <div className="single-student-card">
               {/* Profile Top Row */}
@@ -129,45 +153,86 @@ export const DashboardView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Clean Student Details Grid */}
+              {/* Clean Student Details Grid (All 8 Required Fields) */}
               <div className="student-details-grid">
                 <div className="student-detail-field">
-                  <span className="field-label">Email Address</span>
-                  <span className="field-value">{singleStudent.email}</span>
+                  <span className="field-label">Student Name</span>
+                  <span className="field-value">{singleStudent.name}</span>
                 </div>
+
                 <div className="student-detail-field">
-                  <span className="field-label">Phone Number</span>
-                  <span className="field-value">{singleStudent.phone}</span>
+                  <span className="field-label">Student ID</span>
+                  <span className="field-value">{singleStudent.studentId || singleStudent.id || '—'}</span>
                 </div>
+
                 <div className="student-detail-field">
-                  <span className="field-label">Location</span>
-                  <span className="field-value">{singleStudent.location}</span>
-                </div>
-                <div className="student-detail-field">
-                  <span className="field-label">Graduation Year</span>
-                  <span className="field-value">{singleStudent.graduationYear}</span>
-                </div>
-                <div className="student-detail-field">
-                  <span className="field-label">Assigned Date</span>
-                  <span className="field-value">{singleStudent.assignedDate}</span>
-                </div>
-                <div className="student-detail-field">
-                  <span className="field-label">Resume Document</span>
-                  <span className="field-value" style={{ fontWeight: 600 }}>
-                    📄 {singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf
+                  <span className="field-label">S OTP</span>
+                  <span className="field-value" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+                    {singleStudent.sOtp || singleStudent.otp || '—'}
                   </span>
                 </div>
+
                 <div className="student-detail-field">
-                  <span className="field-label">GitHub Profile</span>
-                  <a href={`https://${singleStudent.github}`} target="_blank" rel="noreferrer" className="field-link">
-                    {singleStudent.github}
-                  </a>
+                  <span className="field-label">Email Address</span>
+                  <span className="field-value">{singleStudent.email || '—'}</span>
                 </div>
+
                 <div className="student-detail-field">
-                  <span className="field-label">LinkedIn Profile</span>
-                  <a href={`https://${singleStudent.linkedin}`} target="_blank" rel="noreferrer" className="field-link">
-                    {singleStudent.linkedin}
-                  </a>
+                  <span className="field-label">Phone Number</span>
+                  <span className="field-value">{singleStudent.phone || '—'}</span>
+                </div>
+
+                <div className="student-detail-field">
+                  <span className="field-label">WhatsApp</span>
+                  <span className="field-value">{singleStudent.whatsapp || singleStudent.phone || '—'}</span>
+                </div>
+
+                <div className="student-detail-field">
+                  <span className="field-label">Gender</span>
+                  <span className="field-value">{singleStudent.gender || 'Not specified'}</span>
+                </div>
+
+                <div className="student-detail-field">
+                  <span className="field-label">Resume Upload Status</span>
+                  {singleStudent.resumeAttachment ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                      <span className="status-badge status-approved" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                        Uploaded
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto' }}
+                        onClick={() => window.open(getResumeViewUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank', 'noopener,noreferrer')}
+                      >
+                        📄 View Resume
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto' }}
+                        onClick={() => window.open(getResumeDownloadUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank')}
+                      >
+                        ⬇️ Download
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '4px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#94A3B8' }}>
+                        Resume Not Uploaded
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="student-detail-field">
+                  <span className="field-label">Graduation Year</span>
+                  <span className="field-value">{singleStudent.graduationYear || '—'}</span>
+                </div>
+
+                <div className="student-detail-field">
+                  <span className="field-label">Location</span>
+                  <span className="field-value">{singleStudent.location || '—'}</span>
                 </div>
               </div>
             </div>
@@ -217,7 +282,7 @@ export const DashboardView: React.FC = () => {
                 <input 
                   type="text" 
                   className="search-field" 
-                  placeholder="Search students by name, degree..." 
+                  placeholder="Search students by name, degree, ID..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -321,40 +386,115 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
   const totalSubtopicsCount = student.volunteerSubtopics?.length || 0;
 
   return (
-    <div className="student-card-item">
-      <div className="student-info-col">
-        <img src={student.avatar} alt={student.name} className="student-avatar" />
-        <div className="student-name-meta">
-          <span className="student-name">{student.name}</span>
-          <span className="student-degree">{student.degree} • {student.institution}</span>
+    <div className="student-card-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
+      {/* Top Main Row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap' }}>
+        <div className="student-info-col">
+          <img src={student.avatar} alt={student.name} className="student-avatar" />
+          <div className="student-name-meta">
+            <span className="student-name">{student.name}</span>
+            <span className="student-degree">{student.degree} • {student.institution}</span>
+          </div>
+        </div>
+
+        <div className="student-actions-col">
+          {totalSubtopicsCount > 0 && (
+            <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '600' }}>
+              {reviewedSubtopicsCount}/{totalSubtopicsCount} reviewed
+            </span>
+          )}
+          <span className={`status-badge ${statusBadgeClass}`}>
+            {statusText}
+          </span>
+          <button 
+            className="btn btn-outline btn-sm"
+            style={{ fontSize: '12px', padding: '6px 10px' }}
+            onClick={onViewAsStudent}
+            title="See what this student sees"
+          >
+            🎓 Student View
+          </button>
+          <button 
+            className={`btn ${buttonClass} student-action-btn`}
+            onClick={onReview}
+          >
+            {buttonText}
+          </button>
         </div>
       </div>
 
-      <div className="student-actions-col">
-        {totalSubtopicsCount > 0 && (
-          <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '600' }}>
-            {reviewedSubtopicsCount}/{totalSubtopicsCount} reviewed
+      {/* Structured Details Grid (All 8 Required Fields) */}
+      <div className="student-details-grid" style={{ paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
+        <div className="student-detail-field">
+          <span className="field-label">Student Name</span>
+          <span className="field-value">{student.name}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Student ID</span>
+          <span className="field-value">{student.studentId || student.id || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">S OTP</span>
+          <span className="field-value" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
+            {student.sOtp || student.otp || '—'}
           </span>
-        )}
-        <span className={`status-badge ${statusBadgeClass}`}>
-          {statusText}
-        </span>
-        <button 
-          className="btn btn-outline btn-sm"
-          style={{ fontSize: '12px', padding: '6px 10px' }}
-          onClick={onViewAsStudent}
-          title="See what this student sees"
-        >
-          🎓 Student View
-        </button>
-        <button 
-          className={`btn ${buttonClass} student-action-btn`}
-          onClick={onReview}
-        >
-          {buttonText}
-        </button>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Email</span>
+          <span className="field-value">{student.email || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Phone</span>
+          <span className="field-value">{student.phone || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">WhatsApp</span>
+          <span className="field-value">{student.whatsapp || student.phone || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Gender</span>
+          <span className="field-value">{student.gender || 'Not specified'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Resume Upload Status</span>
+          {student.resumeAttachment ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+              <span className="status-badge status-approved" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                Uploaded
+              </span>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto' }}
+                onClick={() => window.open(getResumeViewUrl(student.resumeAttachment || '', student.name), '_blank', 'noopener,noreferrer')}
+              >
+                📄 View Resume
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto' }}
+                onClick={() => window.open(getResumeDownloadUrl(student.resumeAttachment || '', student.name), '_blank')}
+              >
+                ⬇️ Download
+              </button>
+            </div>
+          ) : (
+            <div style={{ marginTop: '4px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#94A3B8' }}>
+                Resume Not Uploaded
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
-

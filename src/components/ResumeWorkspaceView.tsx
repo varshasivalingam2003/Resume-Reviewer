@@ -5,6 +5,7 @@ import {
   ArrowLeftIcon, PdfIcon, DownloadIcon, MaximizeIcon, 
   CommentIcon, CheckIcon 
 } from './Icons';
+import { getResumeDownloadUrl, getResumeViewUrl } from '../services/zohoApi';
 
 interface AISuggestion {
   id: string;
@@ -74,6 +75,8 @@ interface ResumeDocumentPaperProps {
 export const ResumeWorkspaceView: React.FC = () => {
   const { 
     activeStudent,
+    students,
+    openStudentReview,
     setCurrentView,
     activeResumePage,
     setResumePage,
@@ -101,6 +104,18 @@ export const ResumeWorkspaceView: React.FC = () => {
     setActiveRole,
     setSelectedStudentForViewId
   } = useApp();
+
+  const [pdfLoading, setPdfLoading] = useState(true);
+  const [pdfError, setPdfError] = useState(false);
+
+  useEffect(() => {
+    setPdfLoading(true);
+    setPdfError(false);
+  }, [activeStudent?.id, activeStudent?.resumeAttachment]);
+
+  const resumePdfUrl = activeStudent?.resumeAttachment 
+    ? getResumeViewUrl(activeStudent.resumeAttachment, activeStudent.name)
+    : '';
 
   // Multi-Method Commenting Tool State (5 Suggestions)
   const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'ai_suggestions' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
@@ -334,7 +349,32 @@ export const ResumeWorkspaceView: React.FC = () => {
           </button>
           
           <div className="workspace-student-title-box">
-            <span className="workspace-student-name">{activeStudent.name}</span>
+            {students && students.length > 1 ? (
+              <select 
+                className="workspace-student-select"
+                value={activeStudent.id}
+                onChange={(e) => openStudentReview(e.target.value)}
+                style={{
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  background: '#FFFFFF',
+                  cursor: 'pointer'
+                }}
+                title="Switch candidate"
+              >
+                {students.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="workspace-student-name">{activeStudent.name}</span>
+            )}
             <span className="workspace-student-degree">{activeStudent.degree}</span>
             <span className={`status-badge status-${activeStudent.status}`}>
               {formatStatus(activeStudent.status)}
@@ -398,35 +438,15 @@ export const ResumeWorkspaceView: React.FC = () => {
             </div>
 
             <div className="resume-view-controls">
-              {/* Page Navigator */}
-              <div className="page-navigator">
-                <button 
-                  className="page-nav-btn" 
-                  onClick={() => setResumePage(activeResumePage - 1)}
-                  disabled={activeResumePage <= 1}
-                >
-                  &lt;
-                </button>
-                <span>{activeResumePage} / {activeStudent.totalPages || 2}</span>
-                <button 
-                  className="page-nav-btn" 
-                  onClick={() => setResumePage(activeResumePage + 1)}
-                  disabled={activeResumePage >= (activeStudent.totalPages || 2)}
-                >
-                  &gt;
-                </button>
-              </div>
-
-              {/* Zoom Controls */}
-              <div className="zoom-controls">
-                <button className="zoom-btn" onClick={() => setZoom(zoomLevel - 10)}>-</button>
-                <span style={{ fontSize: '12px', minWidth: '36px', textAlign: 'center' }}>{zoomLevel}%</span>
-                <button className="zoom-btn" onClick={() => setZoom(zoomLevel + 10)}>+</button>
-              </div>
-
               <button 
                 className="toolbar-action-icon-btn" 
-                onClick={() => alert(`Downloading ${activeStudent.name}_Resume.pdf...`)}
+                onClick={() => {
+                  if (activeStudent.resumeAttachment) {
+                    window.open(getResumeDownloadUrl(activeStudent.resumeAttachment, activeStudent.name), '_blank');
+                  } else {
+                    alert(`Resume file not attached in Zoho Creator for ${activeStudent.name}.`);
+                  }
+                }}
                 title="Download Resume"
               >
                 <DownloadIcon size={16} />
@@ -434,29 +454,98 @@ export const ResumeWorkspaceView: React.FC = () => {
 
               <button 
                 className="toolbar-action-icon-btn" 
-                onClick={() => setZoom(100)}
-                title="Reset Zoom"
+                onClick={() => {
+                  if (resumePdfUrl) {
+                    window.open(resumePdfUrl, '_blank');
+                  }
+                }}
+                title="Open PDF in New Tab"
               >
                 <MaximizeIcon size={16} />
               </button>
             </div>
           </div>
 
-          {/* Document Canvas */}
-          <div className="resume-scroll-canvas">
-            <div 
-              className="resume-paper" 
-              style={{ transform: `scale(${zoomLevel / 100})` }}
-            >
-              <ResumeDocumentPaper 
-                student={activeStudent} 
-                pageNum={activeResumePage}
-                activeSection={activeHighlightSection}
-                volunteerSubtopics={volunteerSubtopics}
-                onSelectSection={scrollToDocSection}
-                onQuickHighlight={quickHighlightFromCanvas}
-              />
-            </div>
+          {/* Real PDF Canvas */}
+          <div className="resume-scroll-canvas" style={{ padding: 0, overflow: 'hidden', position: 'relative', width: '100%', height: '100%', display: 'flex' }}>
+            {!activeStudent.resumeAttachment ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', color: '#64748B', textAlign: 'center' }}>
+                <span style={{ fontSize: '48px', marginBottom: '12px' }}>📄</span>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '6px' }}>No Resume Attachment</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '300px' }}>
+                  No resume file was uploaded in Zoho Creator for {activeStudent.name}.
+                </p>
+              </div>
+            ) : pdfError ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', color: '#64748B', textAlign: 'center' }}>
+                <span style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</span>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#DC2626', marginBottom: '6px' }}>Failed to Load Resume PDF</h3>
+                <p style={{ fontSize: '13px', color: '#64748B', maxWidth: '340px', marginBottom: '16px' }}>
+                  Could not load the resume preview from Zoho Creator.
+                </p>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary btn-sm"
+                    onClick={() => { setPdfError(false); setPdfLoading(true); }}
+                  >
+                    Retry
+                  </button>
+                  <a 
+                    href={getResumeDownloadUrl(activeStudent.resumeAttachment, activeStudent.name)} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn btn-outline btn-sm"
+                  >
+                    Download PDF
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', display: 'flex' }}>
+                {pdfLoading && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#F8FAFC',
+                    zIndex: 2,
+                    gap: '12px'
+                  }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      border: '3px solid #E2E8F0',
+                      borderTopColor: '#2563EB',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite'
+                    }} />
+                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                      Loading {activeStudent.name}'s resume PDF...
+                    </span>
+                  </div>
+                )}
+                <iframe
+                  key={`${activeStudent.id}-${activeStudent.resumeAttachment}`}
+                  src={`${resumePdfUrl}#toolbar=1&navpanes=0`}
+                  title={`${activeStudent.name} Resume`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    display: 'block',
+                    flex: 1
+                  }}
+                  onLoad={() => setPdfLoading(false)}
+                  onError={() => {
+                    setPdfLoading(false);
+                    setPdfError(true);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </section>
 
