@@ -1,4 +1,6 @@
-@import './variables.css';
+import React from 'react';
+
+const styles = `
 
 /* Base Reset */
 *, *::before, *::after {
@@ -17,10 +19,11 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-#app {
+#root, #app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 /* Device Preview Mode Bar (Top Utility Bar) */
@@ -100,7 +103,8 @@ html, body {
   position: relative;
   transition: max-width var(--transition-normal);
   min-height: 0;
-  overflow: hidden;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .app-main-content {
@@ -108,7 +112,8 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Mobile Frame Simulation Container */
@@ -423,3 +428,8 @@ html, body {
   position: relative;
   animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+`;
+
+export const MainStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

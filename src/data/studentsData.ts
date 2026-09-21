@@ -7,7 +7,7 @@ export interface VolunteerSubtopic {
   isReviewed: boolean;
   category?: 'suggestion' | 'must_fix' | 'praise' | 'question';
   suggestedRewrite?: { before: string; after: string };
-  audioNote?: { recorded: boolean; duration: string; timestamp: string };
+  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string };
 }
 
 export interface EducationItem {
@@ -60,7 +60,9 @@ export interface Student {
   generalFeedback: string;
   volunteerSubtopics: VolunteerSubtopic[];
   resumeSections: ResumeSection[];
-  audioNote?: { recorded: boolean; duration: string; timestamp: string };
+  oldResumeSections?: ResumeSection[];
+  newResumeSections?: ResumeSection[];
+  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string };
   rubricScores?: Record<string, number>;
 }
 
@@ -121,6 +123,131 @@ export const initialStudents: Student[] = [
         isHighlighted: false,
         command: "Mention the issuing organization and credential verification link.",
         isReviewed: false
+      }
+    ],
+
+    oldResumeSections: [
+      {
+        key: "objective",
+        title: "CAREER OBJECTIVE",
+        type: "text",
+        content: "Hardworking Computer Science student seeking an entry level software developer job in a good company to gain experience, learn new technologies, and help the team grow."
+      },
+      {
+        key: "education",
+        title: "EDUCATION",
+        type: "education",
+        items: [
+          {
+            degree: "B.Sc Computer Science",
+            institution: "ABC College, Chennai",
+            period: "2022 - 2025",
+            score: "8.2 CGPA"
+          },
+          {
+            degree: "Higher Secondary Certificate (HSC)",
+            institution: "St. Thomas Higher Secondary School",
+            period: "2020 - 2022",
+            score: "91.5%"
+          }
+        ]
+      },
+      {
+        key: "skills",
+        title: "PROJECTIVE SKILLS & WEB STACK",
+        type: "chips",
+        items: ["Python", "Java", "HTML", "CSS", "SQL", "JavaScript"]
+      },
+      {
+        key: "projects",
+        title: "ACADEMIC PROJECTS",
+        type: "projects",
+        items: [
+          {
+            title: "Student Management System",
+            tech: "Python, MySQL",
+            period: "Jan 2025",
+            description: "Made a desktop software in Python and MySQL to store student attendance and grades."
+          },
+          {
+            title: "E-Commerce Web Portal",
+            tech: "HTML, CSS, JS",
+            period: "Aug 2024",
+            description: "Built an e-commerce website with product pages and shopping cart."
+          }
+        ]
+      },
+      {
+        key: "certifications",
+        title: "CERTIFICATIONS & BADGES",
+        type: "list",
+        items: [
+          "Python programming course certificate",
+          "Basic web design certificate"
+        ]
+      }
+    ],
+
+    newResumeSections: [
+      {
+        key: "objective",
+        title: "CAREER OBJECTIVE",
+        type: "text",
+        content: "Results-driven Software Engineering candidate with strong fundamentals in data structures, algorithms, and modern full-stack web applications. Seeking an entry-level software engineer role to leverage technical skills in architecting scalable, high-impact products."
+      },
+      {
+        key: "education",
+        title: "EDUCATION",
+        type: "education",
+        items: [
+          {
+            degree: "B.Sc Computer Science",
+            institution: "ABC College, Chennai",
+            period: "2022 - 2025",
+            score: "CGPA: 8.2 / 10.0 (Top 10% of Cohort)"
+          },
+          {
+            degree: "Higher Secondary Certificate (HSC)",
+            institution: "St. Thomas Higher Secondary School",
+            period: "2020 - 2022",
+            score: "Distinction: 91.5%"
+          }
+        ]
+      },
+      {
+        key: "skills",
+        title: "PROJECTIVE SKILLS & WEB STACK",
+        type: "chips",
+        items: ["Python", "Java", "JavaScript (ES6+)", "React.js", "HTML5 & CSS3", "SQL / MySQL", "Git & GitHub CI/CD", "RESTful APIs", "Docker Basics"]
+      },
+      {
+        key: "projects",
+        title: "ACADEMIC PROJECTS",
+        type: "projects",
+        items: [
+          {
+            title: "Student Management System (High-Impact)",
+            tech: "Python, MySQL, Tkinter, PyInstaller",
+            period: "Jan 2025 - Mar 2025",
+            description: "Engineered desktop application with indexed MySQL database automating attendance tracking and marks computation for 400+ active students; reduced faculty report generation time by 65% with zero data loss. (github.com/arunkumar/student-system)"
+          },
+          {
+            title: "Responsive E-Commerce Portal",
+            tech: "JavaScript (ES6+), HTML5, CSS3 Grid/Flexbox, LocalStorage",
+            period: "Aug 2024 - Oct 2024",
+            description: "Architected single-page online shopping storefront featuring real-time client-side price computation, dynamic category filters, and 98+ Google Lighthouse performance score. (arunkumar-shop.vercel.app)"
+          }
+        ]
+      },
+      {
+        key: "certifications",
+        title: "CERTIFICATIONS & BADGES",
+        type: "list",
+        items: [
+          "Python Programming Masterclass - Coursera (Credential ID: PY-2024-8849)",
+          "Meta Certified Front-End Web Developer - Coursera (Verified 2024)",
+          "Responsive Web Design Certification - freeCodeCamp (Verified 2023)"
+        ]
       }
     ],
 
@@ -467,3 +594,28 @@ export const volunteerProfile: VolunteerProfile = {
   pendingCount: 3,
   completedCount: 1
 };
+
+export const getResumeSectionsForVersion = (student: Student, version: 'old' | 'new'): ResumeSection[] => {
+  if (version === 'old') {
+    if (student.oldResumeSections && student.oldResumeSections.length > 0) {
+      return student.oldResumeSections;
+    }
+    // Fallback: derive an initial unpolished version
+    return (student.resumeSections || []).map(sec => {
+      if (sec.key === 'objective') {
+        return {
+          ...sec,
+          content: 'Hardworking student looking for an entry level job to gain experience and learn new skills.'
+        };
+      }
+      return sec;
+    });
+  }
+
+  // version === 'new'
+  if (student.newResumeSections && student.newResumeSections.length > 0) {
+    return student.newResumeSections;
+  }
+  return student.resumeSections || [];
+};
+

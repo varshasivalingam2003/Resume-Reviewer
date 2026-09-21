@@ -11,15 +11,7 @@ import { ChangesModal } from './components/ChangesModal';
 import { StudentFeedbackView } from './components/StudentFeedbackView';
 import { StudentLoginView } from './components/StudentLoginView';
 
-import './styles/main.css';
-import './styles/login.css';
-import './styles/dashboard.css';
-import './styles/workspace.css';
-import './styles/modals.css';
-import './styles/completed.css';
-import './styles/mobile.css';
-import './styles/student-view.css';
-import './styles/illustration-animation.css';
+import { AppStyles } from './styles/AppStyles';
 
 const AppContent: React.FC = () => {
   const { currentView, deviceMode, isAuthenticated, activeModal, activeRole, isStudentLoggedIn } = useApp();
@@ -27,6 +19,9 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      {/* Global & Modular Styles Injected via TSX */}
+      <AppStyles />
+
       {/* Top Device Bar */}
       <DeviceBar />
 

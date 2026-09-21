@@ -69,8 +69,8 @@ export interface AppContextType {
   updateSubtopicCommand: (subtopicId: string, command: string) => void;
   updateSubtopicCategory: (subtopicId: string, category: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
   updateSubtopicRewrite: (subtopicId: string, rewrite: { before: string; after: string }) => void;
-  updateSubtopicAudioNote: (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string }) => void;
-  saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string }) => void;
+  updateSubtopicAudioNote: (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => void;
+  saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => void;
   saveRubricScores: (scores: Record<string, number>) => void;
   toggleSubtopicReviewed: (subtopicId: string) => void;
   quickHighlightFromCanvas: (sectionKey: string, sectionTitle: string) => void;
@@ -190,6 +190,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (e) {}
     return 'single'; // Default to single tagged student as requested
   });
+
+  // URL query parameter support for direct view switching
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view');
+      const roleParam = params.get('role');
+      const mobileTabParam = params.get('mobileTab');
+      const deviceModeParam = params.get('deviceMode');
+      if (viewParam) {
+        setCurrentView(viewParam);
+        if (viewParam === 'dashboard' || viewParam === 'workspace') {
+          setIsAuthenticated(true);
+        }
+      }
+      if (roleParam === 'student') {
+        setActiveRole('student');
+        setIsStudentLoggedIn(true);
+      } else if (roleParam === 'volunteer') {
+        setActiveRole('volunteer');
+      }
+      if (mobileTabParam) {
+        setMobileTab(mobileTabParam);
+      }
+      if (deviceModeParam) {
+        setDeviceMode(deviceModeParam);
+      }
+    } catch (e) {}
+  }, []);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -522,7 +551,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateSubtopicAudioNote = (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string }) => {
+  const updateSubtopicAudioNote = (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => {
     if (!activeStudent) return;
     setStudents(prev => prev.map(s => {
       if (s.id === activeStudent.id) {
@@ -537,7 +566,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string }) => {
+  const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => {
     if (!activeStudent) return;
     setStudents(prev => prev.map(s => {
       if (s.id === activeStudent.id) {

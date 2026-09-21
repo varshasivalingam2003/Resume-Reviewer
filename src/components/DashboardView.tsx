@@ -4,6 +4,7 @@ import {
   DashboardIcon, 
   UsersIcon, ClockIcon, CheckCircleIcon, SearchIcon 
 } from './Icons';
+import { User, Users, GraduationCap, FileText, Hand, Download } from 'lucide-react';
 import { Student } from '../data/studentsData';
 import { getResumeViewUrl, getResumeDownloadUrl } from '../services/zohoApi';
 
@@ -60,8 +61,11 @@ export const DashboardView: React.FC = () => {
         {/* Top Greeting Header & Mode Switcher */}
         <div className="dashboard-header-banner">
           <div>
-            <h1 className="greeting-title">
-              Hi, {volunteer.name} <span style={{ display: 'inline-block', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>👋</span>
+            <h1 className="greeting-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Hi, {volunteer.name}</span>
+              <span style={{ display: 'inline-flex', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>
+                <Hand size={24} color="#F59E0B" />
+              </span>
             </h1>
             <p className="greeting-subtitle">
               {hasNoStudents
@@ -79,15 +83,19 @@ export const DashboardView: React.FC = () => {
                 type="button"
                 className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
                 onClick={() => setVolunteerAssignmentMode('single')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                👤 Single Student (1)
+                <User size={14} />
+                <span>Single Student (1)</span>
               </button>
               <button 
                 type="button"
                 className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
                 onClick={() => setVolunteerAssignmentMode('group')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
-                👥 All Students ({taggedStudents.length})
+                <Users size={14} />
+                <span>All Students ({taggedStudents.length})</span>
               </button>
             </div>
           )}
@@ -140,8 +148,10 @@ export const DashboardView: React.FC = () => {
                       setActiveRole('student');
                     }}
                     title="See what the student sees"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
-                    🎓 View as Student
+                    <GraduationCap size={15} />
+                    <span>View as Student</span>
                   </button>
 
                   <button 
@@ -173,6 +183,26 @@ export const DashboardView: React.FC = () => {
                 </div>
 
                 <div className="student-detail-field">
+                  <span className="field-label">Location</span>
+                  <span className="field-value">{singleStudent.location || '—'}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Graduation Year</span>
+                  <span className="field-value">{singleStudent.graduationYear || '—'}</span>
+                </div>
+                <div className="student-detail-field">
+                  <span className="field-label">Assigned Date</span>
+                  <span className="field-value">{singleStudent.assignedDate || '—'}</span>
+                </div>
+                  <div className="student-detail-field">
+                    <span className="field-label">Resume Document</span>
+                    <span className="field-value" style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <FileText size={15} color="#2563EB" />
+                      <span>{singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf</span>
+                    </span>
+                  </div>
+
+                <div className="student-detail-field">
                   <span className="field-label">Email Address</span>
                   <span className="field-value">{singleStudent.email || '—'}</span>
                 </div>
@@ -202,18 +232,20 @@ export const DashboardView: React.FC = () => {
                       <button
                         type="button"
                         className="btn btn-outline btn-sm"
-                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto' }}
+                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         onClick={() => window.open(getResumeViewUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank', 'noopener,noreferrer')}
                       >
-                        📄 View Resume
+                        <FileText size={12} />
+                        <span>View Resume</span>
                       </button>
                       <button
                         type="button"
                         className="btn btn-outline btn-sm"
-                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto' }}
+                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         onClick={() => window.open(getResumeDownloadUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank')}
                       >
-                        ⬇️ Download
+                        <Download size={12} />
+                        <span>Download</span>
                       </button>
                     </div>
                   ) : (
@@ -408,11 +440,12 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
           </span>
           <button 
             className="btn btn-outline btn-sm"
-            style={{ fontSize: '12px', padding: '6px 10px' }}
+            style={{ fontSize: '12px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             onClick={onViewAsStudent}
             title="See what this student sees"
           >
-            🎓 Student View
+            <GraduationCap size={13} />
+            <span>Student View</span>
           </button>
           <button 
             className={`btn ${buttonClass} student-action-btn`}
@@ -423,7 +456,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
         </div>
       </div>
 
-      {/* Structured Details Grid (All 8 Required Fields) */}
+      {/* Structured Details Grid (All Required Fields) */}
       <div className="student-details-grid" style={{ paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
         <div className="student-detail-field">
           <span className="field-label">Student Name</span>
@@ -440,6 +473,21 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
           <span className="field-value" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
             {student.sOtp || student.otp || '—'}
           </span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Location</span>
+          <span className="field-value">{student.location || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Graduation Year</span>
+          <span className="field-value">{student.graduationYear || '—'}</span>
+        </div>
+
+        <div className="student-detail-field">
+          <span className="field-label">Assigned Date</span>
+          <span className="field-value">{student.assignedDate || '—'}</span>
         </div>
 
         <div className="student-detail-field">
@@ -472,18 +520,20 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
               <button
                 type="button"
                 className="btn btn-outline btn-sm"
-                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto' }}
+                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 onClick={() => window.open(getResumeViewUrl(student.resumeAttachment || '', student.name), '_blank', 'noopener,noreferrer')}
               >
-                📄 View Resume
+                <FileText size={12} />
+                <span>View Resume</span>
               </button>
               <button
                 type="button"
                 className="btn btn-outline btn-sm"
-                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto' }}
+                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 onClick={() => window.open(getResumeDownloadUrl(student.resumeAttachment || '', student.name), '_blank')}
               >
-                ⬇️ Download
+                <Download size={12} />
+                <span>Download</span>
               </button>
             </div>
           ) : (

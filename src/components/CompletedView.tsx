@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { CommentIcon } from './Icons';
+import { CommentIcon, StarRating } from './Icons';
+import { Check, Calendar, ArrowRight, PartyPopper } from 'lucide-react';
 
 export const CompletedView: React.FC = () => {
   const { activeStudent, deviceMode, stats, goToNextPendingStudent, setCurrentView } = useApp();
@@ -19,8 +20,8 @@ export const CompletedView: React.FC = () => {
       <div className="completed-card">
         {/* Celebration Burst Graphic */}
         <div className="celebration-burst-wrap">
-          <div className="celebration-check-circle">
-            <span style={{ fontSize: '38px' }}>✓</span>
+          <div className="celebration-check-circle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Check size={38} strokeWidth={3} color="#FFFFFF" />
           </div>
 
           <div className="celebration-rays">
@@ -46,8 +47,8 @@ export const CompletedView: React.FC = () => {
         {/* Summary Stats Card */}
         <div className="completed-stats-row">
           <div className="completed-stat-item">
-            <span className="stat-title" style={{ color: '#F59E0B', fontSize: '15px' }}>
-              {'★'.repeat(activeStudent.rating)}{'☆'.repeat(5 - activeStudent.rating)}
+            <span className="stat-title" style={{ fontSize: '15px' }}>
+              <StarRating rating={activeStudent.rating} size={15} />
             </span>
             <span>Rating Given</span>
           </div>
@@ -60,8 +61,9 @@ export const CompletedView: React.FC = () => {
           </div>
 
           <div className="completed-stat-item">
-            <span className="stat-title">
-              📅 {activeStudent.completedDate || '08 Sep 2026'}
+            <span className="stat-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <Calendar size={14} color="#64748B" />
+              <span>{activeStudent.completedDate || '08 Sep 2026'}</span>
             </span>
             <span>Completed</span>
           </div>
@@ -73,12 +75,14 @@ export const CompletedView: React.FC = () => {
 
         <div className="completed-actions-group">
           {stats.pending > 0 ? (
-            <button className="btn btn-primary" onClick={goToNextPendingStudent}>
-              Next Resume →
+            <button className="btn btn-primary" onClick={goToNextPendingStudent} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <span>Next Resume</span>
+              <ArrowRight size={15} />
             </button>
           ) : (
-            <div style={{ fontSize: '13px', color: '#10B981', fontWeight: '700', marginBottom: '8px' }}>
-              🎉 All assigned resumes have been reviewed!
+            <div style={{ fontSize: '13px', color: '#10B981', fontWeight: '700', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <PartyPopper size={16} />
+              <span>All assigned resumes have been reviewed!</span>
             </div>
           )}
 

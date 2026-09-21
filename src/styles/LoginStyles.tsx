@@ -1,4 +1,6 @@
-/* ==========================================================================
+import React from 'react';
+
+const styles = `/* ==========================================================================
    Cohesive, Modern, High-End Landing Page Styling
    ========================================================================== */
 
@@ -784,3 +786,8 @@
 .mobile-frame-mode .login-card {
   padding: 20px 16px;
 }
+`;
+
+export const LoginStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

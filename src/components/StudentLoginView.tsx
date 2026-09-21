@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PortalLogoIcon, ReviewsIcon, CommentIcon, CheckIcon, WarningTriangleIcon, LockIcon } from './Icons';
+import { 
+  Search, 
+  Edit3, 
+  Check, 
+  KeyRound, 
+  Zap, 
+  Unlock, 
+  ArrowRight, 
+  GraduationCap 
+} from 'lucide-react';
 import { LoginIllustration } from './Illustration';
 import { Student } from '../data/studentsData';
 
@@ -137,15 +147,15 @@ export const StudentLoginView: React.FC = () => {
 
             <div className="hero-feature-chips">
               <div className="feature-pill">
-                <span className="pill-icon">🔍</span>
+                <Search size={14} className="pill-icon" />
                 <span className="pill-label">View Highlights</span>
               </div>
               <div className="feature-pill">
-                <span className="pill-icon">📝</span>
+                <Edit3 size={14} className="pill-icon" />
                 <span className="pill-label">Fix Mistakes</span>
               </div>
               <div className="feature-pill">
-                <span className="pill-icon">✓</span>
+                <Check size={14} className="pill-icon" />
                 <span className="pill-label">Get Approved</span>
               </div>
             </div>
@@ -181,7 +191,7 @@ export const StudentLoginView: React.FC = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '15px' }}>🔑</span>
+                  <KeyRound size={15} color="#854D0E" />
                   <span style={{ fontSize: '13px', fontWeight: '700', color: '#854D0E' }}>
                     Dummy OTP for Testing:
                   </span>
@@ -205,7 +215,8 @@ export const StudentLoginView: React.FC = () => {
                   }}
                   title="Click to auto-fill this OTP"
                 >
-                  ⚡ Fill {dummyOtp}
+                  <Zap size={13} />
+                  <span>Fill {dummyOtp}</span>
                 </button>
               </div>
               <div style={{ marginTop: '6px', fontSize: '11px', color: '#A16207' }}>
@@ -277,10 +288,16 @@ export const StudentLoginView: React.FC = () => {
                   padding: '13px', 
                   fontSize: '15px',
                   fontWeight: '700',
-                  boxShadow: '0 4px 12px rgba(234, 179, 8, 0.25)'
+                  boxShadow: '0 4px 12px rgba(234, 179, 8, 0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                🔓 Verify OTP & Open Resume Page →
+                <Unlock size={16} />
+                <span>Verify OTP & Open Resume Page</span>
+                <ArrowRight size={16} />
               </button>
 
               <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -291,9 +308,10 @@ export const StudentLoginView: React.FC = () => {
                     e.preventDefault();
                     setActiveRole('volunteer');
                   }}
-                  style={{ color: '#0F172A', fontWeight: '700', fontSize: '13px' }}
+                  style={{ color: '#0F172A', fontWeight: '700', fontSize: '13px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 >
-                  🧑‍🏫 Switch to Volunteer Reviewer Portal
+                  <GraduationCap size={15} />
+                  <span>Switch to Volunteer Reviewer Portal</span>
                 </a>
 
                 <div style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.4' }}>

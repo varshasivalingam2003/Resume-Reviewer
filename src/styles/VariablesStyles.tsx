@@ -1,4 +1,6 @@
-:root {
+import React from 'react';
+
+const styles = `:root {
   /* Brand Colors */
   --primary-yellow: #FACC15;
   --primary-yellow-hover: #EAB308;
@@ -70,3 +72,8 @@
   --transition-normal: 0.25s ease;
   --transition-slow: 0.4s ease;
 }
+`;
+
+export const VariablesStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

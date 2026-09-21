@@ -1,4 +1,6 @@
-/* Review Completed Screen Styling */
+import React from 'react';
+
+const styles = `/* Review Completed Screen Styling */
 .completed-view-container {
   flex: 1;
   display: flex;
@@ -158,3 +160,8 @@
 .completed-actions-group .btn {
   padding: 12px 20px;
 }
+`;
+
+export const CompletedStyles: React.FC = () => {
+  return <style>{styles}</style>;
+};

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { CheckCircleIcon, CloseIcon } from './Icons';
+import { CheckCircleIcon, CloseIcon, StarRating } from './Icons';
+import { Check } from 'lucide-react';
 
 export const ApprovalModal: React.FC = () => {
   const { activeStudent, closeModal, approveResume } = useApp();
@@ -33,8 +34,8 @@ export const ApprovalModal: React.FC = () => {
           <div className="approval-summary-card">
             <div className="summary-row">
               <span className="summary-label">Rating</span>
-              <span className="summary-value" style={{ color: '#F59E0B' }}>
-                {'★'.repeat(activeStudent.rating)}{'☆'.repeat(5 - activeStudent.rating)}
+              <span className="summary-value">
+                <StarRating rating={activeStudent.rating} size={16} />
               </span>
             </div>
             <div className="summary-row">
@@ -55,8 +56,9 @@ export const ApprovalModal: React.FC = () => {
             <button className="btn btn-outline" onClick={closeModal}>
               Cancel
             </button>
-            <button className="btn btn-primary" onClick={approveResume}>
-              Approve
+            <button className="btn btn-primary" onClick={approveResume} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Check size={16} />
+              <span>Approve</span>
             </button>
           </div>
         </div>
