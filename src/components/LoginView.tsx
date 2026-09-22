@@ -16,7 +16,7 @@ import { loginVolunteerWithApi } from '../services/zohoApi';
 type AnimState = 'idle' | 'verifying' | 'success' | 'error';
 
 export const LoginView: React.FC = () => {
-  const { students, loginWithOtp } = useApp();
+  const { students, loginWithOtp, setCurrentView } = useApp();
   
   const [role, setRole] = useState<'volunteer' | 'student'>('volunteer');
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
@@ -183,34 +183,36 @@ export const LoginView: React.FC = () => {
       setIsLoading(true);
 
       try {
-        // 2. Perform existing verification API call
-        const apiResult = await loginVolunteerWithApi(code);
+        // 2. Perform verification with existing auth flow (single API call, no duplicate)
+        const authResult = await loginWithOtp(code, role, null, false);
 
-        if (!apiResult.success) {
-          // 3. Invalid OTP: return boxes to horizontal row with error shake
+        if (!authResult || !authResult.success) {
+          // 3. Failure: Stop/reset circle animation, return boxes to normal layout, show error
           setAnimState('error');
-          setErrorMessage(apiResult.message || 'Invalid Volunteer OTP');
+          setErrorMessage(authResult?.message || 'Invalid Volunteer OTP');
           setTimeout(() => {
             setAnimState('idle');
+            setBoxOffsets([]);
             setIsLoading(false);
             inputRefs.current[0]?.focus();
           }, 600);
           return;
         }
 
-        // 4. Successful verification: converge 6 boxes toward center and show verified badge
+        // 4. Success: ONLY if normalized result success === true
         setAnimState('success');
 
-        // Keep final success animation for 800ms
+        // Smooth convergence and green verified badge duration
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 5. Continue existing navigation to dashboard
-        await loginWithOtp(code, role, null);
+        // 5. Automatically open existing Volunteer Dashboard
+        setCurrentView('dashboard');
       } catch (err: any) {
         setAnimState('error');
         setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
         setTimeout(() => {
           setAnimState('idle');
+          setBoxOffsets([]);
           setIsLoading(false);
         }, 600);
       }
@@ -351,34 +353,36 @@ export const LoginView: React.FC = () => {
                 className={`otp-inputs-wrapper ${animState === 'verifying' ? 'is-verifying' : ''} ${animState === 'success' ? 'is-success' : ''} ${animState === 'error' ? 'is-error' : ''}`} 
                 onPaste={handlePaste}
               >
-                {otp.map((digit, idx) => {
-                  const tx = animState === 'verifying' 
-                    ? `${boxOffsets[idx]?.tx || 0}px` 
-                    : animState === 'success' 
-                      ? `${boxOffsets[idx]?.ctx || 0}px` 
-                      : '0px';
-                  const ty = animState === 'verifying' 
-                    ? `${boxOffsets[idx]?.ty || 0}px` 
-                    : animState === 'success' 
-                      ? `${boxOffsets[idx]?.cty || 0}px` 
-                      : '0px';
+                <div className={`otp-boxes-track ${animState === 'verifying' ? 'is-spinning' : ''}`}>
+                  {otp.map((digit, idx) => {
+                    const tx = animState === 'verifying' 
+                      ? `${boxOffsets[idx]?.tx || 0}px` 
+                      : animState === 'success' 
+                        ? `${boxOffsets[idx]?.ctx || 0}px` 
+                        : '0px';
+                    const ty = animState === 'verifying' 
+                      ? `${boxOffsets[idx]?.ty || 0}px` 
+                      : animState === 'success' 
+                        ? `${boxOffsets[idx]?.cty || 0}px` 
+                        : '0px';
 
-                  return (
-                    <input
-                      key={idx}
-                      ref={(el) => (inputRefs.current[idx] = el)}
-                      type="text"
-                      maxLength={1}
-                      readOnly={animState === 'verifying' || animState === 'success'}
-                      className={`otp-box ${digit ? 'filled' : ''} ${autofillSuccess ? 'highlight-flash' : ''} ${bounceIndex === idx ? 'input-bounce' : ''}`}
-                      value={digit}
-                      style={{ '--tx': tx, '--ty': ty } as React.CSSProperties}
-                      onChange={(e) => handleChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(idx, e)}
-                      autoFocus={idx === 0}
-                    />
-                  );
-                })}
+                    return (
+                      <input
+                        key={idx}
+                        ref={(el) => (inputRefs.current[idx] = el)}
+                        type="text"
+                        maxLength={1}
+                        readOnly={animState === 'verifying' || animState === 'success'}
+                        className={`otp-box ${digit ? 'filled' : ''} ${autofillSuccess ? 'highlight-flash' : ''} ${bounceIndex === idx ? 'input-bounce' : ''}`}
+                        value={digit}
+                        style={{ '--tx': tx, '--ty': ty } as React.CSSProperties}
+                        onChange={(e) => handleChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(idx, e)}
+                        autoFocus={idx === 0}
+                      />
+                    );
+                  })}
+                </div>
 
                 {animState === 'success' && (
                   <div className="otp-success-badge-container">

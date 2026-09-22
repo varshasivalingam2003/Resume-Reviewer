@@ -55,7 +55,7 @@ export interface AppContextType {
   loginStudent: (studentId: string) => void;
   logoutStudent: () => void;
   loginStudentWithOtp: (otpCode: string, studentId?: string | null) => { success: boolean; student?: Student; message?: string };
-  loginWithOtp: (otpCode: string, role?: string, specificStudentId?: string | null) => Promise<{ success: boolean; role?: string; student?: Student; message?: string }>;
+  loginWithOtp: (otpCode: string, role?: string, specificStudentId?: string | null, autoNavigate?: boolean) => Promise<{ success: boolean; role?: string; student?: Student; message?: string }>;
   logout: () => void;
   openStudentReview: (studentId: string) => void;
   toggleSectionReviewed: (sectionKey: string) => void;
@@ -329,7 +329,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const loginWithOtp = async (otpCode: string, role = 'volunteer', specificStudentId: string | null = null) => {
+  const loginWithOtp = async (otpCode: string, role = 'volunteer', specificStudentId: string | null = null, autoNavigate = true) => {
     const cleanOtp = (otpCode || '').trim();
     if (role === 'volunteer') {
       // Connect to Zoho Creator backend proxy via API
@@ -374,7 +374,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       setIsAuthenticated(true);
       setActiveRole('volunteer');
-      setCurrentView('dashboard');
+      if (autoNavigate) {
+        setCurrentView('dashboard');
+      }
       return { success: true, role: 'volunteer' };
     }
 

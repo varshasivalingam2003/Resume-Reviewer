@@ -394,6 +394,24 @@ const styles = `/* =============================================================
   100% { transform: scale(1); }
 }
 
+.otp-boxes-track {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  transform-origin: center center;
+  width: 100%;
+}
+
+.otp-boxes-track.is-spinning {
+  animation: otpTrackSpin 2.6s linear infinite;
+}
+
+@keyframes otpTrackSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* 2. Verification State: 6 boxes in circular orbit */
 .otp-inputs-wrapper.is-verifying .otp-box {
   transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94);
@@ -401,27 +419,17 @@ const styles = `/* =============================================================
   background: #FFFFFF;
   box-shadow: 0 4px 14px rgba(234, 179, 8, 0.28);
   pointer-events: none;
-  animation: orbitBoxFloat 2.4s ease-in-out infinite alternate;
+  animation: otpBoxCounterSpin 2.6s linear infinite;
 }
 
-@keyframes orbitBoxFloat {
+@keyframes otpBoxCounterSpin {
   0% {
-    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94);
-    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.25);
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94) rotate(0deg);
   }
   100% {
-    transform: translate(calc(var(--tx, 0px) * 1.05), calc(var(--ty, 0px) * 1.05)) scale(0.98);
-    box-shadow: 0 6px 18px rgba(234, 179, 8, 0.42);
-    border-color: #FACC15;
+    transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(0.94) rotate(-360deg);
   }
 }
-
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(1) { animation-delay: 0s; }
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(2) { animation-delay: 0.2s; }
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(3) { animation-delay: 0.4s; }
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(4) { animation-delay: 0.6s; }
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(5) { animation-delay: 0.8s; }
-.otp-inputs-wrapper.is-verifying .otp-box:nth-child(6) { animation-delay: 1.0s; }
 
 /* 3. Success State: Converge to center and fade out */
 .otp-inputs-wrapper.is-success .otp-box {

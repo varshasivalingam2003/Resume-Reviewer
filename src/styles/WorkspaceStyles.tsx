@@ -90,15 +90,15 @@ const styles = `/* Resume Review Workspace Styles */
   overflow: hidden;
 }
 
-/* Left Pane: Resume Document Viewer (Full Width, No Side Panel) */
+/* Left Pane: Resume Document Viewer */
 .resume-viewer-pane {
-  flex: 1;
-  width: 100%;
+  flex: 1.25;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #E2E8F0;
+  background: #0F172A;
   overflow: hidden;
-  border-right: none;
+  border-right: 1px solid var(--border-color);
   position: relative;
 }
 
