@@ -502,6 +502,64 @@ export const ResumeWorkspaceView: React.FC = () => {
             /\b(b\.?e|b\.?tech|b\.?sc|m\.?tech|m\.?ca|cgpa|percentage|hsc|sslc|cbse|autonomous|university|college|school|curriculum)\b/i.test(text);
         };
 
+        // -----------------------------------------------------------------------
+        // COLUMN-AWARE HELPERS (used by email, address masking below)
+        // MUST be defined before first use — const arrow functions are NOT hoisted.
+        // -----------------------------------------------------------------------
+
+        // Splits a TextLine's items into column-segments separated by gaps > 18pt.
+        // PDF inter-word spaces are 3–8pt; column gutters are typically > 20pt.
+        interface ColSegment {
+          items: RawTextItem[];
+          minTx: number;
+          maxTx: number;
+          segText: string;
+        }
+        const getColSegments = (lineItems: RawTextItem[]): ColSegment[] => {
+          const sorted = [...lineItems].sort((a, b) => a.tx - b.tx);
+          const segs: ColSegment[] = [];
+          let cur: RawTextItem[] = [];
+          sorted.forEach((it, i) => {
+            if (i === 0) { cur.push(it); return; }
+            const gap = it.tx - (sorted[i - 1].tx + sorted[i - 1].width);
+            if (gap > 18) {
+              segs.push({
+                items: cur,
+                minTx: Math.min(...cur.map(x => x.tx)),
+                maxTx: Math.max(...cur.map(x => x.tx + x.width)),
+                segText: cur.map(x => x.str).join(' ').trim()
+              });
+              cur = [it];
+            } else {
+              cur.push(it);
+            }
+          });
+          if (cur.length > 0) {
+            segs.push({
+              items: cur,
+              minTx: Math.min(...cur.map(x => x.tx)),
+              maxTx: Math.max(...cur.map(x => x.tx + x.width)),
+              segText: cur.map(x => x.str).join(' ').trim()
+            });
+          }
+          return segs;
+        };
+
+        // Given a column X range, returns only items whose midpoint falls within it.
+        const itemsInCol = (lineItems: RawTextItem[], colMinX: number, colMaxX: number): RawTextItem[] => {
+          const colMid = (colMinX + colMaxX) / 2;
+          const colHalf = (colMaxX - colMinX) / 2 + 20; // 20pt tolerance
+          return lineItems.filter(it => {
+            const itMid = it.tx + it.width / 2;
+            return Math.abs(itMid - colMid) <= colHalf;
+          });
+        };
+
+        // Non-personal content guard: stops masking expansion into Profile/Education/Skills etc.
+        const isNonPersonalContent = (text: string) =>
+          /^(profile|summary|about\s+me|career\s+objective|objective|education|technical\s+skills|skills|projects?|experience|internship|certifications?|activities|languages?|achievements?|declaration|linkedin|github|portfolio|cgpa|degree|college|university)/i.test(text.trim()) ||
+          /\b(commerce|graduate|b\.?e\.?|b\.?tech|m\.?tech|cgpa|hsc|sslc|autonomous|university|college|curriculum)\b/i.test(text);
+
         // A. Full Email Masking — COLUMN-AWARE
         // Only mask items that clearly belong to the email value.
         // Never fall back to line.items (which can include Profile text from the right column).
@@ -610,59 +668,7 @@ export const ResumeWorkspaceView: React.FC = () => {
         //    that fall within the anchor column X range.
         // 4. Stop expansion when no items in the candidate line fall in the column.
         // This prevents Profile/Summary text on the right from ever being masked.
-
-        // Helper: split a TextLine's items into column-segments separated by large horizontal gaps.
-        interface ColSegment {
-          items: RawTextItem[];
-          minTx: number;
-          maxTx: number;
-          segText: string;
-        }
-        const getColSegments = (lineItems: RawTextItem[]): ColSegment[] => {
-          const sorted = [...lineItems].sort((a, b) => a.tx - b.tx);
-          const segs: ColSegment[] = [];
-          let cur: RawTextItem[] = [];
-          sorted.forEach((it, i) => {
-            if (i === 0) { cur.push(it); return; }
-            const gap = it.tx - (sorted[i - 1].tx + sorted[i - 1].width);
-            if (gap > 18) {
-              // new column segment
-              segs.push({
-                items: cur,
-                minTx: Math.min(...cur.map(x => x.tx)),
-                maxTx: Math.max(...cur.map(x => x.tx + x.width)),
-                segText: cur.map(x => x.str).join(' ').trim()
-              });
-              cur = [it];
-            } else {
-              cur.push(it);
-            }
-          });
-          if (cur.length > 0) {
-            segs.push({
-              items: cur,
-              minTx: Math.min(...cur.map(x => x.tx)),
-              maxTx: Math.max(...cur.map(x => x.tx + x.width)),
-              segText: cur.map(x => x.str).join(' ').trim()
-            });
-          }
-          return segs;
-        };
-
-        // Helper: given a column range, collect items from a line that fall in it.
-        const itemsInCol = (lineItems: RawTextItem[], colMinX: number, colMaxX: number): RawTextItem[] => {
-          const colMid = (colMinX + colMaxX) / 2;
-          const colHalf = (colMaxX - colMinX) / 2 + 20; // allow 20pt tolerance
-          return lineItems.filter(it => {
-            const itMid = it.tx + it.width / 2;
-            return Math.abs(itMid - colMid) <= colHalf;
-          });
-        };
-
-        // Non-personal content guard (stops address expansion into Profile/Education etc.)
-        const isNonPersonalContent = (text: string) =>
-          /^(profile|summary|about\s+me|career\s+objective|objective|education|technical\s+skills|skills|projects?|experience|internship|certifications?|activities|languages?|achievements?|declaration|linkedin|github|portfolio|cgpa|degree|college|university)/i.test(text.trim()) ||
-          /\b(commerce|graduate|b\.?e\.?|b\.?tech|m\.?tech|cgpa|hsc|sslc|autonomous|university|college|curriculum)\b/i.test(text);
+        // (getColSegments, itemsInCol, isNonPersonalContent are defined above section A.)
 
         // Structure to hold address block segments for ONE anchor at a time.
         interface AddrBlockSeg {
