@@ -18,14 +18,14 @@ export function getZohoConfig() {
   const clientSecret = process.env.ZOHO_CLIENT_SECRET || '';
   const refreshToken = process.env.ZOHO_REFRESH_TOKEN || '';
   const accountsUrl = (process.env.ZOHO_ACCOUNTS_URL || 'https://accounts.zoho.com').replace(/\/+$/, '');
-  
+
   // Try to derive default creator domain from Custom API URL if available
   let defaultCreatorBase = 'https://creator.zoho.com';
   if (customApiUrl) {
     try {
       const parsed = new URL(customApiUrl);
       defaultCreatorBase = `${parsed.protocol}//${parsed.host}`;
-    } catch (_) {}
+    } catch (_) { }
   }
   const creatorBaseUrl = (process.env.ZOHO_CREATOR_BASE_URL || defaultCreatorBase).replace(/\/+$/, '');
 
@@ -106,6 +106,13 @@ function normalizeStudent(raw, index = 0) {
   const hasResumeUploaded = Boolean(resumeAttachment && typeof resumeAttachment === 'string' && resumeAttachment.trim().length > 0);
 
   return {
+    zohoRecordId: String(
+      raw.record_id ||
+      raw.zoho_record_id ||
+      raw.ID ||
+      raw.id ||
+      ''
+    ).trim(),
     id: studentId || `student-${index + 1}`,
     studentId: studentId,
     name: name,
@@ -206,7 +213,7 @@ export async function verifyVolunteerOtp(vOtp) {
   console.log(`[Zoho Proxy] Safe Zoho Response:`, rawText);
   try {
     fs.writeFileSync('/Users/logesh/.gemini/antigravity-ide/brain/87b50c2b-bf47-48ff-8ef9-897b800d4751/scratch/last_zoho_response.json', rawText);
-  } catch (_) {}
+  } catch (_) { }
 
   let data;
   try {
@@ -224,11 +231,11 @@ export async function verifyVolunteerOtp(vOtp) {
   if (data && typeof data.result === 'string') {
     try {
       data.result = JSON.parse(data.result);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // Check for error responses from Zoho or Deluge
-  const hasError = 
+  const hasError =
     response.status >= 400 ||
     data.code === 404 ||
     data.code === 401 ||
@@ -242,22 +249,22 @@ export async function verifyVolunteerOtp(vOtp) {
   if (hasError) {
     const errorString = (
       data.description ||
-      data.error || 
-      data.message || 
-      data.result?.message || 
-      data.result?.error || 
+      data.error ||
+      data.message ||
+      data.result?.message ||
+      data.result?.error ||
       ''
     );
 
     const lower = errorString.toLowerCase();
-    const isExplicitOtpError = 
-      lower === 'invalid otp' || 
-      lower === 'invalid volunteer otp' || 
-      lower.includes('volunteer not found') || 
+    const isExplicitOtpError =
+      lower === 'invalid otp' ||
+      lower === 'invalid volunteer otp' ||
+      lower.includes('volunteer not found') ||
       lower.includes('incorrect otp');
 
-    const safeMessage = isExplicitOtpError 
-      ? 'Invalid Volunteer OTP' 
+    const safeMessage = isExplicitOtpError
+      ? 'Invalid Volunteer OTP'
       : (errorString || `Zoho Creator error (HTTP ${response.status})`);
 
     return {
@@ -268,7 +275,7 @@ export async function verifyVolunteerOtp(vOtp) {
   }
 
   // Extract Volunteer Name
-  const volunteerName = 
+  const volunteerName =
     data.volunteer_name ||
     data.volunteerName ||
     data.Volunteer_Name ||
@@ -279,9 +286,25 @@ export async function verifyVolunteerOtp(vOtp) {
     data.result?.Volunteer_Name ||
     data.name ||
     'Volunteer';
+  const volunteerRecordId = String(
+    data.volunteer?.record_id ||
+    data.volunteer?.ID ||
+    data.result?.volunteer?.record_id ||
+    data.result?.volunteer?.ID ||
+    data.volunteer_record_id ||
+    data.record_id ||
+    ''
+  ).trim();
+
+  const volunteerOtp =
+    data.volunteer?.v_otp ||
+    data.volunteer?.V_OTP ||
+    data.result?.volunteer?.v_otp ||
+    data.result?.volunteer?.V_OTP ||
+    cleanOtp;
 
   // Extract Students List
-  let rawStudents = 
+  let rawStudents =
     data.students ||
     data.assigned_students ||
     data.result?.students ||
@@ -304,6 +327,8 @@ export async function verifyVolunteerOtp(vOtp) {
     return {
       success: true,
       volunteerName,
+      volunteerRecordId,
+      volunteerOtp,
       students: [],
       message: 'No students assigned'
     };
@@ -312,6 +337,8 @@ export async function verifyVolunteerOtp(vOtp) {
   return {
     success: true,
     volunteerName,
+    volunteerRecordId,
+    volunteerOtp,
     students
   };
 }
@@ -388,7 +415,7 @@ export async function fetchResumeStream(fileUrl, mode = 'view', studentName = 'R
     const safeBaseName = (studentName || 'Student').replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `${safeBaseName}_Resume.pdf`;
 
-    const disposition = mode === 'download' 
+    const disposition = mode === 'download'
       ? `attachment; filename="${filename}"`
       : `inline; filename="${filename}"`;
 

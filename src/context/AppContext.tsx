@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { initialStudents, volunteerProfile, Student, VolunteerProfile, VolunteerSubtopic, ResumeSection } from '../data/studentsData';
-import { loginVolunteerWithApi } from '../services/zohoApi';
 
 const STORAGE_KEY = 'resume_reviewer_react_state_v4';
 
@@ -89,7 +88,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('resume_reviewer_react_state_v3') || localStorage.getItem('resume_reviewer_react_state_v1');
       if (saved) return JSON.parse(saved).isAuthenticated || false;
-    } catch (e) {}
+    } catch (e) { }
     return false;
   });
 
@@ -100,7 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         if (parsed.volunteer) return parsed.volunteer;
       }
-    } catch (e) {}
+    } catch (e) { }
     return volunteerProfile;
   });
 
@@ -113,7 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return parsed.currentView;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'dashboard';
   });
 
@@ -139,7 +138,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           });
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return initialStudents;
   });
 
@@ -162,7 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         if (parsed.activeRole) return parsed.activeRole;
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'volunteer';
   });
 
@@ -173,7 +172,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         if (parsed.selectedStudentForViewId) return parsed.selectedStudentForViewId;
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'student-1';
   });
 
@@ -187,7 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         if (parsed.volunteerAssignmentMode) return parsed.volunteerAssignmentMode;
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'single'; // Default to single tagged student as requested
   });
 
@@ -217,7 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (deviceModeParam) {
         setDeviceMode(deviceModeParam);
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Sync to LocalStorage
@@ -323,65 +322,212 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const currentStudent = students.find(s => s.id === studentId);
     const expectedOtp = currentStudent?.sOtp || currentStudent?.otp || '101010';
-    return { 
-      success: false, 
-      message: `Incorrect OTP. Please enter the student OTP (${expectedOtp}) shown on screen.` 
+    return {
+      success: false,
+      message: `Incorrect OTP. Please enter the student OTP (${expectedOtp}) shown on screen.`
     };
   };
 
-  const loginWithOtp = async (otpCode: string, role = 'volunteer', specificStudentId: string | null = null, autoNavigate = true) => {
+  const loginWithOtp = async (
+    otpCode: string,
+    role = 'volunteer',
+    specificStudentId: string | null = null,
+    autoNavigate = true
+  ) => {
     const cleanOtp = (otpCode || '').trim();
+
+    // --------------------------------------------------
+    // VOLUNTEER LOGIN
+    // SUPABASE FIRST BACKEND
+    // --------------------------------------------------
+
     if (role === 'volunteer') {
-      // Connect to Zoho Creator backend proxy via API
-      const result = await loginVolunteerWithApi(cleanOtp);
-      if (!result.success) {
-        return { success: false, message: result.message || 'Invalid Volunteer OTP' };
-      }
+      try {
+        const response = await fetch(
+          'http://localhost:5001/api/volunteer/login',
+          {
+            method: 'POST',
 
-      // Update volunteer profile with actual name from Zoho Creator
-      if (result.volunteerName) {
-        setVolunteer(prev => ({
-          ...prev,
-          name: result.volunteerName!
-        }));
-      }
+            headers: {
+              'Content-Type': 'application/json'
+            },
 
-      // Handle assigned students from Zoho Creator
-      if (result.students && result.students.length > 0) {
-        const enrichedStudents = result.students.map((student, idx) => {
-          const fallback = initialStudents[idx % initialStudents.length] || initialStudents[0];
+            body: JSON.stringify({
+              vOtp: cleanOtp
+            })
+          }
+        );
+
+        let result: any = null;
+
+        try {
+          result = await response.json();
+        } catch (error) {
           return {
-            ...fallback,
-            ...student,
-            resumeSections: (student.resumeSections && student.resumeSections.length > 0)
-              ? student.resumeSections
-              : fallback.resumeSections,
-            volunteerSubtopics: (student.volunteerSubtopics && student.volunteerSubtopics.length > 0)
-              ? student.volunteerSubtopics
-              : (fallback.volunteerSubtopics || [])
+            success: false,
+            message:
+              'Invalid response received from the login server'
           };
-        });
+        }
 
-        setStudents(enrichedStudents);
-        setActiveStudentId(enrichedStudents[0].id);
-        setSelectedStudentForViewId(enrichedStudents[0].id);
-        setVolunteerAssignmentMode(enrichedStudents.length === 1 ? 'single' : 'group');
-      } else {
-        // Volunteer verified but no assigned students
-        setStudents([]);
-        return { success: false, message: 'No students assigned' };
-      }
+        // --------------------------------------------------
+        // LOGIN FAILED
+        // --------------------------------------------------
 
-      setIsAuthenticated(true);
-      setActiveRole('volunteer');
-      if (autoNavigate) {
-        setCurrentView('dashboard');
+        if (
+          !response.ok ||
+          !result ||
+          !result.success
+        ) {
+          return {
+            success: false,
+            message:
+              result?.message ||
+              'Invalid Volunteer OTP'
+          };
+        }
+
+        // --------------------------------------------------
+        // UPDATE VOLUNTEER PROFILE
+        // --------------------------------------------------
+
+        if (result.volunteerName) {
+          setVolunteer(prev => ({
+            ...prev,
+            name: result.volunteerName
+          }));
+        }
+
+        // --------------------------------------------------
+        // HANDLE ASSIGNED STUDENTS
+        // --------------------------------------------------
+
+        if (
+          Array.isArray(result.students) &&
+          result.students.length > 0
+        ) {
+          const enrichedStudents =
+            result.students.map(
+              (student: any, idx: number) => {
+                const fallback =
+                  initialStudents[
+                  idx % initialStudents.length
+                  ] ||
+                  initialStudents[0];
+
+                return {
+                  ...fallback,
+                  ...student,
+
+                  // ------------------------------------------
+                  // Preserve real Supabase resume
+                  // ------------------------------------------
+
+                  resumeAttachment:
+                    student.resumeAttachment ||
+                    fallback.resumeAttachment,
+
+                  hasResumeUploaded:
+                    Boolean(
+                      student.hasResumeUploaded
+                    ),
+
+                  // ------------------------------------------
+                  // Existing UI fallback data
+                  // ------------------------------------------
+
+                  resumeSections:
+                    student.resumeSections &&
+                      student.resumeSections.length > 0
+                      ? student.resumeSections
+                      : fallback.resumeSections,
+
+                  volunteerSubtopics:
+                    student.volunteerSubtopics &&
+                      student.volunteerSubtopics.length > 0
+                      ? student.volunteerSubtopics
+                      : (
+                        fallback.volunteerSubtopics ||
+                        []
+                      )
+                };
+              }
+            );
+
+          setStudents(
+            enrichedStudents
+          );
+
+          setActiveStudentId(
+            enrichedStudents[0].id
+          );
+
+          setSelectedStudentForViewId(
+            enrichedStudents[0].id
+          );
+
+          setVolunteerAssignmentMode(
+            enrichedStudents.length === 1
+              ? 'single'
+              : 'group'
+          );
+        } else {
+          // Volunteer verified but no assigned students
+          setStudents([]);
+
+          return {
+            success: false,
+            message:
+              result?.message ||
+              'No students assigned'
+          };
+        }
+
+        // --------------------------------------------------
+        // LOGIN SUCCESS
+        // --------------------------------------------------
+
+        setIsAuthenticated(true);
+
+        setActiveRole(
+          'volunteer'
+        );
+
+        if (autoNavigate) {
+          setCurrentView(
+            'dashboard'
+          );
+        }
+
+        return {
+          success: true,
+          role: 'volunteer'
+        };
+
+      } catch (error: any) {
+        console.error(
+          '[Volunteer Login] Backend error:',
+          error
+        );
+
+        return {
+          success: false,
+          message:
+            error?.message ||
+            'Unable to connect to the login server'
+        };
       }
-      return { success: true, role: 'volunteer' };
     }
 
-    // Role is student
-    return loginStudentWithOtp(cleanOtp, specificStudentId);
+    // --------------------------------------------------
+    // STUDENT LOGIN
+    // EXISTING FLOW - UNCHANGED
+    // --------------------------------------------------
+
+    return loginStudentWithOtp(
+      cleanOtp,
+      specificStudentId
+    );
   };
 
   const login = () => {
@@ -454,9 +600,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Dynamic Volunteer-Defined Subtopics & Highlighting Methods
   const addVolunteerSubtopic = (
-    title: string, 
-    sectionKey = 'custom', 
-    command = '', 
+    title: string,
+    sectionKey = 'custom',
+    command = '',
     category: 'suggestion' | 'must_fix' | 'praise' | 'question' = 'suggestion'
   ) => {
     if (!activeStudent || !title.trim()) return;
@@ -499,7 +645,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, isHighlighted: !sub.isHighlighted } : sub
           )
         };
@@ -514,7 +660,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, command } : sub
           )
         };
@@ -529,7 +675,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, category } : sub
           )
         };
@@ -544,7 +690,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, suggestedRewrite: rewrite } : sub
           )
         };
@@ -559,7 +705,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, audioNote } : sub
           )
         };
@@ -594,7 +740,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (s.id === activeStudent.id) {
         return {
           ...s,
-          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub => 
+          volunteerSubtopics: (s.volunteerSubtopics || []).map(sub =>
             sub.id === subtopicId ? { ...sub, isReviewed: !sub.isReviewed } : sub
           )
         };
