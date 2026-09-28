@@ -33,7 +33,7 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
-        {isAuthenticated && activeRole === 'volunteer' && currentView !== 'workspace' && <Navbar />}
+        {isAuthenticated && activeRole === 'volunteer' && currentView !== 'workspace' && currentView !== 'login' && <Navbar />}
 
         <div className="app-main-content">
           {activeRole === 'student' ? (
@@ -42,7 +42,7 @@ const AppContent: React.FC = () => {
             ) : (
               <StudentFeedbackView />
             )
-          ) : !isAuthenticated ? (
+          ) : !isAuthenticated || currentView === 'login' ? (
             <LoginView />
           ) : currentView === 'workspace' ? (
             <ResumeWorkspaceView />

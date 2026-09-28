@@ -82,6 +82,29 @@ export const LoginView: React.FC = () => {
   const [animState, setAnimState] = useState<AnimState>('idle');
   const [bounceIndex, setBounceIndex] = useState<number | null>(null);
   const [boxOffsets, setBoxOffsets] = useState<{ tx: number; ty: number; ctx: number; cty: number }[]>([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startElapsedTimer = () => {
+    setElapsedSeconds(0);
+    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+    elapsedTimerRef.current = setInterval(() => {
+      setElapsedSeconds(prev => prev + 1);
+    }, 1000);
+  };
+
+  const stopElapsedTimer = () => {
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+    };
+  }, []);
   
   // Carousel State
   const [activeSlide, setActiveSlide] = useState<number>(0);
@@ -163,6 +186,8 @@ export const LoginView: React.FC = () => {
   };
 
   const handleRoleChange = (newRole: 'volunteer' | 'student') => {
+    stopElapsedTimer();
+    setElapsedSeconds(0);
     setRole(newRole);
     setErrorMessage('');
     setAutofillSuccess(false);
@@ -283,13 +308,16 @@ export const LoginView: React.FC = () => {
       setBoxOffsets(offsets);
       setAnimState('verifying');
       setIsLoading(true);
+      startElapsedTimer();
 
       try {
         // 2. Perform verification with existing auth flow (single API call, no duplicate)
         const authResult = await loginWithOtp(code, role, null, false);
 
         if (!authResult || !authResult.success) {
-          // 3. Failure: Stop/reset circle animation, return boxes to normal layout, show error
+          // 3. Failure: Stop/reset circle animation and timer, return boxes to normal layout, show error
+          stopElapsedTimer();
+          setElapsedSeconds(0);
           setAnimState('error');
           setErrorMessage(authResult?.message || 'Invalid Volunteer OTP');
           setTimeout(() => {
@@ -301,15 +329,18 @@ export const LoginView: React.FC = () => {
           return;
         }
 
-        // 4. Success: ONLY if normalized result success === true
+        // 4. Success: Stop spinner & elapsed counter immediately
+        stopElapsedTimer();
         setAnimState('success');
 
-        // Smooth convergence and green verified badge duration
+        // Keep the green verified success state clearly visible for 800ms (700-900ms)
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // 5. Automatically open existing Volunteer Dashboard
         setCurrentView('dashboard');
       } catch (err: any) {
+        stopElapsedTimer();
+        setElapsedSeconds(0);
         setAnimState('error');
         setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
         setTimeout(() => {
@@ -341,9 +372,11 @@ export const LoginView: React.FC = () => {
       {/* Top Application Header Bar */}
       <header className="login-top-bar">
         <div className="login-brand-group">
-          <div className="login-brand-icon">
-            <GraduationCap size={20} />
-          </div>
+          <img 
+            src="/images/team-everest-logo.png" 
+            alt="Team Everest Logo" 
+            className="team-everest-header-logo" 
+          />
           <div className="login-brand-titles">
             <span className="login-brand-name">Team Everest</span>
             <span className="login-brand-portal">Resume Review Portal</span>
@@ -723,6 +756,13 @@ export const LoginView: React.FC = () => {
                     })}
                   </div>
 
+                  {animState === 'verifying' && (
+                    <div className="verification-elapsed-counter" aria-live="polite">
+                      <span className="counter-dot"></span>
+                      <span>Verifying... {elapsedSeconds}s</span>
+                    </div>
+                  )}
+
                   {animState === 'success' && (
                     <div className="otp-success-badge-container">
                       <div className="otp-success-badge">
@@ -733,7 +773,7 @@ export const LoginView: React.FC = () => {
                           </svg>
                         </div>
                       </div>
-                      <div className="otp-success-text">Verified successfully</div>
+                      <div className="otp-success-text">Verified</div>
                     </div>
                   )}
                 </div>
@@ -747,9 +787,9 @@ export const LoginView: React.FC = () => {
                   <span>
                     {isLoading 
                       ? (animState === 'success' 
-                          ? 'Verified!' 
+                          ? 'Verified' 
                           : role === 'volunteer' 
-                            ? 'Verifying Volunteer OTP...' 
+                            ? `Verifying... (${elapsedSeconds}s)` 
                             : 'Verifying Student...') 
                       : (role === 'volunteer' ? 'Verify & Login' : 'View My Resume Changes')}
                   </span>

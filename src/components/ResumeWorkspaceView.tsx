@@ -44,6 +44,9 @@ import {
   Bookmark,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ThumbsUp,
   Layers,
   Lock,
   Download,
@@ -256,6 +259,92 @@ export const ResumeWorkspaceView: React.FC = () => {
   const reviewedCount = volunteerSubtopics.filter(s => s.isReviewed).length;
   const totalSubtopics = volunteerSubtopics.length;
   const progressPercent = totalSubtopics > 0 ? Math.round((reviewedCount / totalSubtopics) * 100) : 0;
+
+  // Student progress counter & index
+  const currentStudentIndex = Math.max(0, (students || []).findIndex(s => s.id === activeStudent.id));
+  const totalStudents = Math.max(1, (students || []).length);
+
+  // Simplified Review Flow States
+  const [decision, setDecision] = useState<'looks_good' | 'needs_changes' | null>(() => {
+    if (activeStudent.status === 'approved') return 'looks_good';
+    if (activeStudent.status === 'changes_required' || (activeStudent.improveTags && activeStudent.improveTags.length > 0)) return 'needs_changes';
+    return null;
+  });
+
+  const [showMoreTools, setShowMoreTools] = useState<boolean>(false);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (activeStudent.status === 'approved') {
+      setDecision('looks_good');
+    } else if (activeStudent.status === 'changes_required' || (activeStudent.improveTags && activeStudent.improveTags.length > 0)) {
+      setDecision('needs_changes');
+    } else {
+      setDecision(null);
+    }
+  }, [activeStudent.id, activeStudent.status]);
+
+  const simplifiedImproveTags = [
+    'Career Objective',
+    'Education',
+    'Skills',
+    'Projects',
+    'Experience',
+    'Formatting',
+    'Grammar',
+    'Other'
+  ];
+
+  const quickFeedbackChips = [
+    'Add more details',
+    'Use clearer wording',
+    'Add measurable results',
+    'Mention tools used',
+    'Explain your contribution',
+    'Keep formatting consistent'
+  ];
+
+  const isImproveTagActive = (tag: string) => {
+    const tags = activeStudent.improveTags || [];
+    if (tags.includes(tag)) return true;
+    if (tag === 'Career Objective' && tags.includes('Objective')) return true;
+    if (tag === 'Objective' && tags.includes('Career Objective')) return true;
+    return false;
+  };
+
+  const handleToggleImproveTag = (tag: string) => {
+    toggleImproveTag(tag);
+    const sectionKeyMap: Record<string, string> = {
+      'Career Objective': 'objective',
+      'Objective': 'objective',
+      'Education': 'education',
+      'Skills': 'skills',
+      'Projects': 'projects',
+      'Experience': 'experience'
+    };
+    if (sectionKeyMap[tag]) {
+      setActiveHighlightSection(sectionKeyMap[tag]);
+    }
+  };
+
+  const handleAppendQuickFeedback = (snippet: string) => {
+    const current = activeStudent.generalFeedback || '';
+    if (!current.trim()) {
+      updateGeneralFeedback(snippet);
+    } else if (!current.includes(snippet)) {
+      updateGeneralFeedback(`${current}\n• ${snippet}`);
+    }
+  };
+
+  const handleToggleVoice = () => {
+    if (!isVoiceRecording) {
+      setIsVoiceRecording(true);
+    } else {
+      setIsVoiceRecording(false);
+      const duration = formatVoiceTime(voiceSeconds);
+      saveAudioNote({ recorded: true, duration, timestamp: 'Just now' });
+    }
+  };
 
   const standardSections: { key: string; title: string }[] = [
     { key: 'objective', title: 'Career Objective' },
@@ -1038,6 +1127,302 @@ export const ResumeWorkspaceView: React.FC = () => {
     }
   };
 
+  // ---------------------------------------------------------------------------
+  // SIMPLIFIED VOLUNTEER REVIEW FLOW (SHARED DESKTOP & MOBILE)
+  // ---------------------------------------------------------------------------
+  const renderSimplifiedReviewContent = (isMobile = false, advancedToolsSlot?: React.ReactNode) => (
+    <div className="simplified-review-container">
+      {/* 1. Header with Student Name, Student X of Y, Progress (Desktop only; Mobile uses sheet header) */}
+      {!isMobile ? (
+        <div className="simplified-review-header">
+          <div className="simplified-title-row">
+            <h3 className="simplified-review-title">
+              Review {activeStudent.name}'s Resume
+            </h3>
+            <span className="simplified-student-counter">
+              Student {currentStudentIndex + 1} of {totalStudents}
+            </span>
+          </div>
+
+          <div className="simplified-progress-meta">
+            <span>Review Progress</span>
+            <span style={{ fontWeight: 700, color: '#0F172A' }}>
+              {reviewedCount} / {totalSubtopics} reviewed
+            </span>
+          </div>
+          <div className="review-progress-bar">
+            <div className="review-progress-fill" style={{ width: `${progressPercent}%` }}></div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: '4px' }}>
+          <div className="simplified-progress-meta" style={{ marginBottom: '6px' }}>
+            <span>Review Progress</span>
+            <span style={{ fontWeight: 700, color: '#0F172A' }}>
+              {reviewedCount} / {totalSubtopics} reviewed
+            </span>
+          </div>
+          <div className="review-progress-bar">
+            <div className="review-progress-fill" style={{ width: `${progressPercent}%` }}></div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. "How is this resume?" Decision Options */}
+      <div className="review-question-card">
+        <label className="review-question-label">How is this resume?</label>
+        <div className="review-decision-grid">
+          <button
+            type="button"
+            className={`review-decision-btn btn-looks-good ${decision === 'looks_good' ? 'active' : ''}`}
+            onClick={() => {
+              setDecision('looks_good');
+              if (isMobile) setIsMobileSheetOpen(true);
+            }}
+          >
+            <Check size={18} />
+            <span>✓ Looks Good</span>
+          </button>
+
+          <button
+            type="button"
+            className={`review-decision-btn btn-needs-changes ${decision === 'needs_changes' ? 'active' : ''}`}
+            onClick={() => {
+              setDecision('needs_changes');
+              if (isMobile) setIsMobileSheetOpen(true);
+            }}
+          >
+            <Edit3 size={16} />
+            <span>✎ Needs Changes</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. If Looks Good Selected */}
+      {decision === 'looks_good' && (
+        <>
+          <div className="looks-good-banner">
+            <div className="looks-good-banner-icon">
+              <Check size={18} />
+            </div>
+            <div className="looks-good-banner-text">
+              Resume meets guidelines! Ready to confirm and approve candidate.
+            </div>
+          </div>
+
+          {/* Additional Note (Optional) */}
+          <div className="additional-note-card">
+            <div className="additional-note-top">
+              <label className="additional-note-label">Additional Note (Optional)</label>
+              <button
+                type="button"
+                className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
+                onClick={handleToggleVoice}
+                title="Record or stop audio feedback note"
+              >
+                <Mic size={12} />
+                <span>{isVoiceRecording ? `Stop (${formatVoiceTime(voiceSeconds)})` : '🎤 Speak Feedback'}</span>
+              </button>
+            </div>
+            <textarea
+              className="additional-note-textarea"
+              placeholder="Optional commendation or words of encouragement for student..."
+              value={activeStudent.generalFeedback || ''}
+              onChange={(e) => updateGeneralFeedback(e.target.value)}
+              rows={3}
+            />
+            {activeStudent.audioNote?.recorded && (
+              <div className="voice-memo-saved-pill">
+                <span>🎙️ Voice memo saved ({activeStudent.audioNote.duration})</span>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto' }}
+                  onClick={() => alert(`Playing voice feedback (${activeStudent.audioNote?.duration})...`)}
+                >
+                  <Play size={10} /> Play
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Primary CTA for Looks Good */}
+          <div className="review-primary-actions">
+            <button
+              type="button"
+              className="primary-review-cta btn-approve"
+              onClick={() => {
+                if (isMobile) setIsMobileSheetOpen(false);
+                openModal('approve');
+              }}
+            >
+              <Check size={18} />
+              <span>Approve Resume</span>
+            </button>
+            <button
+              type="button"
+              className="secondary-draft-cta"
+              onClick={() => alert('Review draft saved successfully!')}
+            >
+              <Save size={14} />
+              <span>Save Draft</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* 4. If Needs Changes Selected */}
+      {decision === 'needs_changes' && (
+        <>
+          {/* What needs improvement? */}
+          <div className="improvement-selection-card">
+            <div className="improvement-label-row">
+              <span className="improvement-label">What needs improvement?</span>
+              <span className="improvement-count-hint">
+                {(activeStudent.improveTags || []).length} selected
+              </span>
+            </div>
+            <div className="improvement-chips-flex">
+              {simplifiedImproveTags.map(tag => {
+                const isSelected = isImproveTagActive(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`improvement-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => handleToggleImproveTag(tag)}
+                  >
+                    {isSelected ? `✓ ${tag}` : tag}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quick Feedback Suggestions */}
+          <div className="quick-feedback-card">
+            <div className="quick-feedback-header">
+              <span className="quick-feedback-title">⚡ Quick Feedback</span>
+              <span className="quick-feedback-tip">Tap to add into note</span>
+            </div>
+            <div className="quick-feedback-chips-wrap">
+              {quickFeedbackChips.map(snippet => (
+                <button
+                  key={snippet}
+                  type="button"
+                  className="quick-feedback-chip"
+                  onClick={() => handleAppendQuickFeedback(snippet)}
+                >
+                  + {snippet}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Additional Note (Optional) & Voice */}
+          <div className="additional-note-card">
+            <div className="additional-note-top">
+              <label className="additional-note-label">Additional Note (Optional)</label>
+              <button
+                type="button"
+                className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
+                onClick={handleToggleVoice}
+                title="Record or stop audio feedback note"
+              >
+                <Mic size={12} />
+                <span>{isVoiceRecording ? `Stop (${formatVoiceTime(voiceSeconds)})` : '🎤 Speak Feedback'}</span>
+              </button>
+            </div>
+            <textarea
+              className="additional-note-textarea"
+              placeholder="Add specific actionable advice or note for the candidate..."
+              value={activeStudent.generalFeedback || ''}
+              onChange={(e) => updateGeneralFeedback(e.target.value)}
+              rows={3}
+            />
+            {activeStudent.audioNote?.recorded && (
+              <div className="voice-memo-saved-pill">
+                <span>🎙️ Voice memo saved ({activeStudent.audioNote.duration})</span>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto' }}
+                  onClick={() => alert(`Playing voice feedback (${activeStudent.audioNote?.duration})...`)}
+                >
+                  <Play size={10} /> Play
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Primary CTA for Needs Changes */}
+          <div className="review-primary-actions">
+            <button
+              type="button"
+              className="primary-review-cta btn-changes"
+              onClick={() => {
+                if (isMobile) setIsMobileSheetOpen(false);
+                openModal('changes');
+              }}
+            >
+              <AlertTriangle size={18} />
+              <span>Needs Changes ({(activeStudent.improveTags || []).length})</span>
+            </button>
+            <button
+              type="button"
+              className="secondary-draft-cta"
+              onClick={() => alert('Review draft saved successfully!')}
+            >
+              <Save size={14} />
+              <span>Save Draft</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* 5. Initial State (No decision yet) */}
+      {decision === null && (
+        <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '10px', border: '1px dashed #CBD5E1', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+            Select <strong>Looks Good</strong> or <strong>Needs Changes</strong> above to review this candidate.
+          </p>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              type="button"
+              className="secondary-draft-cta"
+              onClick={() => alert('Review draft saved successfully!')}
+            >
+              <Save size={14} />
+              <span>Save Draft</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Collapsible More Review Tools Section */}
+      {advancedToolsSlot && (
+        <div className="more-tools-accordion">
+          <button
+            type="button"
+            className="more-tools-toggle-btn"
+            onClick={() => setShowMoreTools(!showMoreTools)}
+            title="Expand advanced review tools"
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>✨ More Review Tools</span>
+              <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>
+                (Section Notes, Audit, Rewrite, Rubric)
+              </span>
+            </span>
+            {showMoreTools ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {showMoreTools && advancedToolsSlot}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="workspace-container">
       {/* Top Action Bar */}
@@ -1068,15 +1453,18 @@ export const ResumeWorkspaceView: React.FC = () => {
                 }}
                 title="Switch candidate"
               >
-                {students.map(s => (
+                {students.map((s, idx) => (
                   <option key={s.id} value={s.id}>
-                    {s.name}
+                    {idx + 1}. {s.name}
                   </option>
                 ))}
               </select>
             ) : (
               <span className="workspace-student-name">{activeStudent.name}</span>
             )}
+            <span className="simplified-student-counter">
+              Student {currentStudentIndex + 1} of {totalStudents}
+            </span>
             <span className="workspace-student-degree">{activeStudent.degree}</span>
             <span className={`status-badge status-${activeStudent.status}`}>
               {formatStatus(activeStudent.status)}
@@ -1138,7 +1526,7 @@ export const ResumeWorkspaceView: React.FC = () => {
               <span className="resume-filename" style={{ color: '#F8FAFC' }}>
                 {activeStudent.name.replace(/\s+/g, '_')}_Resume.pdf
               </span>
-              <span style={{ 
+              <span className="privacy-protected-pill" style={{ 
                 fontSize: '11px', 
                 background: '#047857', 
                 color: '#ECFDF5', 
@@ -1694,23 +2082,12 @@ export const ResumeWorkspaceView: React.FC = () => {
           </div>
         </section>
 
-        {/* Right Pane: Review & Feedback Panel (Preserving All Review Tools) */}
+        {/* Right Pane: Simplified Review & Feedback Panel (Desktop) */}
         <aside className="review-feedback-pane" style={{ flex: 1, minWidth: '380px', maxWidth: '480px', borderLeft: '1px solid var(--border-color)' }}>
-          {/* Progress Header */}
-          <div className="review-progress-section">
-            <div className="review-progress-header">
-              <span className="review-progress-title">Review Progress</span>
-              <span className="review-progress-count">
-                {reviewedCount} / {totalSubtopics} reviewed
-              </span>
-            </div>
-            <div className="review-progress-bar">
-              <div className="review-progress-fill" style={{ width: `${progressPercent}%` }}></div>
-            </div>
-          </div>
-
-          {/* 5 Feedback Tabs */}
-          <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
+          {renderSimplifiedReviewContent(false, (
+            <div className="more-tools-content-box">
+              {/* 5 Feedback Tabs */}
+              <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
             <button 
               type="button"
               className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
@@ -2426,8 +2803,64 @@ export const ResumeWorkspaceView: React.FC = () => {
               </div>
             </div>
           )}
+            </div>
+          ))}
         </aside>
       </div>
+
+      {/* Mobile Sticky Bottom Review Action Bar */}
+      <div className="mobile-sticky-review-bar">
+        <button
+          type="button"
+          className={`mobile-sticky-btn looks-good ${decision === 'looks_good' ? 'active' : ''}`}
+          onClick={() => {
+            setDecision('looks_good');
+            setIsMobileSheetOpen(true);
+          }}
+        >
+          <Check size={16} />
+          <span>✓ Looks Good</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-sticky-btn needs-changes ${decision === 'needs_changes' ? 'active' : ''}`}
+          onClick={() => {
+            setDecision('needs_changes');
+            setIsMobileSheetOpen(true);
+          }}
+        >
+          <Edit3 size={15} />
+          <span>✎ Needs Changes {(activeStudent.improveTags || []).length ? `(${(activeStudent.improveTags || []).length})` : ''}</span>
+        </button>
+      </div>
+
+      {/* Mobile Bottom Sheet Modal */}
+      {isMobileSheetOpen && (
+        <div className="mobile-sheet-overlay" onClick={() => setIsMobileSheetOpen(false)}>
+          <div className="mobile-bottom-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-sheet-drag-handle" onClick={() => setIsMobileSheetOpen(false)}>
+              <div className="mobile-sheet-drag-bar" />
+            </div>
+            <div className="mobile-sheet-header">
+              <div>
+                <h3 className="mobile-sheet-title">Review {activeStudent.name}'s Resume</h3>
+                <span className="mobile-sheet-sub">Student {currentStudentIndex + 1} of {totalStudents}</span>
+              </div>
+              <button
+                type="button"
+                className="mobile-sheet-close-btn"
+                onClick={() => setIsMobileSheetOpen(false)}
+                title="Close review panel and view resume"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="mobile-sheet-content">
+              {renderSimplifiedReviewContent(true)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  DashboardIcon, 
-  UsersIcon, ClockIcon, CheckCircleIcon, SearchIcon 
-} from './Icons';
-import { User, Users, GraduationCap, FileText, Hand, Download } from 'lucide-react';
-import { Student } from '../data/studentsData';
-import { getResumeViewUrl, getResumeDownloadUrl } from '../services/zohoApi';
-
-interface StudentCardProps {
-  student: Student;
-  onReview: () => void;
-  onViewAsStudent: () => void;
-}
+  Users, 
+  Clock, 
+  CheckCircle, 
+  Search, 
+  ChevronRight, 
+  ChevronLeft, 
+  ChevronDown, 
+  Eye, 
+  FileText, 
+  ArrowUpDown 
+} from 'lucide-react';
+import { DashboardIcon, UsersIcon } from './Icons';
 
 export const DashboardView: React.FC = () => {
   const { 
@@ -31,84 +31,86 @@ export const DashboardView: React.FC = () => {
     setSelectedStudentForViewId 
   } = useApp();
 
-  // Determine if single or group user mode
-  const hasNoStudents = taggedStudents.length === 0;
-  const isSingleStudent = taggedStudents.length === 1;
-  const singleStudent = taggedStudents[0] || null;
+  const [sortBy, setSortBy] = useState<'default' | 'name' | 'status'>('default');
 
+  const hasNoStudents = taggedStudents.length === 0;
+
+  // Filter students based on search and status
   const filteredStudents = taggedStudents.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          student.degree.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (student.studentId && student.studentId.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
+    const matchesSearch = 
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.degree.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (student.institution && student.institution.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (student.studentId && student.studentId.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = 
+      filterStatus === 'all' || 
+      student.status === filterStatus ||
+      (filterStatus === 'pending' && (student.status === 'pending' || student.status === 'in_review' || student.status === 'changes_required'));
+    
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Pending';
-      case 'in_review': return 'In Review';
-      case 'changes_required': return 'Changes Required';
-      case 'approved': return 'Approved';
-      default: return status;
-    }
+  // Client sort presentation
+  const displayStudents = [...filteredStudents].sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'status') return a.status.localeCompare(b.status);
+    return 0;
+  });
+
+  // Avatar initial and palette mapping
+  const getAvatarData = (name: string, index: number) => {
+    const initial = name.trim().charAt(0).toUpperCase();
+    const palette = [
+      { bg: '#FEF9C3', color: '#0F172A' }, // Yellow (Manisha A)
+      { bg: '#FEE2E2', color: '#B91C1C' }, // Peach (Rohith S)
+      { bg: '#DCFCE7', color: '#15803D' }, // Green (Sneha K)
+      { bg: '#EDE9FE', color: '#6D28D9' }, // Lavender (Arun P)
+    ];
+    const style = palette[index % palette.length];
+    return { initial, bg: style.bg, color: style.color };
   };
 
   return (
     <div className="dashboard-layout">
-      {/* Dashboard Main View */}
       <main className="dashboard-main">
-        {/* Top Greeting Header & Mode Switcher */}
-        <div className="dashboard-header-banner">
-          <div>
-            <h1 className="greeting-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* ==================================================================
+           Hero Area: VOLUNTEER PORTAL, Greeting, Subtitle & Graphic
+           ================================================================== */}
+        <section className="dashboard-hero-banner">
+          <div className="hero-left-content">
+            <div className="hero-portal-badge">VOLUNTEER PORTAL</div>
+            <h1 className="hero-greeting-title">
               <span>Hi, {volunteer.name}</span>
-              <span style={{ display: 'inline-flex', animation: 'wave 1.5s infinite', transformOrigin: '70% 70%' }}>
-                <Hand size={24} color="#F59E0B" />
-              </span>
+              <span className="hero-wave-hand">👋</span>
             </h1>
-            <p className="greeting-subtitle">
-              {hasNoStudents
-                ? 'No students assigned to your volunteer account'
-                : isSingleStudent 
-                  ? 'You have 1 student directly assigned for 1:1 resume review'
-                  : `You have ${taggedStudents.length} students assigned in your review cohort`}
+            <p className="hero-greeting-subtitle">
+              Review student resumes and help them build stronger career profiles.
             </p>
           </div>
 
-          {/* Quick Switcher for Volunteer Tagged Assignment */}
-          {!hasNoStudents && (
-            <div className="dashboard-mode-switcher" title="Toggle between single student and group student assignment">
-              <button 
-                type="button"
-                className={`mode-switch-btn ${volunteerAssignmentMode === 'single' ? 'active' : ''}`}
-                onClick={() => setVolunteerAssignmentMode('single')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <User size={14} />
-                <span>Single Student (1)</span>
-              </button>
-              <button 
-                type="button"
-                className={`mode-switch-btn ${volunteerAssignmentMode === 'group' ? 'active' : ''}`}
-                onClick={() => setVolunteerAssignmentMode('group')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              >
-                <Users size={14} />
-                <span>All Students ({taggedStudents.length})</span>
-              </button>
+          <div className="hero-right-container">
+            <div className="hero-speech-bubble">
+              Your feedback<br />creates real impact! 💛
             </div>
-          )}
-        </div>
+            <div className="hero-illustration-wrap">
+              <img 
+                src="/images/volunteer-hero.png" 
+                alt="Volunteer Guidance" 
+                className="hero-illustration-img" 
+              />
+            </div>
+          </div>
+        </section>
 
         {/* Empty State: No students assigned */}
         {hasNoStudents ? (
-          <div className="white-card" style={{ padding: '60px 24px', textAlign: 'center', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+          <div className="empty-students-card">
             <div style={{ fontSize: '42px', marginBottom: '16px' }}>📋</div>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
               No students assigned
             </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '460px', margin: '0 auto 20px' }}>
+            <p style={{ fontSize: '14px', color: '#64748B', maxWidth: '460px', margin: '0 auto 20px' }}>
               There are currently no students linked to your volunteer record in Zoho Creator. Once students are assigned via V_OTP_Lookup, they will appear here automatically.
             </p>
             <button 
@@ -118,256 +120,284 @@ export const DashboardView: React.FC = () => {
               Sign out
             </button>
           </div>
-        ) : isSingleStudent && singleStudent ? (
-          /* ==================================================================
-             PAGE 1: SINGLE STUDENT TAGGED DASHBOARD (Clean & Simple)
-             ================================================================== */
-          <div className="single-student-clean-wrapper">
-            <div className="single-student-card">
-              {/* Profile Top Row */}
-              <div className="student-card-top">
-                <div className="student-profile-left">
-                  <img src={singleStudent.avatar} alt={singleStudent.name} className="student-profile-avatar" />
-                  <div className="student-profile-headings">
-                    <div className="student-name-status-row">
-                      <h2 className="student-profile-name">{singleStudent.name}</h2>
-                      <span className={`status-badge status-${singleStudent.status}`}>
-                        {getStatusText(singleStudent.status)}
-                      </span>
-                    </div>
-                    <p className="student-profile-degree">{singleStudent.degree}</p>
-                    <p className="student-profile-college">{singleStudent.institution}</p>
-                  </div>
-                </div>
-
-                <div className="student-profile-actions">
-                  <button 
-                    className="btn btn-outline"
-                    onClick={() => {
-                      setSelectedStudentForViewId(singleStudent.id);
-                      setActiveRole('student');
-                    }}
-                    title="See what the student sees"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <GraduationCap size={15} />
-                    <span>View as Student</span>
-                  </button>
-
-                  <button 
-                    className="btn btn-primary"
-                    onClick={() => openStudentReview(singleStudent.id)}
-                  >
-                    {singleStudent.status === 'in_review' ? 'Continue Review' : singleStudent.status === 'approved' ? 'View Resume' : 'Review Resume'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Clean Student Details Grid (All 8 Required Fields) */}
-              <div className="student-details-grid">
-                <div className="student-detail-field">
-                  <span className="field-label">Student Name</span>
-                  <span className="field-value">{singleStudent.name}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Student ID</span>
-                  <span className="field-value">{singleStudent.studentId || singleStudent.id || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">S OTP</span>
-                  <span className="field-value" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
-                    {singleStudent.sOtp || singleStudent.otp || '—'}
-                  </span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Location</span>
-                  <span className="field-value">{singleStudent.location || '—'}</span>
-                </div>
-                <div className="student-detail-field">
-                  <span className="field-label">Graduation Year</span>
-                  <span className="field-value">{singleStudent.graduationYear || '—'}</span>
-                </div>
-                <div className="student-detail-field">
-                  <span className="field-label">Assigned Date</span>
-                  <span className="field-value">{singleStudent.assignedDate || '—'}</span>
-                </div>
-                  <div className="student-detail-field">
-                    <span className="field-label">Resume Document</span>
-                    <span className="field-value" style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <FileText size={15} color="#2563EB" />
-                      <span>{singleStudent.name.replace(/\s+/g, '_')}_Resume.pdf</span>
-                    </span>
-                  </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Email Address</span>
-                  <span className="field-value">{singleStudent.email || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Phone Number</span>
-                  <span className="field-value">{singleStudent.phone || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">WhatsApp</span>
-                  <span className="field-value">{singleStudent.whatsapp || singleStudent.phone || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Gender</span>
-                  <span className="field-value">{singleStudent.gender || 'Not specified'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Resume Upload Status</span>
-                  {singleStudent.resumeAttachment ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <span className="status-badge status-approved" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                        Uploaded
-                      </span>
-                      <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => window.open(getResumeViewUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank', 'noopener,noreferrer')}
-                      >
-                        <FileText size={12} />
-                        <span>View Resume</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        style={{ fontSize: '11.5px', padding: '4px 10px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => window.open(getResumeDownloadUrl(singleStudent.resumeAttachment || '', singleStudent.name), '_blank')}
-                      >
-                        <Download size={12} />
-                        <span>Download</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ marginTop: '4px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#94A3B8' }}>
-                        Resume Not Uploaded
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Graduation Year</span>
-                  <span className="field-value">{singleStudent.graduationYear || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Location</span>
-                  <span className="field-value">{singleStudent.location || '—'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
         ) : (
-          /* ==================================================================
-             PAGE 2: GROUP USER / COHORT DASHBOARD (Clean & Simple)
-             ================================================================== */
-          <div className="group-students-view-container">
-            {/* Metric Cards Row */}
-            <div className="metric-cards-grid">
-              <div className="metric-card">
-                <div className="metric-icon-bubble blue">
-                  <UsersIcon size={20} />
+          <>
+            {/* ==============================================================
+               3 Clean Stat Cards (Assigned, Pending, Completed)
+               ============================================================== */}
+            <div className="stat-cards-row">
+              {/* 1. Assigned in Cohort */}
+              <div 
+                className="stat-card" 
+                onClick={() => setFilterStatus('all')}
+                title="View all assigned students"
+              >
+                <div className="stat-card-left">
+                  <div className="stat-icon-circle yellow">
+                    <Users size={20} />
+                  </div>
+                  <div className="stat-text-col">
+                    <span className="stat-number">{stats.assigned}</span>
+                    <span className="stat-title">Assigned in Cohort</span>
+                  </div>
                 </div>
-                <div className="metric-content">
-                  <span className="metric-value">{stats.assigned}</span>
-                  <span className="metric-label">Assigned in Cohort</span>
+                <div className="stat-chevron">
+                  <ChevronRight size={18} />
                 </div>
               </div>
 
-              <div className="metric-card">
-                <div className="metric-icon-bubble orange">
-                  <ClockIcon size={20} />
+              {/* 2. Pending Review */}
+              <div 
+                className="stat-card" 
+                onClick={() => setFilterStatus('pending')}
+                title="Filter pending reviews"
+              >
+                <div className="stat-card-left">
+                  <div className="stat-icon-circle amber">
+                    <Clock size={20} />
+                  </div>
+                  <div className="stat-text-col">
+                    <span className="stat-number">{stats.pending}</span>
+                    <span className="stat-title">Pending Review</span>
+                  </div>
                 </div>
-                <div className="metric-content">
-                  <span className="metric-value">{stats.pending}</span>
-                  <span className="metric-label">Pending Action</span>
+                <div className="stat-chevron">
+                  <ChevronRight size={18} />
                 </div>
               </div>
 
-              <div className="metric-card">
-                <div className="metric-icon-bubble green">
-                  <CheckCircleIcon size={20} />
+              {/* 3. Completed */}
+              <div 
+                className="stat-card" 
+                onClick={() => setFilterStatus('approved')}
+                title="Filter completed reviews"
+              >
+                <div className="stat-card-left">
+                  <div className="stat-icon-circle green">
+                    <CheckCircle size={20} />
+                  </div>
+                  <div className="stat-text-col">
+                    <span className="stat-number">{stats.completed}</span>
+                    <span className="stat-title">Completed</span>
+                  </div>
                 </div>
-                <div className="metric-content">
-                  <span className="metric-value">{stats.completed}</span>
-                  <span className="metric-label">Completed</span>
+                <div className="stat-chevron">
+                  <ChevronRight size={18} />
                 </div>
               </div>
             </div>
 
-            {/* Search and Filter Row */}
-            <div className="dashboard-controls-row">
-              <div className="search-input-box">
-                <div className="search-icon"><SearchIcon size={18} /></div>
+            {/* ==============================================================
+               Search / Filter Controls Row
+               ============================================================== */}
+            <div className="filter-controls-row">
+              <div className="filter-search-box">
+                <span className="filter-search-icon">
+                  <Search size={18} />
+                </span>
                 <input 
                   type="text" 
-                  className="search-field" 
-                  placeholder="Search students by name, degree, ID..." 
+                  className="filter-search-input" 
+                  placeholder="Search students by name, degree, college..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
-              <div className="filter-dropdown-box">
-                <select 
-                  className="filter-select"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="all">Filter All ({taggedStudents.length})</option>
-                  <option value="pending">Pending</option>
-                  <option value="in_review">In Review</option>
-                  <option value="changes_required">Changes Required</option>
-                  <option value="approved">Approved</option>
-                </select>
+              <div className="filter-actions-group">
+                {/* Student Mode / Count Control */}
+                <div className="filter-select-wrapper">
+                  <Users size={15} className="filter-select-icon" />
+                  <select 
+                    className="filter-pill-select"
+                    value={volunteerAssignmentMode}
+                    onChange={(e) => setVolunteerAssignmentMode(e.target.value as 'single' | 'group')}
+                    title="Student assignment view"
+                  >
+                    <option value="group">All Students ({taggedStudents.length})</option>
+                    <option value="single">Single Student (1)</option>
+                  </select>
+                  <ChevronDown size={14} className="filter-select-chevron" />
+                </div>
+
+                {/* Status Filter */}
+                <div className="filter-select-wrapper">
+                  <Clock size={15} className="filter-select-icon" />
+                  <select 
+                    className="filter-pill-select"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    title="Filter by status"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_review">In Review</option>
+                    <option value="approved">Completed</option>
+                  </select>
+                  <ChevronDown size={14} className="filter-select-chevron" />
+                </div>
+
+                {/* Sort Control */}
+                <div className="filter-select-wrapper">
+                  <ArrowUpDown size={15} className="filter-select-icon" />
+                  <select 
+                    className="filter-pill-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'default' | 'name' | 'status')}
+                    title="Sort students"
+                  >
+                    <option value="default">Sort by</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="status">Status</option>
+                  </select>
+                  <ChevronDown size={14} className="filter-select-chevron" />
+                </div>
               </div>
             </div>
 
-            {/* Students List in Cohort */}
-            <div className="student-cards-list">
-              {filteredStudents.length === 0 ? (
-                <div className="white-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                  No students found matching your search and filter in this cohort.
+            {/* ==============================================================
+               Student List Rows: Compact Professional Cards
+               ============================================================== */}
+            <div className="student-rows-container">
+              {displayStudents.length === 0 ? (
+                <div className="empty-students-card">
+                  <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>
+                    No students found matching your search and filter in this cohort.
+                  </p>
                 </div>
               ) : (
-                filteredStudents.map(student => (
-                  <StudentCard 
-                    key={student.id} 
-                    student={student} 
-                    onReview={() => openStudentReview(student.id)}
-                    onViewAsStudent={() => {
-                      setSelectedStudentForViewId(student.id);
-                      setActiveRole('student');
-                    }}
-                  />
-                ))
+                displayStudents.map((student, idx) => {
+                  const avatarData = getAvatarData(student.name, idx);
+                  const totalSubtopics = student.volunteerSubtopics?.length || 3;
+                  const isCompleted = student.status === 'approved';
+                  const reviewedSubtopics = isCompleted 
+                    ? totalSubtopics 
+                    : (student.volunteerSubtopics?.filter(s => s.isReviewed)?.length || 0);
+                  const progressPercent = Math.min(100, Math.round((reviewedSubtopics / totalSubtopics) * 100));
+
+                  return (
+                    <div key={student.id} className="student-row-card">
+                      {/* Left: Avatar + Name + Degree & College */}
+                      <div className="student-row-left">
+                        <div 
+                          className="student-initial-avatar" 
+                          style={{ background: avatarData.bg, color: avatarData.color }}
+                        >
+                          {avatarData.initial}
+                        </div>
+                        <div className="student-info-meta">
+                          <span className="student-name-text">{student.name}</span>
+                          <span className="student-degree-text">
+                            {student.degree}{student.institution ? ` • ${student.institution}` : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Middle: Progress + Status */}
+                      <div className="student-row-middle">
+                        <div className="student-progress-col">
+                          <span className="student-progress-label">
+                            {reviewedSubtopics} / {totalSubtopics} reviewed
+                          </span>
+                          <div className="student-progress-bar">
+                            <div 
+                              className={`student-progress-fill ${isCompleted ? 'green' : 'yellow'}`}
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <span className={`status-pill ${isCompleted ? 'completed' : 'pending'}`}>
+                          {isCompleted ? (
+                            <>
+                              <CheckCircle size={14} />
+                              <span>Completed</span>
+                            </>
+                          ) : (
+                            <>
+                              <Clock size={14} />
+                              <span>Pending</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Right: Actions */}
+                      <div className="student-row-right-actions">
+                        <button 
+                          type="button"
+                          className="btn-student-view"
+                          onClick={() => {
+                            setSelectedStudentForViewId(student.id);
+                            setActiveRole('student');
+                          }}
+                          title="See what this student sees"
+                        >
+                          <Eye size={15} />
+                          <span>Student View</span>
+                        </button>
+
+                        {isCompleted ? (
+                          <button 
+                            type="button"
+                            className="btn-view-feedback"
+                            onClick={() => openStudentReview(student.id)}
+                            title="View feedback"
+                          >
+                            <FileText size={15} />
+                            <span>View Feedback</span>
+                          </button>
+                        ) : (
+                          <button 
+                            type="button"
+                            className="btn-review-primary"
+                            onClick={() => openStudentReview(student.id)}
+                            title="Review resume"
+                          >
+                            <span>Review</span>
+                            <ChevronRight size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
-          </div>
+
+            {/* ==============================================================
+               Page Footer: Showing Count & Pagination
+               ============================================================== */}
+            <div className="dashboard-footer-row">
+              <span className="footer-count-text">
+                Showing {displayStudents.length} student{displayStudents.length === 1 ? '' : 's'}
+              </span>
+
+              <div className="footer-pagination-group">
+                <button type="button" className="pagination-arrow-btn" aria-label="Previous page">
+                  <ChevronLeft size={16} />
+                </button>
+                <button type="button" className="pagination-num-btn">
+                  1
+                </button>
+                <button type="button" className="pagination-arrow-btn" aria-label="Next page">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </main>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation (Preserved) */}
       <nav className="mobile-bottom-nav">
         <button className="mobile-nav-item active">
           <DashboardIcon size={18} />
           <span>Home</span>
         </button>
-        <button className="mobile-nav-item" onClick={() => setVolunteerAssignmentMode(isSingleStudent ? 'group' : 'single')}>
+        <button className="mobile-nav-item" onClick={() => setVolunteerAssignmentMode(volunteerAssignmentMode === 'single' ? 'group' : 'single')}>
           <UsersIcon size={18} />
-          <span>{isSingleStudent ? 'Switch to Group' : 'Switch to Single'}</span>
+          <span>{volunteerAssignmentMode === 'single' ? 'Switch to Group' : 'Switch to Single'}</span>
         </button>
         <button 
           className="mobile-nav-item"
@@ -379,172 +409,6 @@ export const DashboardView: React.FC = () => {
           <span>Profile</span>
         </button>
       </nav>
-    </div>
-  );
-};
-
-const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsStudent }) => {
-  const statusBadgeClass = `status-${student.status}`;
-  let statusText = 'Pending';
-  let buttonText = 'Review';
-  let buttonClass = 'btn-primary';
-
-  switch (student.status) {
-    case 'pending':
-      statusText = 'Pending';
-      buttonText = 'Review';
-      buttonClass = 'btn-primary';
-      break;
-    case 'in_review':
-      statusText = 'In Review';
-      buttonText = 'Continue';
-      buttonClass = 'btn-primary';
-      break;
-    case 'changes_required':
-      statusText = 'Changes Required';
-      buttonText = 'Review';
-      buttonClass = 'btn-primary';
-      break;
-    case 'approved':
-      statusText = 'Approved';
-      buttonText = 'View';
-      buttonClass = 'btn-secondary';
-      break;
-    default:
-      break;
-  }
-
-  const reviewedSubtopicsCount = student.volunteerSubtopics?.filter(s => s.isReviewed)?.length || 0;
-  const totalSubtopicsCount = student.volunteerSubtopics?.length || 0;
-
-  return (
-    <div className="student-card-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
-      {/* Top Main Row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap' }}>
-        <div className="student-info-col">
-          <img src={student.avatar} alt={student.name} className="student-avatar" />
-          <div className="student-name-meta">
-            <span className="student-name">{student.name}</span>
-            <span className="student-degree">{student.degree} • {student.institution}</span>
-          </div>
-        </div>
-
-        <div className="student-actions-col">
-          {totalSubtopicsCount > 0 && (
-            <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '600' }}>
-              {reviewedSubtopicsCount}/{totalSubtopicsCount} reviewed
-            </span>
-          )}
-          <span className={`status-badge ${statusBadgeClass}`}>
-            {statusText}
-          </span>
-          <button 
-            className="btn btn-outline btn-sm"
-            style={{ fontSize: '12px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-            onClick={onViewAsStudent}
-            title="See what this student sees"
-          >
-            <GraduationCap size={13} />
-            <span>Student View</span>
-          </button>
-          <button 
-            className={`btn ${buttonClass} student-action-btn`}
-            onClick={onReview}
-          >
-            {buttonText}
-          </button>
-        </div>
-      </div>
-
-      {/* Structured Details Grid (All Required Fields) */}
-      <div className="student-details-grid" style={{ paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
-        <div className="student-detail-field">
-          <span className="field-label">Student Name</span>
-          <span className="field-value">{student.name}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Student ID</span>
-          <span className="field-value">{student.studentId || student.id || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">S OTP</span>
-          <span className="field-value" style={{ fontFamily: 'monospace', letterSpacing: '1px' }}>
-            {student.sOtp || student.otp || '—'}
-          </span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Location</span>
-          <span className="field-value">{student.location || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Graduation Year</span>
-          <span className="field-value">{student.graduationYear || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Assigned Date</span>
-          <span className="field-value">{student.assignedDate || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Email</span>
-          <span className="field-value">{student.email || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Phone</span>
-          <span className="field-value">{student.phone || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">WhatsApp</span>
-          <span className="field-value">{student.whatsapp || student.phone || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Gender</span>
-          <span className="field-value">{student.gender || 'Not specified'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Resume Upload Status</span>
-          {student.resumeAttachment ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-              <span className="status-badge status-approved" style={{ fontSize: '11px', padding: '2px 8px' }}>
-                Uploaded
-              </span>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                onClick={() => window.open(getResumeViewUrl(student.resumeAttachment || '', student.name), '_blank', 'noopener,noreferrer')}
-              >
-                <FileText size={12} />
-                <span>View Resume</span>
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                style={{ fontSize: '11px', padding: '3px 8px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                onClick={() => window.open(getResumeDownloadUrl(student.resumeAttachment || '', student.name), '_blank')}
-              >
-                <Download size={12} />
-                <span>Download</span>
-              </button>
-            </div>
-          ) : (
-            <div style={{ marginTop: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#94A3B8' }}>
-                Resume Not Uploaded
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

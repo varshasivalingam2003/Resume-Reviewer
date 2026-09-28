@@ -42,6 +42,22 @@ const styles = `/* =============================================================
   gap: 12px;
 }
 
+.team-everest-header-logo {
+  height: 42px;
+  width: auto;
+  max-width: 48px;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+  .team-everest-header-logo {
+    height: 34px;
+    max-width: 38px;
+  }
+}
+
 .login-brand-icon {
   width: 36px;
   height: 36px;
@@ -944,6 +960,47 @@ const styles = `/* =============================================================
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
 }
 
+.verification-elapsed-counter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1.5px solid #FACC15;
+  padding: 5px 13px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.22);
+  font-size: 12px;
+  font-weight: 700;
+  color: #854D0E;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 12;
+  animation: counterFadeIn 0.22s ease-out;
+}
+
+.counter-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EAB308;
+  animation: counterPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes counterPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes counterFadeIn {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 .otp-success-badge-container {
   position: absolute;
   top: 50%;
@@ -954,13 +1011,13 @@ const styles = `/* =============================================================
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 10;
+  z-index: 15;
 }
 
 .otp-success-badge {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   display: flex;
@@ -991,8 +1048,8 @@ const styles = `/* =============================================================
 
 .otp-success-text {
   margin-top: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   color: #059669;
   letter-spacing: -0.01em;
   white-space: nowrap;

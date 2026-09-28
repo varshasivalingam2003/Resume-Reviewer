@@ -416,27 +416,12 @@ const styles = `/* ========================================================
   }
 
   .workspace-top-actions {
-    width: 100% !important;
-    display: flex !important;
-    gap: 6px !important;
-    justify-content: space-between !important;
+    display: none !important;
   }
 
-  .workspace-top-actions .btn {
-    flex: 1 !important;
-    font-size: 11.5px !important;
-    font-weight: 700 !important;
-    padding: 6px 4px !important;
-    min-height: 36px !important;
-    text-align: center !important;
-    justify-content: center !important;
-    border-radius: 7px !important;
-    white-space: nowrap !important;
-  }
-
-  /* Dual Pane Switcher */
+  /* Mobile Workspace Layout: Resume First + Sticky Bottom Review Action */
   .mobile-workspace-tabs-bar {
-    display: flex !important;
+    display: none !important;
   }
 
   .workspace-dual-pane {
@@ -447,34 +432,184 @@ const styles = `/* ========================================================
     min-height: 0 !important;
     margin-bottom: 0 !important;
     width: 100% !important;
+    position: relative !important;
   }
 
-  .workspace-dual-pane[data-mobile-tab="resume"] .resume-viewer-pane {
+  .resume-viewer-pane {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 !important;
     width: 100% !important;
-    min-height: calc(100vh - 145px) !important;
+    min-height: calc(100vh - 120px) !important;
     overflow-y: auto !important;
-  }
-
-  .workspace-dual-pane[data-mobile-tab="resume"] .review-feedback-pane {
-    display: none !important;
-  }
-
-  .workspace-dual-pane[data-mobile-tab="review"] .resume-viewer-pane {
-    display: none !important;
-  }
-
-  .workspace-dual-pane[data-mobile-tab="review"] .review-feedback-pane {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 !important;
-    width: 100% !important;
-    min-height: calc(100vh - 145px) !important;
-    padding: 12px 10px 30px !important;
+    padding-bottom: 72px !important;
     box-sizing: border-box !important;
+  }
+
+  /* Desktop Review Pane is hidden on mobile; mobile uses sticky bar & bottom sheet */
+  .review-feedback-pane {
+    display: none !important;
+  }
+
+  /* Mobile Sticky Bottom Review Bar */
+  .mobile-sticky-review-bar {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    background: #FFFFFF !important;
+    border-top: 1px solid #E2E8F0 !important;
+    padding: 8px 12px !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    z-index: 80 !important;
+    box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.08) !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+  }
+
+  .mobile-sticky-btn {
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 44px !important;
+    border-radius: 9px !important;
+    border: 1.5px solid #CBD5E1 !important;
+    background: #FFFFFF !important;
+    color: #1E293B !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    touch-action: manipulation !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-sticky-btn.looks-good {
+    border-color: #86EFAC !important;
+    background: #F0FDF4 !important;
+    color: #166534 !important;
+  }
+
+  .mobile-sticky-btn.looks-good.active {
+    background: #DCFCE7 !important;
+    border-color: #16A34A !important;
+    color: #14532D !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25) !important;
+  }
+
+  .mobile-sticky-btn.needs-changes {
+    border-color: #FDE047 !important;
+    background: #FEFCE8 !important;
+    color: #854D0E !important;
+  }
+
+  .mobile-sticky-btn.needs-changes.active {
+    background: #FEF9C3 !important;
+    border-color: #CA8A04 !important;
+    color: #713F12 !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.25) !important;
+  }
+
+  /* Mobile Bottom Sheet Drawer */
+  .mobile-sheet-overlay {
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(2px) !important;
+    -webkit-backdrop-filter: blur(2px) !important;
+    z-index: 100 !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+  }
+
+  .mobile-bottom-sheet {
+    width: 100% !important;
+    max-width: 500px !important;
+    max-height: 82vh !important;
+    background: #FFFFFF !important;
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    animation: sheetSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-sizing: border-box !important;
+  }
+
+  @keyframes sheetSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .mobile-sheet-drag-handle {
+    padding: 8px !important;
+    display: flex !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+  }
+
+  .mobile-sheet-drag-bar {
+    width: 40px !important;
+    height: 4px !important;
+    background: #CBD5E1 !important;
+    border-radius: 2px !important;
+  }
+
+  .mobile-sheet-header {
+    padding: 4px 16px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+  }
+
+  .mobile-sheet-title {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: #0F172A !important;
+    margin: 0 !important;
+  }
+
+  .mobile-sheet-sub {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #64748B !important;
+  }
+
+  .mobile-sheet-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #F8FAFC !important;
+    color: #475569 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+  }
+
+  .mobile-sheet-content {
     overflow-y: auto !important;
+    padding: 14px 16px 36px !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    box-sizing: border-box !important;
   }
 
   /* ========================================================
@@ -958,8 +1093,12 @@ const styles = `/* ========================================================
     gap: 5px !important;
     min-width: 0 !important;
     flex: 0 1 auto !important;
-    max-width: 110px !important;
+    max-width: 140px !important;
     overflow: hidden !important;
+  }
+
+  .privacy-protected-pill {
+    display: none !important;
   }
 
   .resume-file-info .pdf-icon-badge {
@@ -1300,21 +1439,7 @@ const styles = `/* ========================================================
 }
 
 .mobile-frame-mode .workspace-top-actions {
-  width: 100% !important;
-  display: flex !important;
-  gap: 6px !important;
-  justify-content: space-between !important;
-}
-
-.mobile-frame-mode .workspace-top-actions .btn {
-  flex: 1 !important;
-  font-size: 11.5px !important;
-  font-weight: 700 !important;
-  padding: 6px 4px !important;
-  min-height: 36px !important;
-  text-align: center !important;
-  justify-content: center !important;
-  border-radius: 7px !important;
+  display: none !important;
 }
 
 .mobile-frame-mode .mobile-workspace-tabs-bar {
@@ -1527,6 +1652,42 @@ const styles = `/* ========================================================
   max-width: 95% !important;
   max-height: 85vh !important;
   margin: auto !important;
+}
+
+.mobile-frame-mode .mobile-sticky-review-bar {
+  display: flex !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 60px !important;
+  background: #FFFFFF !important;
+  border-top: 1px solid #E2E8F0 !important;
+  padding: 8px 12px !important;
+  z-index: 80 !important;
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.08) !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+}
+
+.mobile-frame-mode .mobile-sheet-overlay {
+  display: flex !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(2px) !important;
+  -webkit-backdrop-filter: blur(2px) !important;
+  z-index: 100 !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+}
+
+.mobile-frame-mode .resume-viewer-pane {
+  padding-bottom: 68px !important;
 }
 `;
 

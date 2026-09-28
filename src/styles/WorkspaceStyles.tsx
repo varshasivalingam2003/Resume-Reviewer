@@ -521,10 +521,485 @@ const styles = `/* Resume Review Workspace Styles */
   flex: 1;
   background: var(--bg-card);
   overflow-y: auto;
-  padding: 24px 28px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+}
+
+/* ========================================================
+   SIMPLIFIED VOLUNTEER REVIEW FLOW (DESKTOP & REUSABLE)
+   ======================================================== */
+.simplified-review-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.simplified-review-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.simplified-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.simplified-review-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.simplified-student-counter {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  background: #F1F5F9;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.simplified-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 600;
+}
+
+/* Decision Section: How is this resume? */
+.review-question-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-question-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.review-decision-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 10px;
+  border-radius: 10px;
+  border: 2px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #1E293B;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.review-decision-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.review-decision-btn.btn-looks-good:hover {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  color: #166534;
+}
+
+.review-decision-btn.btn-looks-good.active {
+  background: #DCFCE7;
+  border-color: #16A34A;
+  color: #14532D;
+  font-weight: 800;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.review-decision-btn.btn-needs-changes:hover {
+  background: #FEFCE8;
+  border-color: #FDE047;
+  color: #854D0E;
+}
+
+.review-decision-btn.btn-needs-changes.active {
+  background: #FEF9C3;
+  border-color: #CA8A04;
+  color: #713F12;
+  font-weight: 800;
+  box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.2);
+}
+
+/* What Needs Improvement */
+.improvement-selection-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+}
+
+.improvement-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.improvement-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.improvement-count-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.improvement-chips-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.improvement-chip {
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.improvement-chip:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+.improvement-chip.active {
+  background: #FEF08A;
+  border-color: #EAB308;
+  color: #854D0E;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(234, 179, 8, 0.2);
+}
+
+/* Quick Feedback Helper Chips */
+.quick-feedback-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #FFFBEB;
+  border-radius: 10px;
+  border: 1px solid #FEF08A;
+}
+
+.quick-feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quick-feedback-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400E;
+}
+
+.quick-feedback-tip {
+  font-size: 10.5px;
+  color: #B45309;
+}
+
+.quick-feedback-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.quick-feedback-chip {
+  padding: 4px 9px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #FDE68A;
+  background: #FFFFFF;
+  color: #78350F;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.quick-feedback-chip:hover {
+  background: #FEF3C7;
+  border-color: #FBBF24;
+  color: #92400E;
+  transform: translateY(-1px);
+}
+
+/* Additional Note Section */
+.additional-note-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.additional-note-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.additional-note-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.speak-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #0F172A;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.speak-feedback-btn:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+.speak-feedback-btn.recording {
+  background: #FEE2E2;
+  border-color: #EF4444;
+  color: #DC2626;
+  animation: voicePulse 1.2s infinite;
+}
+
+@keyframes voicePulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.additional-note-textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+  font-size: 12.5px;
+  color: #0F172A;
+  background: #FFFFFF;
+  font-family: inherit;
+  resize: vertical;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.additional-note-textarea:focus {
+  outline: none;
+  border-color: #EAB308;
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+
+.voice-memo-saved-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: #F0FDF4;
+  border-radius: 6px;
+  border: 1px solid #BBF7D0;
+  font-size: 11px;
+  color: #166534;
+  font-weight: 600;
+}
+
+/* Primary and Secondary Action CTAs */
+.review-primary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.primary-review-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 9px;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.primary-review-cta.btn-approve {
+  background: #16A34A;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+}
+
+.primary-review-cta.btn-approve:hover {
+  background: #15803D;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.primary-review-cta.btn-changes {
+  background: #D97706;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+}
+
+.primary-review-cta.btn-changes:hover {
+  background: #B45309;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+
+.secondary-draft-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.secondary-draft-cta:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+/* Looks Good Success Banner */
+.looks-good-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #F0FDF4;
+  border-radius: 8px;
+  border: 1px solid #BBF7D0;
+  color: #166534;
+}
+
+.looks-good-banner-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  color: #16A34A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.looks-good-banner-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Collapsible More Review Tools Section */
+.more-tools-accordion {
+  margin-top: 6px;
+  border-top: 1px solid #E2E8F0;
+  padding-top: 10px;
+}
+
+.more-tools-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.more-tools-toggle-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.more-tools-content-box {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Mobile Sticky Bottom Review Bar (Default hidden on desktop) */
+.mobile-sticky-review-bar {
+  display: none;
+}
+
+/* Mobile Sheet Overlay & Drawer (Default hidden on desktop) */
+.mobile-sheet-overlay {
+  display: none;
 }
 
 /* Review Panel Header / Student Card */
