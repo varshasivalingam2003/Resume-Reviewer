@@ -1,4 +1,6 @@
 import { verifyVolunteerOtp, fetchResumeStream, getZohoConfig, getAccessToken } from './zohoService.js';
+import { generateViewerHtml } from './viewerHtml.js';
+import { sanitizePdf } from './pdfSanitizer.js';
 
 /**
  * Helper to parse JSON body from incoming request stream
@@ -97,29 +99,61 @@ export function zohoProxyMiddleware(req, res, next) {
   }
 
   // 3. Secure Resume Download/View Proxy
-  if ((pathname === '/api/resume/download' || pathname === '/api/resume/view') && req.method === 'GET') {
+  if ((pathname === '/api/resume/download' || pathname === '/api/resume/view') && (req.method === 'GET' || req.method === 'HEAD')) {
     const resumeUrl = urlObj.searchParams.get('url');
     const defaultMode = pathname === '/api/resume/view' ? 'view' : 'download';
     const modeParam = urlObj.searchParams.get('mode');
-    const mode = modeParam ? (modeParam === 'download' ? 'download' : 'view') : defaultMode;
+    const mode = (modeParam === 'download' || modeParam === 'raw' || modeParam === 'view')
+      ? modeParam
+      : defaultMode;
     const studentName = urlObj.searchParams.get('name') || 'Student';
 
     if (!resumeUrl) {
       return sendJson(res, 400, { success: false, message: 'Missing resume URL parameter' });
     }
 
-    fetchResumeStream(resumeUrl, mode, studentName)
-      .then(result => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    if (req.method === 'HEAD') {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', mode === 'view' ? 'text/html; charset=utf-8' : 'application/pdf');
+      res.end();
+      return;
+    }
+
+    // When viewing resume in new tab, serve standalone viewer with natural privacy redaction
+    if (mode === 'view') {
+      const html = generateViewerHtml({ resumeUrl, studentName });
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.end(html);
+      return;
+    }
+
+    // For mode=raw (PDF.js inline stream) or mode=download (direct attachment download)
+    const streamMode = mode === 'download' ? 'download' : 'view';
+    fetchResumeStream(resumeUrl, streamMode, studentName)
+      .then(async result => {
         if (!result.success) {
           return sendJson(res, result.status || 500, { success: false, message: result.message });
+        }
+
+        // Apply Python PyMuPDF + OpenCV Dynamic Privacy Redaction
+        let outputBuffer = result.buffer;
+        try {
+          outputBuffer = await sanitizePdf(result.buffer, studentName);
+        } catch (sanitizeErr) {
+          console.warn('[Zoho Proxy] PDF sanitization warning:', sanitizeErr.message);
         }
 
         res.statusCode = 200;
         res.setHeader('Content-Type', result.contentType);
         res.setHeader('Content-Disposition', result.disposition);
-        res.setHeader('Content-Length', result.buffer.length);
+        res.setHeader('Content-Length', outputBuffer.length);
         res.setHeader('Accept-Ranges', 'bytes');
-        res.end(result.buffer);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.end(outputBuffer);
       })
       .catch(err => {
         return sendJson(res, 500, { success: false, message: err.message });

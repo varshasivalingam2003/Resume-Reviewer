@@ -329,6 +329,34 @@ export async function fetchResumeStream(fileUrl, mode = 'view', studentName = 'R
 
   let targetUrl = fileUrl.trim();
 
+  // If local demo sample resume is requested, read from public folder directly
+  if (targetUrl.includes('sample_resume.pdf')) {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const localFile = path.resolve(process.cwd(), 'public/sample_resume.pdf');
+      if (fs.existsSync(localFile)) {
+        const buffer = fs.readFileSync(localFile);
+        return {
+          success: true,
+          buffer,
+          contentType: 'application/pdf',
+          disposition: mode === 'download' ? 'attachment; filename="Sample_Resume.pdf"' : 'inline; filename="Sample_Resume.pdf"'
+        };
+      }
+    } catch (_) {}
+  }
+
+  // If Zoho Creator web report path is given, transform it to the REST API v2.1 attachment download endpoint
+  if (!targetUrl.includes('/api/v2.1/')) {
+    const reportMatch = targetUrl.match(/\/report\/[^/]+\/([0-9]+)\/[^/]+\/download\/([^?]+)/);
+    if (reportMatch) {
+      const recordId = reportMatch[1];
+      const filename = reportMatch[2];
+      targetUrl = `/api/v2.1/teameverest/events-management-system/report/Master_Student_Signup_Report/${recordId}/Resume_Attachment/download?filepath=${filename}`;
+    }
+  }
+
   // For Zoho Creator attachment download relative paths (/api/v2.1/...), creator.zoho.com is the required domain
   let creatorBase = (process.env.ZOHO_CREATOR_BASE_URL || 'https://creator.zoho.com').replace(/\/+$/, '');
   if (targetUrl.startsWith('/api/v2.1/')) {

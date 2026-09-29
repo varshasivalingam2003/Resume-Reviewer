@@ -182,10 +182,7 @@ export const DashboardView: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="student-detail-field">
-                  <span className="field-label">Location</span>
-                  <span className="field-value">{singleStudent.location || '—'}</span>
-                </div>
+
                 <div className="student-detail-field">
                   <span className="field-label">Graduation Year</span>
                   <span className="field-value">{singleStudent.graduationYear || '—'}</span>
@@ -202,25 +199,7 @@ export const DashboardView: React.FC = () => {
                     </span>
                   </div>
 
-                <div className="student-detail-field">
-                  <span className="field-label">Email Address</span>
-                  <span className="field-value">{singleStudent.email || '—'}</span>
-                </div>
 
-                <div className="student-detail-field">
-                  <span className="field-label">Phone Number</span>
-                  <span className="field-value">{singleStudent.phone || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">WhatsApp</span>
-                  <span className="field-value">{singleStudent.whatsapp || singleStudent.phone || '—'}</span>
-                </div>
-
-                <div className="student-detail-field">
-                  <span className="field-label">Gender</span>
-                  <span className="field-value">{singleStudent.gender || 'Not specified'}</span>
-                </div>
 
                 <div className="student-detail-field">
                   <span className="field-label">Resume Upload Status</span>
@@ -475,10 +454,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
           </span>
         </div>
 
-        <div className="student-detail-field">
-          <span className="field-label">Location</span>
-          <span className="field-value">{student.location || '—'}</span>
-        </div>
+
 
         <div className="student-detail-field">
           <span className="field-label">Graduation Year</span>
@@ -490,25 +466,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, onReview, onViewAsSt
           <span className="field-value">{student.assignedDate || '—'}</span>
         </div>
 
-        <div className="student-detail-field">
-          <span className="field-label">Email</span>
-          <span className="field-value">{student.email || '—'}</span>
-        </div>
 
-        <div className="student-detail-field">
-          <span className="field-label">Phone</span>
-          <span className="field-value">{student.phone || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">WhatsApp</span>
-          <span className="field-value">{student.whatsapp || student.phone || '—'}</span>
-        </div>
-
-        <div className="student-detail-field">
-          <span className="field-label">Gender</span>
-          <span className="field-value">{student.gender || 'Not specified'}</span>
-        </div>
 
         <div className="student-detail-field">
           <span className="field-label">Resume Upload Status</span>

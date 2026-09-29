@@ -326,8 +326,49 @@ const styles = `/* Resume Review Workspace Styles */
   gap: 5px;
 }
 
+.resume-paper.resume-template-twocolumn {
+  padding: 36px 40px;
+}
+
+.resume-twocol-body {
+  display: flex;
+  gap: 28px;
+  width: 100%;
+}
+
+.resume-col-left {
+  flex: 0 0 38%;
+  max-width: 38%;
+  border-right: 1px solid #E2E8F0;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.resume-col-right {
+  flex: 0 0 58%;
+  max-width: 58%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .resume-twocol-body {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .resume-col-left, .resume-col-right {
+    flex: 1 1 100%;
+    max-width: 100%;
+    border-right: none;
+    padding-right: 0;
+  }
+}
+
 .resume-section {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   position: relative;
   transition: all var(--transition-fast);
   border-radius: 6px;

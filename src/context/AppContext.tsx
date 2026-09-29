@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { initialStudents, volunteerProfile, Student, VolunteerProfile, VolunteerSubtopic, ResumeSection } from '../data/studentsData';
 import { loginVolunteerWithApi } from '../services/zohoApi';
+import { ParsedPdfResume, generateEnhancedNewResumeSections } from '../utils/pdfResumeParser';
 
-const STORAGE_KEY = 'resume_reviewer_react_state_v4';
+const STORAGE_KEY = 'resume_reviewer_react_state_v6';
 
 export interface Stats {
   assigned: number;
@@ -74,6 +75,8 @@ export interface AppContextType {
   saveRubricScores: (scores: Record<string, number>) => void;
   toggleSubtopicReviewed: (subtopicId: string) => void;
   quickHighlightFromCanvas: (sectionKey: string, sectionTitle: string) => void;
+  updateStudentResumeSection: (studentId: string, sectionKey: string, updatedSection: Partial<ResumeSection>) => void;
+  updateStudentFromPdf: (studentId: string, parsedData: ParsedPdfResume) => void;
   openModal: (modalName: string) => void;
   closeModal: () => void;
   approveResume: () => void;
@@ -616,6 +619,75 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateStudentResumeSection = (studentId: string, sectionKey: string, updatedSection: Partial<ResumeSection>) => {
+    setStudents(prev => prev.map(s => {
+      if (s.id === studentId) {
+        const initial = initialStudents.find(init => init.id === s.id) || initialStudents[0];
+        const currentNew = (s.newResumeSections && s.newResumeSections.length > 0)
+          ? s.newResumeSections
+          : (initial.newResumeSections || initial.resumeSections || []);
+        
+        const updatedNew = currentNew.map(sec => {
+          if (sec.key === sectionKey) {
+            return { ...sec, ...updatedSection };
+          }
+          return sec;
+        });
+
+        const updatedBase = (s.resumeSections && s.resumeSections.length > 0 ? s.resumeSections : initial.resumeSections).map(sec => {
+          if (sec.key === sectionKey) {
+            return { ...sec, ...updatedSection };
+          }
+          return sec;
+        });
+
+        return {
+          ...s,
+          newResumeSections: updatedNew,
+          resumeSections: updatedBase
+        };
+      }
+      return s;
+    }));
+  };
+
+  const updateStudentFromPdf = (studentId: string, parsedData: ParsedPdfResume) => {
+    if (!parsedData || !parsedData.sections || parsedData.sections.length === 0) return;
+
+    setStudents(prev => prev.map(s => {
+      if (s.id === studentId) {
+        const candidateName = (parsedData.candidateName && parsedData.candidateName !== 'Candidate' && parsedData.candidateName !== 'Student')
+          ? parsedData.candidateName
+          : s.name;
+
+        // Check if degree can be extracted from education section
+        const eduSection = parsedData.sections.find(sec => sec.key === 'education');
+        const firstEdu = eduSection?.items?.[0] as EducationItem | undefined;
+        const candidateDegree = firstEdu?.degree && !firstEdu.degree.includes('Degree Course')
+          ? firstEdu.degree
+          : s.degree;
+
+        const candidateInst = firstEdu?.institution && !firstEdu.institution.includes('Academic Institution')
+          ? firstEdu.institution
+          : s.institution;
+
+        const enhancedSections = generateEnhancedNewResumeSections(parsedData.sections, s.volunteerSubtopics || []);
+
+        return {
+          ...s,
+          name: candidateName,
+          extractedName: candidateName,
+          degree: candidateDegree || s.degree,
+          institution: candidateInst || s.institution,
+          resumeSections: parsedData.sections,
+          oldResumeSections: parsedData.sections,
+          newResumeSections: enhancedSections
+        };
+      }
+      return s;
+    }));
+  };
+
   const approveResume = () => {
     if (!activeStudent) return;
     // Mark all defined subtopics as reviewed
@@ -767,6 +839,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     saveRubricScores,
     toggleSubtopicReviewed,
     quickHighlightFromCanvas,
+    updateStudentResumeSection,
+    updateStudentFromPdf,
     openModal: (modalName: string) => setActiveModal(modalName),
     closeModal: () => setActiveModal(null),
     approveResume,

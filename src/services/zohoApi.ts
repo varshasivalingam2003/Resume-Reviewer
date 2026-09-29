@@ -65,3 +65,12 @@ export function getResumeDownloadUrl(resumeAttachment: string, studentName = 'St
   if (!resumeAttachment) return '';
   return `/api/resume/download?url=${encodeURIComponent(resumeAttachment)}&mode=download&name=${encodeURIComponent(studentName)}`;
 }
+
+/**
+ * Generate secure URL for downloading/streaming raw resume PDF binary
+ */
+export function getResumeRawUrl(resumeAttachment: string, studentName = 'Student'): string {
+  if (!resumeAttachment) return '';
+  return `/api/resume/download?url=${encodeURIComponent(resumeAttachment)}&mode=raw&name=${encodeURIComponent(studentName)}`;
+}
+

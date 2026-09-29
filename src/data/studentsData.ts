@@ -28,6 +28,7 @@ export interface ResumeSection {
   key: string;
   title: string;
   type: 'text' | 'education' | 'chips' | 'projects' | 'list';
+  column?: 'left' | 'right' | 'full';
   content?: string;
   items?: string[] | EducationItem[] | ProjectItem[];
 }
@@ -36,6 +37,7 @@ export interface Student {
   id: string;
   studentId?: string;
   name: string;
+  extractedName?: string;
   sOtp?: string;
   email: string;
   phone: string;
