@@ -153,6 +153,32 @@ const styles = `/* ========================================================
     font-weight: 800 !important;
   }
 
+  .portal-brand-logo {
+    height: 28px !important;
+    max-width: 32px !important;
+  }
+
+  .portal-brand-name {
+    font-size: 12px !important;
+  }
+
+  .portal-brand-portal {
+    font-size: 9px !important;
+  }
+
+  .portal-nav-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .portal-home-btn,
+  .portal-logout-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
+  }
+
   .volunteer-user-pill {
     padding: 2px 8px !important;
     gap: 6px !important;
@@ -173,6 +199,25 @@ const styles = `/* ========================================================
 
   .volunteer-badge {
     display: none !important;
+  }
+
+  @media (max-width: 430px) {
+    .portal-home-btn span,
+    .portal-logout-btn span {
+      display: none !important;
+    }
+    .portal-home-btn,
+    .portal-logout-btn {
+      padding: 5px 7px !important;
+    }
+    .volunteer-name {
+      display: none !important;
+    }
+    .volunteer-user-pill {
+      padding: 2px !important;
+      border: none !important;
+      background: transparent !important;
+    }
   }
 
   /* Login Screens */
@@ -198,8 +243,9 @@ const styles = `/* ========================================================
     box-shadow: var(--shadow-sm) !important;
     padding: 20px 14px !important;
     border-radius: var(--radius-xl) !important;
-    max-width: 360px !important;
+    max-width: 460px !important;
     width: 100% !important;
+    box-sizing: border-box !important;
     margin: 0 auto !important;
   }
 
@@ -213,15 +259,18 @@ const styles = `/* ========================================================
   }
 
   .otp-inputs-wrapper {
-    gap: 5px !important;
+    gap: clamp(4px, 1.8vw, 6px) !important;
     margin-bottom: 14px !important;
     justify-content: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .otp-box {
-    width: 38px !important;
-    height: 46px !important;
-    font-size: 17px !important;
+    width: clamp(38px, 11vw, 44px) !important;
+    height: clamp(44px, 12.5vw, 50px) !important;
+    font-size: clamp(17px, 4.5vw, 20px) !important;
+    box-sizing: border-box !important;
   }
 
   /* Volunteer Dashboard View */
@@ -376,7 +425,8 @@ const styles = `/* ========================================================
     justify-content: space-between !important;
   }
 
-  .workspace-back-btn {
+  .workspace-back-btn,
+  .workspace-home-btn {
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;

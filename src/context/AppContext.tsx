@@ -49,11 +49,12 @@ export interface AppContextType {
   setSelectedStudentForViewId: (id: string) => void;
   studentResolvedItems: Record<string, boolean>;
   toggleResolveItem: (subtopicId: string) => void;
+  completeStudentReview: (studentId?: string) => void;
   login: () => void;
   loginVolunteer: (volunteerName?: string) => void;
   loginStudent: (studentId: string) => void;
   logoutStudent: () => void;
-  loginStudentWithOtp: (otpCode: string, studentId?: string | null) => { success: boolean; student?: Student; message?: string };
+  loginStudentWithOtp: (otpCode: string, studentId?: string | null, autoLogin?: boolean) => Promise<{ success: boolean; student?: Student; message?: string }>;
   loginWithOtp: (otpCode: string, role?: string, specificStudentId?: string | null, autoNavigate?: boolean) => Promise<{ success: boolean; role?: string; student?: Student; message?: string }>;
   logout: () => void;
   openStudentReview: (studentId: string) => void;
@@ -255,16 +256,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const currentTargetId = activeRole === 'student' ? selectedStudentForViewId : activeStudentId;
   const safeStudentsList = (Array.isArray(students) && students.length > 0) ? students : initialStudents;
   const activeStudentRaw = safeStudentsList.find(s => s?.id === currentTargetId) || safeStudentsList[0] || initialStudents[0];
-  const initialForActive = initialStudents.find(s => s?.id === activeStudentRaw?.id) || initialStudents[0];
+  const initialForActive = initialStudents.find(s => s?.id === activeStudentRaw?.id || (s?.email && activeStudentRaw?.email && s.email.toLowerCase() === activeStudentRaw.email.toLowerCase()));
   const activeStudent: Student = {
-    ...initialForActive,
+    ...(initialForActive || {}),
     ...activeStudentRaw,
     resumeSections: (Array.isArray(activeStudentRaw?.resumeSections) && activeStudentRaw.resumeSections.length > 0)
       ? activeStudentRaw.resumeSections
-      : initialForActive.resumeSections,
+      : (initialForActive?.resumeSections || []),
     volunteerSubtopics: (Array.isArray(activeStudentRaw?.volunteerSubtopics) && activeStudentRaw.volunteerSubtopics.length > 0)
       ? activeStudentRaw.volunteerSubtopics
-      : (initialForActive.volunteerSubtopics || [])
+      : (initialForActive?.volunteerSubtopics || [])
   };
 
   const toggleResolveItem = (subtopicId: string) => {
@@ -291,41 +292,98 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveStudentId(studentId);
   };
 
-  const logoutStudent = () => {
+  const logout = () => {
+    setIsAuthenticated(false);
     setIsStudentLoggedIn(false);
+    setCurrentView('login');
+    setActiveRole('volunteer');
+    setActiveModal(null);
   };
 
-  const loginStudentWithOtp = (otpCode: string, studentId: string | null = null) => {
-    const clean = (otpCode || '').trim();
-    let target: Student | undefined = undefined;
+  const logoutStudent = () => {
+    logout();
+  };
 
-    // 1. Check if clean matches any student's registered OTP
-    const matchedByOtp = students.find(s => s.otp === clean || s.sOtp === clean);
-    if (matchedByOtp) {
-      target = matchedByOtp;
-    } else if (studentId) {
-      const candidate = students.find(s => s.id === studentId);
-      if (candidate && (candidate.otp === clean || candidate.sOtp === clean || clean === '101010')) {
-        target = candidate;
+  const loginStudentWithOtp = async (otpCode: string, studentId: string | null = null, autoLogin = true) => {
+    const clean = (otpCode || '').trim().toUpperCase();
+    if (!clean || clean.length < 6) {
+      return {
+        success: false,
+        message: 'Please enter all 6 characters of your Student OTP.'
+      };
+    }
+
+    // 1. Try to fetch from backend Supabase student login
+    try {
+      const response = await fetch('http://localhost:5001/api/student/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sOtp: clean })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data?.success && data?.student) {
+        setStudents(prev => {
+          const idx = prev.findIndex(s => s.id === data.student.id || (s.sOtp || s.otp || '').toUpperCase() === clean);
+          if (idx >= 0) {
+            const updated = [...prev];
+            const prevStatus = prev[idx].status;
+            const newStatus = (prevStatus === 'approved') ? 'approved' : (data.student.status || prevStatus);
+            const prevDate = prev[idx].completedDate;
+            updated[idx] = { 
+              ...prev[idx], 
+              ...data.student, 
+              status: newStatus,
+              completedDate: prevDate || data.student.completedDate || (newStatus === 'approved' ? '08 Sep 2026' : undefined)
+            };
+            return updated;
+          }
+          return [...prev, data.student];
+        });
+        if (data.volunteer) {
+          setVolunteer(prev => ({ ...prev, ...data.volunteer }));
+        }
+        if (autoLogin) {
+          loginStudent(data.student.id);
+        }
+        return { success: true, student: data.student };
       }
+    } catch (networkErr) {
+      console.warn('[Student Login] Backend network error:', networkErr);
     }
 
-    // 2. Global demo dummy OTP '101010' fallback
-    if (!target && clean === '101010') {
-      target = students.find(s => s.id === (studentId || 'student-1')) || students[0];
-    }
+    // 2. Match directly against existing student records using real student OTP (sOtp or otp)
+    const target = students.find(s => {
+      const studentOtp = (s.sOtp || s.otp || '').trim().toUpperCase();
+      return studentOtp === clean;
+    }) || (studentId ? students.find(s => s.id === studentId && (s.sOtp || s.otp || '').trim().toUpperCase() === clean) : undefined);
 
     if (target) {
-      loginStudent(target.id);
+      if (autoLogin) {
+        loginStudent(target.id);
+      }
       return { success: true, student: target };
     }
 
-    const currentStudent = students.find(s => s.id === studentId);
-    const expectedOtp = currentStudent?.sOtp || currentStudent?.otp || '101010';
     return {
       success: false,
-      message: `Incorrect OTP. Please enter the student OTP (${expectedOtp}) shown on screen.`
+      message: 'Invalid Student OTP. Please check your OTP and try again.'
     };
+  };
+
+  const completeStudentReview = (studentId?: string) => {
+    const targetId = studentId || (activeRole === 'student' ? selectedStudentForViewId : activeStudentId);
+    if (!targetId) return;
+
+    setStudents(prev => prev.map(s => {
+      if (s.id === targetId) {
+        return {
+          ...s,
+          status: 'approved' as const,
+          completedDate: '08 Sep 2026'
+        };
+      }
+      return s;
+    }));
   };
 
   const loginWithOtp = async (
@@ -363,10 +421,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         try {
           result = await response.json();
         } catch (error) {
+          console.error('[Volunteer Login] JSON parse error:', error);
           return {
             success: false,
-            message:
-              'Invalid response received from the login server'
+            message: 'Unable to verify OTP right now. Please try again.'
           };
         }
 
@@ -379,11 +437,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           !result ||
           !result.success
         ) {
+          console.warn('[Volunteer Login] Auth failed:', result?.message);
           return {
             success: false,
-            message:
-              result?.message ||
-              'Invalid Volunteer OTP'
+            message: 'Invalid Volunteer OTP. Please check your OTP and try again.'
           };
         }
 
@@ -512,9 +569,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         return {
           success: false,
-          message:
-            error?.message ||
-            'Unable to connect to the login server'
+          message: 'Unable to verify OTP right now. Please try again.'
         };
       }
     }
@@ -526,19 +581,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     return loginStudentWithOtp(
       cleanOtp,
-      specificStudentId
+      specificStudentId,
+      autoNavigate
     );
   };
 
   const login = () => {
     loginVolunteer();
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setIsStudentLoggedIn(false);
-    setCurrentView('login');
-    setActiveModal(null);
   };
 
   const openStudentReview = (studentId: string) => {
@@ -889,6 +938,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectedStudentForViewId,
     studentResolvedItems,
     toggleResolveItem,
+    completeStudentReview,
     login,
     loginVolunteer,
     loginStudent,

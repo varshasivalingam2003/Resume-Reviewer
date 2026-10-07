@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { PortalLogoIcon } from './Icons';
-import { ChevronDown } from 'lucide-react';
+import { Home, LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { isAuthenticated, volunteer, setCurrentView, logout } = useApp();
+  const { isAuthenticated, volunteer, setCurrentView, setActiveRole, logout } = useApp();
 
   return (
     <header className="portal-navbar">
@@ -14,27 +14,49 @@ export const Navbar: React.FC = () => {
           if (isAuthenticated) setCurrentView('dashboard');
         }}
       >
-        <div className="brand-icon">
-          <PortalLogoIcon size={22} />
+        <img 
+          src="/images/team-everest-logo.png" 
+          alt="Team Everest Logo" 
+          className="portal-brand-logo" 
+        />
+        <div className="portal-brand-titles">
+          <span className="portal-brand-name">Team Everest</span>
+          <span className="portal-brand-portal">Resume Review Portal</span>
         </div>
-        <span className="brand-title">Resume Review Portal</span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div className="portal-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button 
+          className="portal-home-btn"
+          onClick={() => {
+            setActiveRole('volunteer');
+            setCurrentView('login');
+          }}
+          title="Return to main Landing / Login page"
+        >
+          <Home size={14} />
+          <span>Home</span>
+        </button>
+
         {isAuthenticated && (
-          <div 
-            className="volunteer-user-pill" 
-            title={`${volunteer.role} (${volunteer.organization}) - Click to logout`}
-            onClick={() => {
-              if (window.confirm('Log out from volunteer session?')) {
-                logout();
-              }
-            }}
-          >
-            <img src={volunteer.avatar} alt={volunteer.name} className="volunteer-avatar" />
-            <span className="volunteer-name">{volunteer.name}</span>
-            <ChevronDown size={14} className="chevron-icon" />
-          </div>
+          <>
+            <div 
+              className="volunteer-user-pill" 
+              title={`${volunteer.role} (${volunteer.organization})`}
+            >
+              <img src={volunteer.avatar} alt={volunteer.name} className="volunteer-avatar" />
+              <span className="volunteer-name">{volunteer.name}</span>
+            </div>
+
+            <button 
+              className="portal-logout-btn"
+              onClick={() => logout()}
+              title="Log out from volunteer portal"
+            >
+              <LogOut size={14} />
+              <span>Log Out</span>
+            </button>
+          </>
         )}
       </div>
     </header>

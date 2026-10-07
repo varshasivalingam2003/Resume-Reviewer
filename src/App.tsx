@@ -42,7 +42,7 @@ const AppContent: React.FC = () => {
             ) : (
               <StudentFeedbackView />
             )
-          ) : !isAuthenticated || currentView === 'login' ? (
+          ) : currentView === 'login' || !isAuthenticated ? (
             <LoginView />
           ) : currentView === 'workspace' ? (
             <ResumeWorkspaceView />

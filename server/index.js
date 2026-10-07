@@ -904,6 +904,132 @@ async function handleVolunteerLogin(
 
 
 // ==================================================
+// STUDENT LOGIN ROUTE
+// POST /api/student/login
+// ==================================================
+
+async function handleStudentLogin(req, res) {
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    sendJson(res, 400, {
+      success: false,
+      message: 'Invalid JSON request body'
+    });
+    return;
+  }
+
+  const cleanOtp = String(body.sOtp || body.otp || '').trim().toUpperCase();
+  if (!cleanOtp) {
+    sendJson(res, 400, {
+      success: false,
+      message: 'Please provide your 6-digit Student OTP.'
+    });
+    return;
+  }
+
+  try {
+    const { supabase } = await getSupabaseModules();
+
+    const { data: students, error: studentError } = await supabase
+      .from('students')
+      .select('*');
+
+    if (studentError) {
+      throw new Error(`Unable to query students: ${studentError.message}`);
+    }
+
+    const matchedStudent = (students || []).find(s => {
+      const sOtp = String(s.s_otp || '').trim().toUpperCase();
+      const stdId = String(s.student_id || '').trim().toUpperCase();
+      return sOtp === cleanOtp || stdId === cleanOtp;
+    });
+
+    if (!matchedStudent) {
+      sendJson(res, 404, {
+        success: false,
+        message: 'Invalid Student OTP. Please check your OTP and try again.'
+      });
+      return;
+    }
+
+    const { data: resumes } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('student_id', matchedStudent.id)
+      .eq('is_current', true);
+
+    const currentResume = (resumes && resumes.length > 0) ? resumes[0] : null;
+    let signedResumeUrl = null;
+    if (currentResume) {
+      signedResumeUrl = await createResumeSignedUrl(supabase, currentResume);
+    }
+
+    let volunteerData = null;
+    const { data: mappings } = await supabase
+      .from('volunteer_student_mappings')
+      .select('*, volunteers(*)')
+      .eq('student_id', matchedStudent.id);
+
+    if (mappings && mappings.length > 0 && mappings[0].volunteers) {
+      const vol = mappings[0].volunteers;
+      volunteerData = {
+        name: vol.full_name || 'Volunteer',
+        email: vol.email || '',
+        role: vol.role || 'Senior Resume Reviewer',
+        organization: vol.organization || 'Review Portal'
+      };
+    }
+
+    const responseStudent = {
+      supabaseId: matchedStudent.id,
+      zohoRecordId: matchedStudent.zoho_record_id,
+      id: matchedStudent.student_id || matchedStudent.id,
+      studentId: matchedStudent.student_id || '',
+      name: matchedStudent.name || 'Student',
+      sOtp: matchedStudent.s_otp || '',
+      otp: matchedStudent.s_otp || '',
+      email: matchedStudent.email || '',
+      phone: matchedStudent.phone || '',
+      whatsapp: matchedStudent.whatsapp || '',
+      gender: matchedStudent.gender || '',
+      degree: matchedStudent.degree || 'B.Sc Computer Science',
+      institution: matchedStudent.institution || 'ABC College',
+      graduationYear: matchedStudent.graduation_year || '2025',
+      location: matchedStudent.location || 'Tamil Nadu',
+      status: matchedStudent.status || 'pending',
+      assignedDate: matchedStudent.assigned_date || '08 Sep 2026',
+      totalPages: 1,
+      hasResumeUploaded: Boolean(currentResume),
+      resumeAttachment: signedResumeUrl || '',
+      resume: currentResume ? {
+        id: currentResume.id,
+        fileName: currentResume.original_file_name,
+        mimeType: currentResume.mime_type,
+        fileSize: currentResume.file_size,
+        version: currentResume.version,
+        storagePath: currentResume.storage_path,
+        signedUrl: signedResumeUrl
+      } : null
+    };
+
+    sendJson(res, 200, {
+      success: true,
+      student: responseStudent,
+      volunteer: volunteerData
+    });
+  } catch (error) {
+    console.error('[Student Login] Error:', error);
+    sendJson(res, 500, {
+      success: false,
+      message: error?.message || 'Unable to process student login'
+    });
+  }
+}
+
+
+// ==================================================
 // HTTP SERVER
 // ==================================================
 
@@ -956,6 +1082,23 @@ const server =
         '/api/volunteer/login'
       ) {
         await handleVolunteerLogin(
+          req,
+          res
+        );
+
+        return;
+      }
+
+      // --------------------------------------------------
+      // SUPABASE-FIRST STUDENT LOGIN
+      // --------------------------------------------------
+
+      if (
+        req.method === 'POST' &&
+        req.url ===
+        '/api/student/login'
+      ) {
+        await handleStudentLogin(
           req,
           res
         );

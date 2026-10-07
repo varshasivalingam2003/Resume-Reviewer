@@ -596,12 +596,53 @@ export const volunteerProfile: VolunteerProfile = {
 };
 
 export const getResumeSectionsForVersion = (student: Student, version: 'old' | 'new'): ResumeSection[] => {
+  if (!student) return [];
+
+  // Determine base resume sections belonging strictly to this student
+  let baseSections: ResumeSection[] = [];
+  if (version === 'new' && student.id === 'student-1' && student.newResumeSections && student.newResumeSections.length > 0) {
+    baseSections = student.newResumeSections;
+  } else if (student.resumeSections && student.resumeSections.length > 0) {
+    baseSections = student.resumeSections;
+  } else if (student.oldResumeSections && student.oldResumeSections.length > 0) {
+    baseSections = student.oldResumeSections;
+  } else {
+    // If student has no parsed sections, build genuine sections derived ONLY from this student's actual profile
+    baseSections = [
+      {
+        key: 'education',
+        title: 'EDUCATION',
+        type: 'education',
+        items: [
+          {
+            degree: student.degree || 'Degree Program',
+            institution: student.institution || 'University',
+            period: student.graduationYear ? `Class of ${student.graduationYear}` : '',
+            score: ''
+          }
+        ]
+      }
+    ];
+
+    // Include sections reviewed by volunteer if available
+    const subtopics = student.volunteerSubtopics || [];
+    subtopics.forEach(sub => {
+      if (sub.sectionKey && !baseSections.some(s => s.key === sub.sectionKey)) {
+        baseSections.push({
+          key: sub.sectionKey,
+          title: (sub.title || sub.sectionKey).toUpperCase(),
+          type: 'text',
+          content: sub.suggestedRewrite?.after || sub.command || ''
+        });
+      }
+    });
+  }
+
   if (version === 'old') {
     if (student.oldResumeSections && student.oldResumeSections.length > 0) {
       return student.oldResumeSections;
     }
-    // Fallback: derive an initial unpolished version
-    return (student.resumeSections || []).map(sec => {
+    return baseSections.map(sec => {
       if (sec.key === 'objective') {
         return {
           ...sec,
@@ -612,10 +653,20 @@ export const getResumeSectionsForVersion = (student: Student, version: 'old' | '
     });
   }
 
-  // version === 'new'
-  if (student.newResumeSections && student.newResumeSections.length > 0) {
-    return student.newResumeSections;
-  }
-  return student.resumeSections || [];
+  // version === 'new': Apply real volunteer feedback/revisions recorded for this student
+  const subtopics = student.volunteerSubtopics || [];
+  return baseSections.map(sec => {
+    const match = subtopics.find(sub => 
+      sub.sectionKey === sec.key ||
+      (sub.title && sub.title.toLowerCase().includes(sec.key.toLowerCase())) ||
+      (sub.title && sub.title.toLowerCase().includes(sec.title.toLowerCase()))
+    );
+    if (match) {
+      if (match.suggestedRewrite?.after && sec.type === 'text') {
+        return { ...sec, content: match.suggestedRewrite.after };
+      }
+    }
+    return sec;
+  });
 };
 

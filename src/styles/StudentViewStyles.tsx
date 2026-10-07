@@ -66,6 +66,27 @@ const styles = `/* Student Feedback View Styles */
   outline: none;
 }
 
+.student-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F8FAFC;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.student-home-btn:hover {
+  background: #F1F5F9;
+  color: var(--text-primary);
+  border-color: #CBD5E1;
+}
+
 .student-logout-btn {
   display: inline-flex;
   align-items: center;
@@ -439,7 +460,8 @@ const styles = `/* Student Feedback View Styles */
   font-weight: 700;
 }
 
-.mobile-back-to-feedback-btn {
+.mobile-back-to-feedback-btn,
+.mobile-resume-close-btn {
   display: none;
   background: #F1F5F9;
   border: 1px solid #CBD5E1;
@@ -449,6 +471,12 @@ const styles = `/* Student Feedback View Styles */
   font-weight: 700;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.resolve-checkbox-label.readonly {
+  pointer-events: none;
+  background: #F0FDF4;
+  border-color: #86EFAC;
 }
 
 .student-mobile-tabs-bar {
@@ -464,19 +492,33 @@ const styles = `/* Student Feedback View Styles */
   }
 
   .student-nav-actions {
-    width: 100%;
-    justify-content: space-between;
+    display: flex;
+    align-items: center;
     gap: 8px;
+    margin-left: auto;
   }
 
-  .student-nav-switcher {
-    flex: 1;
-    min-width: 140px;
-  }
+  @media (max-width: 480px) {
+    .student-top-navbar {
+      padding: 8px 12px;
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
 
-  .student-account-select {
-    width: 100%;
-    font-size: 11px;
+    .student-top-brand .brand-title {
+      font-size: 13px !important;
+    }
+
+    .student-home-btn span,
+    .student-logout-btn span {
+      display: none;
+    }
+
+    .student-home-btn,
+    .student-logout-btn {
+      padding: 6px 9px;
+      gap: 0;
+    }
   }
 
   .student-mobile-tabs-bar {
@@ -485,33 +527,35 @@ const styles = `/* Student Feedback View Styles */
     border-bottom: 1px solid var(--border-color);
     padding: 8px 16px;
     justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .student-header-banner {
-    padding: 16px;
-    gap: 12px;
+    padding: 14px 16px;
+    gap: 10px;
   }
 
   .student-greeting-title {
-    font-size: 20px;
-  }
-
-  .student-otp-badge-pill {
-    width: 100%;
-    justify-content: center;
-    font-size: 11px;
+    font-size: 18px;
   }
 
   .student-body-layout {
     flex-direction: column;
-    padding: 12px 14px 60px;
+    padding: 12px 14px 40px;
     gap: 16px;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   /* Show only active tab on mobile */
   .student-body-layout[data-student-tab="mistakes"] .student-feedback-left-col {
     display: flex;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .student-body-layout[data-student-tab="mistakes"] .student-resume-right-col {
@@ -525,19 +569,31 @@ const styles = `/* Student Feedback View Styles */
   .student-body-layout[data-student-tab="resume"] .student-resume-right-col {
     display: flex;
     width: 100%;
-    height: calc(100vh - 210px);
-    min-height: 520px;
+    min-width: 0;
+    max-width: 100%;
+    height: calc(100vh - 190px);
+    min-height: 480px;
     border-radius: var(--radius-lg);
+    box-sizing: border-box;
   }
 
-  .mobile-back-to-feedback-btn {
+  .mobile-back-to-feedback-btn,
+  .mobile-resume-close-btn {
     display: inline-flex;
     align-items: center;
+    gap: 5px;
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    color: #0F172A;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
   }
 
   /* Fluid Mobile Resume Document */
   .student-resume-scroll-canvas {
-    padding: 8px !important;
+    padding: 12px 8px !important;
   }
 
   .student-resume-paper {
@@ -548,6 +604,7 @@ const styles = `/* Student Feedback View Styles */
     padding: 18px 12px !important;
     transform: none !important;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+    box-sizing: border-box;
   }
 
   .student-resume-paper .resume-name {
@@ -564,6 +621,7 @@ const styles = `/* Student Feedback View Styles */
     gap: 4px 8px !important;
     font-size: 11px !important;
     justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .student-resume-paper .resume-section-title {
@@ -592,6 +650,7 @@ const styles = `/* Student Feedback View Styles */
   /* Cards responsiveness */
   .volunteer-reviewer-card {
     padding: 16px;
+    box-sizing: border-box;
   }
 
   .reviewer-card-header {
@@ -602,6 +661,7 @@ const styles = `/* Student Feedback View Styles */
 
   .student-mistake-card {
     padding: 14px;
+    box-sizing: border-box;
   }
 
   .student-mistake-top-row {
@@ -614,6 +674,45 @@ const styles = `/* Student Feedback View Styles */
     width: 100%;
     justify-content: center;
     padding: 6px 12px;
+  }
+
+  .student-voice-player-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .voice-waveform-mini {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .student-resume-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .resume-version-toggle-group,
+  .page-navigator,
+  .zoom-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .pdf-page-container {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .pdf-page-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .student-resolve-action-row {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
 

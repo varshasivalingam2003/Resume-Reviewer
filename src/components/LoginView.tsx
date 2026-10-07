@@ -71,40 +71,23 @@ const CAROUSEL_SLIDES: CarouselSlide[] = [
 ];
 
 export const LoginView: React.FC = () => {
-  const { students, loginWithOtp, setCurrentView } = useApp();
+  const { students, loginWithOtp, currentView, setCurrentView, isAuthenticated, volunteer, loginStudent, setActiveRole, setIsStudentLoggedIn } = useApp();
   
   const [role, setRole] = useState<'volunteer' | 'student'>('volunteer');
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('student-1');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [autofillSuccess, setAutofillSuccess] = useState<boolean>(false);
   const [animState, setAnimState] = useState<AnimState>('idle');
   const [bounceIndex, setBounceIndex] = useState<number | null>(null);
   const [boxOffsets, setBoxOffsets] = useState<{ tx: number; ty: number; ctx: number; cty: number }[]>([]);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isNavigatingRef = useRef<boolean>(false);
 
-  const startElapsedTimer = () => {
-    setElapsedSeconds(0);
-    if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
-    elapsedTimerRef.current = setInterval(() => {
-      setElapsedSeconds(prev => prev + 1);
-    }, 1000);
-  };
-
-  const stopElapsedTimer = () => {
-    if (elapsedTimerRef.current) {
-      clearInterval(elapsedTimerRef.current);
-      elapsedTimerRef.current = null;
-    }
-  };
-
+  // Ensure currentView is 'login' so that App.tsx does not switch to dashboard prematurely
   useEffect(() => {
-    return () => {
-      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
-    };
-  }, []);
+    if (!isNavigatingRef.current && currentView !== 'login') {
+      setCurrentView('login');
+    }
+  }, [currentView, setCurrentView]);
   
   // Carousel State
   const [activeSlide, setActiveSlide] = useState<number>(0);
@@ -186,34 +169,14 @@ export const LoginView: React.FC = () => {
   };
 
   const handleRoleChange = (newRole: 'volunteer' | 'student') => {
-    stopElapsedTimer();
-    setElapsedSeconds(0);
     setRole(newRole);
     setErrorMessage('');
-    setAutofillSuccess(false);
     setAnimState('idle');
     setBoxOffsets([]);
-    if (newRole === 'volunteer') {
-      setOtp(['', '', '', '', '', '']);
+    setOtp(['', '', '', '', '', '']);
+    setTimeout(() => {
       inputRefs.current[0]?.focus();
-    } else {
-      // Set to Arun Kumar's OTP by default for student login
-      const arun = students.find(s => s.id === 'student-1');
-      const studentOtp = arun?.sOtp || arun?.otp || '101010';
-      setOtp(studentOtp.split(''));
-      setSelectedStudentId('student-1');
-    }
-  };
-
-  const handleSelectStudent = (student: Student) => {
-    setSelectedStudentId(student.id);
-    setErrorMessage('');
-    setAnimState('idle');
-    const code = (student.otp || '101010').split('');
-    setOtp(code);
-    setAutofillSuccess(true);
-    setTimeout(() => setAutofillSuccess(false), 2400);
-    inputRefs.current[5]?.focus();
+    }, 50);
   };
 
   const handleChange = (index: number, value: string) => {
@@ -233,15 +196,6 @@ export const LoginView: React.FC = () => {
 
     if (val && index < 5) {
       inputRefs.current[index + 1]?.focus();
-    }
-
-    // Check if new OTP matches any student
-    if (role === 'student') {
-      const fullCode = newOtp.join('');
-      const matched = students.find(s => s.otp === fullCode);
-      if (matched) {
-        setSelectedStudentId(matched.id);
-      }
     }
   };
 
@@ -265,40 +219,20 @@ export const LoginView: React.FC = () => {
       });
       setOtp(newOtp);
       inputRefs.current[Math.min(digits.length, 5)]?.focus();
-
-      if (role === 'student') {
-        const fullCode = newOtp.join('');
-        const matched = students.find(s => s.otp === fullCode);
-        if (matched) {
-          setSelectedStudentId(matched.id);
-        }
-      }
     }
-  };
-
-  const autofillVolunteerOtp = () => {
-    setAnimState('idle');
-    setOtp(['G', 'E', '7', '0', '8', '4']);
-    setAutofillSuccess(true);
-    setTimeout(() => setAutofillSuccess(false), 2400);
-    inputRefs.current[5]?.focus();
-  };
-
-  const autofillDemoStudent = (code: string, studentId: string) => {
-    setSelectedStudentId(studentId);
-    setOtp(code.split(''));
-    setAutofillSuccess(true);
-    setTimeout(() => setAutofillSuccess(false), 2400);
-    inputRefs.current[5]?.focus();
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isLoading) return;
     setErrorMessage('');
-    const code = otp.join('');
+    const code = otp.join('').trim().toUpperCase();
     if (code.length < 6) {
-      setErrorMessage('Please enter all 6 characters of your verification code.');
+      setErrorMessage(
+        role === 'volunteer'
+          ? 'Please enter all 6 characters of your verification code.'
+          : 'Please enter all 6 characters of your Student OTP.'
+      );
       return;
     }
 
@@ -308,18 +242,18 @@ export const LoginView: React.FC = () => {
       setBoxOffsets(offsets);
       setAnimState('verifying');
       setIsLoading(true);
-      startElapsedTimer();
 
       try {
-        // 2. Perform verification with existing auth flow (single API call, no duplicate)
+        // 2. Perform verification with existing auth flow (NO delay on API request)
         const authResult = await loginWithOtp(code, role, null, false);
 
         if (!authResult || !authResult.success) {
-          // 3. Failure: Stop/reset circle animation and timer, return boxes to normal layout, show error
-          stopElapsedTimer();
-          setElapsedSeconds(0);
+          // Failure: Stop/reset circle animation cleanly, return boxes to normal layout, show error
           setAnimState('error');
-          setErrorMessage(authResult?.message || 'Invalid Volunteer OTP');
+          const isServiceFailure = authResult?.message?.includes('Unable to verify') || authResult?.message?.includes('server');
+          setErrorMessage(isServiceFailure 
+            ? 'Unable to verify OTP right now. Please try again.' 
+            : 'Invalid Volunteer OTP. Please check your OTP and try again.');
           setTimeout(() => {
             setAnimState('idle');
             setBoxOffsets([]);
@@ -329,20 +263,23 @@ export const LoginView: React.FC = () => {
           return;
         }
 
-        // 4. Success: Stop spinner & elapsed counter immediately
-        stopElapsedTimer();
+        // On successful API response:
+        // 1. Set the existing visual state to success.
+        // 2. Stop/hide the rotating OTP animation.
+        // 3. Render a centered green check.
+        // 4. Render "Verified" below it.
         setAnimState('success');
 
-        // Keep the green verified success state clearly visible for 800ms (700-900ms)
+        // 5. Keep this success UI visible for about 800ms.
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 5. Automatically open existing Volunteer Dashboard
+        // 6. ONLY THEN execute the EXISTING dashboard navigation.
+        isNavigatingRef.current = true;
         setCurrentView('dashboard');
       } catch (err: any) {
-        stopElapsedTimer();
-        setElapsedSeconds(0);
+        console.error('[LoginView] Error:', err);
         setAnimState('error');
-        setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
+        setErrorMessage('Unable to verify OTP right now. Please try again.');
         setTimeout(() => {
           setAnimState('idle');
           setBoxOffsets([]);
@@ -351,16 +288,46 @@ export const LoginView: React.FC = () => {
       }
     } else {
       // Student login mode
+      const offsets = computeOffsets();
+      setBoxOffsets(offsets);
+      setAnimState('verifying');
       setIsLoading(true);
+
       try {
-        const result = await loginWithOtp(code, role, selectedStudentId);
-        if (!result.success) {
-          setErrorMessage(result.message || 'Verification failed');
+        const authResult = await loginWithOtp(code, role, null, false);
+        if (!authResult || !authResult.success) {
+          setAnimState('error');
+          const isServiceFailure = authResult?.message?.includes('Unable to verify') || authResult?.message?.includes('server');
+          setErrorMessage(isServiceFailure 
+            ? 'Unable to verify OTP right now. Please try again.' 
+            : 'Invalid Student OTP. Please check your OTP and try again.');
+          setTimeout(() => {
+            setAnimState('idle');
+            setBoxOffsets([]);
+            setIsLoading(false);
+            inputRefs.current[0]?.focus();
+          }, 600);
+          return;
+        }
+
+        setAnimState('success');
+        await new Promise(resolve => setTimeout(resolve, 800));
+        isNavigatingRef.current = true;
+        if (authResult?.student) {
+          loginStudent(authResult.student.id);
+        } else {
+          setActiveRole('student');
+          setIsStudentLoggedIn(true);
         }
       } catch (err: any) {
-        setErrorMessage(err?.message || 'Unable to connect to server. Please try again.');
-      } finally {
-        setIsLoading(false);
+        console.error('[LoginView] Error:', err);
+        setAnimState('error');
+        setErrorMessage('Unable to verify OTP right now. Please try again.');
+        setTimeout(() => {
+          setAnimState('idle');
+          setBoxOffsets([]);
+          setIsLoading(false);
+        }, 600);
       }
     }
   };
@@ -383,21 +350,27 @@ export const LoginView: React.FC = () => {
           </div>
         </div>
 
-        <div className="login-header-right">
-          <div className="login-header-bell" title="Notifications">
-            <Bell size={16} />
-            <span className="login-header-bell-dot"></span>
-          </div>
-          <div className="login-header-profile">
-            <div className="login-header-avatar">
-              <span>PR</span>
+        {isAuthenticated && volunteer && volunteer.name && (
+          <div className="login-header-right">
+            <div className="login-header-bell" title="Notifications">
+              <Bell size={16} />
+              <span className="login-header-bell-dot"></span>
             </div>
-            <div className="login-header-user-info">
-              <span className="login-header-user-name">Priya R</span>
-              <span className="login-header-user-role">Volunteer</span>
+            <div className="login-header-profile">
+              <div className="login-header-avatar">
+                {volunteer.avatar ? (
+                  <img src={volunteer.avatar} alt={volunteer.name} />
+                ) : (
+                  <span>{volunteer.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="login-header-user-info">
+                <span className="login-header-user-name">{volunteer.name}</span>
+                <span className="login-header-user-role">{volunteer.role || 'Volunteer'}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Main Split-Screen Stage */}
@@ -417,10 +390,8 @@ export const LoginView: React.FC = () => {
             aria-label="Welcome Presentation Carousel"
           >
             <div className="carousel-card">
-              {/* Card Header: Slide indicator badge and Prev/Next Navigation */}
+              {/* Card Header: Prev/Next Navigation */}
               <div className="carousel-header-row">
-                <span className="carousel-slide-badge">{currentSlide.badge}</span>
-                
                 <div className="carousel-nav-arrows">
                   <button 
                     type="button" 
@@ -457,7 +428,7 @@ export const LoginView: React.FC = () => {
                         <img 
                           src="/images/login-carousel/slide1.jpg" 
                           alt="Volunteer reviewing student resume" 
-                          className="slide-photo"
+                          className="slide-photo slide1-photo" 
                           onError={(e) => {
                             // Fallback if local asset is loading
                             (e.target as HTMLElement).style.display = 'none';
@@ -517,7 +488,7 @@ export const LoginView: React.FC = () => {
                         <img 
                           src="/images/login-carousel/slide3.jpg" 
                           alt="Volunteer providing constructive feedback" 
-                          className="slide-photo"
+                          className="slide-photo slide3-photo" 
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
@@ -544,7 +515,7 @@ export const LoginView: React.FC = () => {
                         <img 
                           src="/images/login-carousel/slide4.jpg" 
                           alt="Confident student celebrating resume review" 
-                          className="slide-photo"
+                          className="slide-photo slide4-photo" 
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
@@ -695,27 +666,7 @@ export const LoginView: React.FC = () => {
                 </div>
               )}
 
-              {/* Student quick picker when in student mode */}
-              {role === 'student' && (
-                <div className="student-quick-picker">
-                  <span className="student-quick-picker-label">Select your student account:</span>
-                  <div className="student-quick-grid">
-                    {students.map(student => (
-                      <div 
-                        key={student.id} 
-                        className={`student-quick-card ${selectedStudentId === student.id ? 'selected' : ''}`}
-                        onClick={() => handleSelectStudent(student)}
-                      >
-                        <img src={student.avatar} alt={student.name} className="student-quick-avatar" />
-                        <div className="student-quick-info">
-                          <span className="student-quick-name">{student.name}</span>
-                          <span className="student-quick-otp">OTP: {student.otp || '101010'}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
 
               {/* Form with OTP inputs */}
               <form onSubmit={handleSubmit}>
@@ -744,7 +695,7 @@ export const LoginView: React.FC = () => {
                           type="text"
                           maxLength={1}
                           readOnly={animState === 'verifying' || animState === 'success'}
-                          className={`otp-box ${digit ? 'filled' : ''} ${autofillSuccess ? 'highlight-flash' : ''} ${bounceIndex === idx ? 'input-bounce' : ''}`}
+                          className={`otp-box ${digit ? 'filled' : ''} ${bounceIndex === idx ? 'input-bounce' : ''}`}
                           value={digit}
                           style={{ '--tx': tx, '--ty': ty } as React.CSSProperties}
                           onChange={(e) => handleChange(idx, e.target.value)}
@@ -756,19 +707,12 @@ export const LoginView: React.FC = () => {
                     })}
                   </div>
 
-                  {animState === 'verifying' && (
-                    <div className="verification-elapsed-counter" aria-live="polite">
-                      <span className="counter-dot"></span>
-                      <span>Verifying... {elapsedSeconds}s</span>
-                    </div>
-                  )}
-
                   {animState === 'success' && (
                     <div className="otp-success-badge-container">
                       <div className="otp-success-badge">
                         <div className="otp-success-ring"></div>
                         <div className="otp-success-icon">
-                          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         </div>
@@ -785,15 +729,12 @@ export const LoginView: React.FC = () => {
                   style={isLoading ? { opacity: 0.85, cursor: 'not-allowed' } : {}}
                 >
                   <span>
-                    {isLoading 
-                      ? (animState === 'success' 
-                          ? 'Verified' 
-                          : role === 'volunteer' 
-                            ? `Verifying... (${elapsedSeconds}s)` 
-                            : 'Verifying Student...') 
+                    {animState === 'success' 
+                      ? 'Verified' 
                       : (role === 'volunteer' ? 'Verify & Login' : 'View My Resume Changes')}
                   </span>
                   {!isLoading && <ArrowRight size={16} className="btn-arrow-icon" />}
+                  {animState === 'success' && <Check size={16} />}
                 </button>
 
                 {/* OR Divider matching reference */}
@@ -830,34 +771,7 @@ export const LoginView: React.FC = () => {
                   </a>
                 </div>
 
-                {/* Preserved Demo OTP Helper for Developer/Tester convenience */}
-                {role === 'volunteer' ? (
-                  <div className="demo-otp-helper">
-                    <span>Demo shortcut:</span>
-                    <button 
-                      type="button" 
-                      className="demo-otp-chip"
-                      onClick={autofillVolunteerOtp} 
-                      title="Click to fill test OTP GE7084"
-                    >
-                      <Zap size={11} />
-                      <span>Fill G E 7 0 8 4</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="demo-otp-helper">
-                    <span>Demo codes:</span>
-                    <button type="button" className="demo-otp-chip" onClick={() => autofillDemoStudent('101010', 'student-1')}>Arun 101010</button>
-                    <button type="button" className="demo-otp-chip" onClick={() => autofillDemoStudent('202020', 'student-2')}>Priya 202020</button>
-                  </div>
-                )}
 
-                {autofillSuccess && (
-                  <div className="autofill-success-badge">
-                    <Check size={13} />
-                    <span>Demo code filled!</span>
-                  </div>
-                )}
               </form>
             </div>
           </section>

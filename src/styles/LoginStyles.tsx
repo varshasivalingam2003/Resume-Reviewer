@@ -183,24 +183,26 @@ const styles = `/* =============================================================
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 30px 36px 40px 36px;
+  padding: 20px 2vw 28px 2vw;
   box-sizing: border-box;
+  min-height: calc(100vh - 75px);
 }
 
 .login-split-container {
   display: flex;
-  width: 100%;
-  max-width: 1300px;
+  width: 96vw;
+  max-width: 1680px;
   gap: 36px;
   align-items: stretch;
   justify-content: center;
+  margin: 0 auto;
 }
 
 /* ==========================================================================
    LEFT SIDE: 4-Slide Auto-Playing Visual Carousel
    ========================================================================== */
 .login-carousel-pane {
-  flex: 1.45;
+  flex: 64;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -212,12 +214,12 @@ const styles = `/* =============================================================
   border: 1.5px solid rgba(254, 240, 138, 0.9);
   border-radius: 28px;
   box-shadow: 0 20px 45px -12px rgba(234, 179, 8, 0.16), 0 4px 16px rgba(0, 0, 0, 0.03);
-  padding: 30px 32px 24px 32px;
+  padding: 36px 42px 28px 42px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  min-height: 560px;
+  min-height: 600px;
   box-sizing: border-box;
   overflow: hidden;
   user-select: none;
@@ -248,29 +250,14 @@ const styles = `/* =============================================================
   pointer-events: none;
 }
 
-/* Carousel Header (Badge & Controls) */
+/* Carousel Header (Navigation Controls) */
 .carousel-header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 12px;
   position: relative;
   z-index: 2;
-}
-
-.carousel-slide-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #FEF08A;
-  color: #854D0E;
-  font-size: 11.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid rgba(234, 179, 8, 0.4);
 }
 
 .carousel-nav-arrows {
@@ -330,7 +317,7 @@ const styles = `/* =============================================================
 }
 
 .slide-heading {
-  font-size: 30px;
+  font-size: clamp(28px, 2.2vw, 36px);
   font-weight: 800;
   line-height: 1.25;
   color: #0F172A;
@@ -347,18 +334,18 @@ const styles = `/* =============================================================
 }
 
 .slide-description {
-  font-size: 14.5px;
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
   color: #64748B;
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0 0 16px 0;
-  max-width: 540px;
+  max-width: 720px;
 }
 
 /* Visual Stage for each slide */
 .slide-visual-stage {
   position: relative;
   width: 100%;
-  height: 250px;
+  height: clamp(270px, 21vw, 340px);
   border-radius: 20px;
   overflow: hidden;
   margin-bottom: 20px;
@@ -374,8 +361,20 @@ const styles = `/* =============================================================
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 25%;
+  object-position: center 20%;
   transition: transform 0.6s ease;
+}
+
+.slide-photo.slide1-photo {
+  object-position: center 18%;
+}
+
+.slide-photo.slide3-photo {
+  object-position: center 22%;
+}
+
+.slide-photo.slide4-photo {
+  object-position: center 18%;
 }
 
 .carousel-card:hover .slide-photo {
@@ -743,9 +742,9 @@ const styles = `/* =============================================================
    RIGHT SIDE: Elevated White Login Card
    ========================================================================== */
 .login-form-pane {
-  flex: 1;
+  flex: 36;
   min-width: 360px;
-  max-width: 440px;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -756,7 +755,7 @@ const styles = `/* =============================================================
   border-radius: 28px;
   border: 1px solid rgba(226, 232, 240, 0.85);
   box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
-  padding: 28px 30px;
+  padding: 34px 36px;
   box-sizing: border-box;
   text-align: center;
   position: relative;
@@ -931,7 +930,7 @@ const styles = `/* =============================================================
 }
 
 .otp-boxes-track.is-spinning {
-  animation: otpTrackSpin 2.6s linear infinite;
+  animation: otpTrackSpin 1.3s linear infinite;
 }
 
 @keyframes otpTrackSpin {
@@ -945,7 +944,7 @@ const styles = `/* =============================================================
   background: #FFFFFF;
   box-shadow: 0 4px 14px rgba(234, 179, 8, 0.28);
   pointer-events: none;
-  animation: otpBoxCounterSpin 2.6s linear infinite;
+  animation: otpBoxCounterSpin 1.3s linear infinite;
 }
 
 @keyframes otpBoxCounterSpin {
@@ -958,47 +957,6 @@ const styles = `/* =============================================================
   opacity: 0;
   pointer-events: none;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
-}
-
-.verification-elapsed-counter {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1.5px solid #FACC15;
-  padding: 5px 13px;
-  border-radius: 9999px;
-  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.22);
-  font-size: 12px;
-  font-weight: 700;
-  color: #854D0E;
-  white-space: nowrap;
-  pointer-events: none;
-  z-index: 12;
-  animation: counterFadeIn 0.22s ease-out;
-}
-
-.counter-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #EAB308;
-  animation: counterPulse 1.2s infinite ease-in-out;
-}
-
-@keyframes counterPulse {
-  0%, 100% { opacity: 0.35; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-
-@keyframes counterFadeIn {
-  from { opacity: 0; transform: translate(-50%, -46%) scale(0.95); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .otp-success-badge-container {
@@ -1025,6 +983,14 @@ const styles = `/* =============================================================
   justify-content: center;
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
   animation: successBadgePop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.otp-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
 }
 
 @keyframes successBadgePop {
@@ -1325,7 +1291,8 @@ const styles = `/* =============================================================
     flex-direction: column;
     align-items: center;
     gap: 28px;
-    max-width: 620px;
+    max-width: 680px;
+    width: 100%;
   }
   .login-carousel-pane {
     width: 100%;
@@ -1338,17 +1305,27 @@ const styles = `/* =============================================================
     font-size: 26px;
   }
   .slide-visual-stage {
-    height: 220px;
+    height: 230px;
   }
   .login-form-pane {
     width: 100%;
     max-width: 480px;
+    min-width: 0;
   }
 }
 
 @media (max-width: 640px) {
+  /* Prevent ANY horizontal page overflow */
+  .login-view {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
   .login-top-bar {
     padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .login-brand-name {
     font-size: 14px;
@@ -1360,40 +1337,209 @@ const styles = `/* =============================================================
     display: none;
   }
   .login-main-stage {
-    padding: 12px 10px 28px 10px;
+    padding: 12px 14px 28px 14px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
   .login-split-container {
-    gap: 18px;
-    width: 100%;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .login-carousel-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
   .carousel-card {
-    padding: 18px 14px 16px 14px;
-    border-radius: 20px;
+    padding: 16px 14px 14px 14px !important;
+    border-radius: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .carousel-header-row {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-bottom: 6px !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+  .carousel-nav-arrows {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  .carousel-arrow-btn {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .carousel-body {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .carousel-slide-content {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
   }
   .slide-heading {
-    font-size: 20px;
-    line-height: 1.25;
+    font-size: clamp(17px, 4.8vw, 20px) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.4px !important;
+    margin: 0 0 6px 0 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
   }
   .slide-description {
-    font-size: 12.5px;
-    margin-bottom: 12px;
+    font-size: clamp(12px, 3.3vw, 13px) !important;
+    line-height: 1.45 !important;
+    margin: 0 0 10px 0 !important;
+    color: #64748B !important;
+    word-break: break-word !important;
   }
   .slide-visual-stage {
-    height: 175px;
-    border-radius: 14px;
-    margin-bottom: 14px;
+    width: 100% !important;
+    height: clamp(155px, 44vw, 195px) !important;
+    border-radius: 14px !important;
+    margin-bottom: 10px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  .slide-photo {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .slide-photo.slide1-photo {
+    object-position: center 15% !important;
+  }
+  .slide-photo.slide3-photo {
+    object-position: center 20% !important;
+  }
+  .slide-photo.slide4-photo {
+    object-position: 36% 22% !important;
+  }
+  .slide-doodle-callout {
+    top: 8px !important;
+    right: 8px !important;
+    padding: 4px 10px !important;
+    font-size: 10.5px !important;
+    border-radius: 16px !important;
+    max-width: calc(100% - 16px) !important;
+    box-sizing: border-box !important;
+  }
+  .slide2-resume-canvas {
+    padding: 8px !important;
+    box-sizing: border-box !important;
+  }
+  .slide2-resume-canvas .resume-paper-card {
+    width: 155px !important;
+    max-width: calc(100% - 95px) !important;
+    padding: 8px 10px !important;
+  }
+  .floating-tag-stack {
+    right: 6px !important;
+    gap: 4px !important;
+  }
+  .floating-tag {
+    padding: 3px 7px !important;
+    font-size: 9.5px !important;
+  }
+  .slide3-feedback-stack {
+    max-width: 145px !important;
+    right: 8px !important;
+    top: 8px !important;
+    gap: 4px !important;
+  }
+  .slide3-feedback-stack .feedback-bubble {
+    padding: 4px 8px !important;
+    font-size: 9.5px !important;
+    border-radius: 8px !important;
+  }
+  .slide4-approval-card {
+    right: 8px !important;
+    top: 8px !important;
+    padding: 6px 10px !important;
+    gap: 4px !important;
+    max-width: 145px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+  }
+  .slide4-approval-card .approval-badge-header {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    gap: 4px !important;
+  }
+  .slide4-approval-card .approval-check-item {
+    font-size: 9.5px !important;
+    gap: 4px !important;
   }
   .slide-feature-bar {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding-top: 10px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding-top: 8px !important;
+    width: 100% !important;
   }
   .feature-item-card {
-    padding: 7px 10px;
+    padding: 7px 10px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .feature-item-title {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+  }
+  .feature-item-sub {
+    font-size: 10.5px !important;
+    color: #64748B !important;
+  }
+  .carousel-dots-row {
+    margin-top: 8px !important;
+    margin-bottom: 2px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  .carousel-dot {
+    width: 7px !important;
+    height: 7px !important;
+  }
+  .carousel-dot.active {
+    width: 22px !important;
+    height: 7px !important;
+  }
+  .login-form-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
   .login-card {
-    padding: 22px 16px;
-    border-radius: 20px;
+    padding: 22px 16px !important;
+    border-radius: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   .login-avatar-stage {
     width: 80px;
@@ -1429,6 +1575,26 @@ const styles = `/* =============================================================
 
 /* Extreme compact screens (360px) */
 @media (max-width: 380px) {
+  .slide-visual-stage {
+    height: 155px !important;
+  }
+  .slide4-approval-card {
+    max-width: 132px !important;
+    padding: 5px 8px !important;
+  }
+  .slide4-approval-card .approval-badge-header {
+    font-size: 9.5px !important;
+  }
+  .slide4-approval-card .approval-check-item {
+    font-size: 9px !important;
+  }
+  .slide3-feedback-stack {
+    max-width: 135px !important;
+  }
+  .slide2-resume-canvas .resume-paper-card {
+    width: 140px !important;
+    max-width: calc(100% - 85px) !important;
+  }
   .otp-inputs-wrapper {
     gap: 4px;
   }
@@ -1454,28 +1620,93 @@ const styles = `/* =============================================================
 /* Mobile Frame Simulation Mode */
 .mobile-frame-mode .login-view {
   min-height: 100%;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .mobile-frame-mode .login-top-bar {
   padding: 8px 12px;
 }
 .mobile-frame-mode .login-main-stage {
-  padding: 10px 8px 24px 8px;
+  padding: 10px 8px 24px 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
 }
 .mobile-frame-mode .login-split-container {
-  gap: 14px;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+.mobile-frame-mode .login-carousel-pane {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 .mobile-frame-mode .carousel-card {
-  padding: 16px 12px;
+  padding: 16px 12px !important;
+  min-height: auto !important;
+  height: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .mobile-frame-mode .slide-heading {
-  font-size: 19px;
+  font-size: 18px !important;
+  line-height: 1.25 !important;
+  word-break: break-word !important;
+  margin: 0 0 6px 0 !important;
+}
+.mobile-frame-mode .slide-description {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  margin: 0 0 10px 0 !important;
+  word-break: break-word !important;
 }
 .mobile-frame-mode .slide-visual-stage {
-  height: 160px;
+  height: 160px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+.mobile-frame-mode .slide-photo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.mobile-frame-mode .slide-photo.slide4-photo {
+  object-position: 36% 22% !important;
+}
+.mobile-frame-mode .slide4-approval-card {
+  max-width: 135px !important;
+  padding: 5px 8px !important;
+  right: 6px !important;
+  top: 6px !important;
 }
 .mobile-frame-mode .slide-feature-bar {
-  grid-template-columns: 1fr;
-  gap: 6px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding-top: 6px !important;
+  width: 100% !important;
+}
+.mobile-frame-mode .feature-item-card {
+  padding: 6px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.mobile-frame-mode .login-form-pane {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.mobile-frame-mode .login-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 20px 14px !important;
 }
 .mobile-frame-mode .otp-inputs-wrapper {
   gap: 4px;

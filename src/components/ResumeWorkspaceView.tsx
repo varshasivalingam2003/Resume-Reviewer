@@ -8,6 +8,7 @@ import {
 import { getResumeDownloadUrl, getResumeViewUrl } from '../services/zohoApi';
 import { 
   GraduationCap, 
+  Home,
   Save, 
   Check, 
   FileText, 
@@ -121,8 +122,10 @@ export const ResumeWorkspaceView: React.FC = () => {
     setRating,
     toggleImproveTag,
     openModal,
+    activeRole,
     setActiveRole,
-    setSelectedStudentForViewId
+    setSelectedStudentForViewId,
+    setIsStudentLoggedIn
   } = useApp();
 
   // PDF Loading & Rendering States
@@ -153,6 +156,93 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [isDefiningSubtopic, setIsDefiningSubtopic] = useState(false);
   const [editingSubtopicId, setEditingSubtopicId] = useState<string | null>(null);
   const [editingCommandText, setEditingCommandText] = useState('');
+
+  // Voice Input Speech-to-Text State for Add Note Popup
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const speechRecognitionRef = useRef<any>(null);
+
+  const toggleVoiceInput = () => {
+    if (isVoiceListening) {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch (_) {}
+      }
+      setIsVoiceListening(false);
+      return;
+    }
+
+    const SpeechRecognitionClass = 
+      typeof window !== 'undefined' 
+        ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+        : null;
+
+    if (!SpeechRecognitionClass) {
+      alert('Speech recognition is not supported in this browser. Please type your note.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionClass();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsVoiceListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((res: any) => res[0]?.transcript || '')
+          .join('')
+          .trim();
+
+        if (transcript) {
+          setNewCommandText(prev => {
+            const current = (prev || '').trim();
+            return current ? `${current} ${transcript}` : transcript;
+          });
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        console.error('Speech recognition error:', e.error);
+        setIsVoiceListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsVoiceListening(false);
+      };
+
+      speechRecognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Failed to start speech recognition:', err);
+      setIsVoiceListening(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch (_) {}
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDefiningSubtopic && isVoiceListening) {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch (_) {}
+      }
+      setIsVoiceListening(false);
+    }
+  }, [isDefiningSubtopic, isVoiceListening]);
 
   // Method 2: 4-Stage Guided Mentor Audit State
   const [currentAuditStage, setCurrentAuditStage] = useState<1 | 2 | 3 | 4>(1);
@@ -1434,6 +1524,31 @@ export const ResumeWorkspaceView: React.FC = () => {
           >
             <ArrowLeftIcon size={16} /> Back
           </button>
+
+          <button 
+            className="workspace-home-btn" 
+            onClick={() => {
+              setActiveRole('volunteer');
+              setCurrentView('login');
+            }}
+            title="Return to main Landing / Login page"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
+              background: '#FFFFFF',
+              border: '1px solid var(--border-color)',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            <Home size={14} />
+            <span>Home</span>
+          </button>
           
           <div className="workspace-student-title-box">
             {students && students.length > 1 ? (
@@ -1474,19 +1589,6 @@ export const ResumeWorkspaceView: React.FC = () => {
 
         <div className="workspace-top-actions">
           <button 
-            className="btn btn-outline btn-sm"
-            onClick={() => {
-              setSelectedStudentForViewId(activeStudent.id);
-              setActiveRole('student');
-            }}
-            title="Preview how student sees the listed feedback"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-          >
-            <GraduationCap size={13} />
-            <span>Student View</span>
-          </button>
-
-          <button 
             className="btn btn-danger-outline btn-sm"
             onClick={() => openModal('changes')}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
@@ -1526,19 +1628,21 @@ export const ResumeWorkspaceView: React.FC = () => {
               <span className="resume-filename" style={{ color: '#F8FAFC' }}>
                 {activeStudent.name.replace(/\s+/g, '_')}_Resume.pdf
               </span>
-              <span className="privacy-protected-pill" style={{ 
-                fontSize: '11px', 
-                background: '#047857', 
-                color: '#ECFDF5', 
-                padding: '2px 8px', 
-                borderRadius: '12px', 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '4px',
-                marginLeft: '6px'
-              }}>
-                <Lock size={10} /> Privacy Protected
-              </span>
+              {activeRole === 'volunteer' && (
+                <span className="privacy-protected-pill" style={{ 
+                  fontSize: '11px', 
+                  background: '#047857', 
+                  color: '#ECFDF5', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '4px',
+                  marginLeft: '6px'
+                }}>
+                  <Lock size={10} /> Privacy Protected
+                </span>
+              )}
             </div>
 
             <div className="resume-view-controls">
@@ -1735,7 +1839,7 @@ export const ResumeWorkspaceView: React.FC = () => {
                   <canvas ref={canvasRef} style={{ display: 'block', borderRadius: '4px' }} />
 
                   {/* Privacy Redaction Layer: White Frosted Blur, No Black Boxes, No Text */}
-                  {privacyMasks.map(mask => (
+                  {activeRole === 'volunteer' && privacyMasks.map(mask => (
                     <div
                       key={mask.id}
                       className="privacy-mask-frosted"
@@ -1956,6 +2060,33 @@ export const ResumeWorkspaceView: React.FC = () => {
                             onClick={() => setNewCategory('question')}
                           >
                             ❓ Question
+                          </button>
+                        </div>
+
+                        {/* Voice Input & Label Row */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>Feedback Note:</span>
+                          <button
+                            type="button"
+                            onClick={toggleVoiceInput}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '3px 8px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '5px',
+                              border: isVoiceListening ? '1px solid #EF4444' : '1px solid #CBD5E1',
+                              background: isVoiceListening ? '#FEF2F2' : '#F8FAFC',
+                              color: isVoiceListening ? '#DC2626' : '#334155',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title={isVoiceListening ? "Listening... click to stop" : "Voice input: click and speak"}
+                          >
+                            <Mic size={12} color={isVoiceListening ? '#DC2626' : '#64748B'} />
+                            <span>{isVoiceListening ? 'Listening...' : 'Voice Input'}</span>
                           </button>
                         </div>
 
@@ -2231,6 +2362,32 @@ export const ResumeWorkspaceView: React.FC = () => {
                     onChange={(e) => setNewSubtopicTitle(e.target.value)}
                     autoFocus
                   />
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Feedback Note:</span>
+                    <button
+                      type="button"
+                      onClick={toggleVoiceInput}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '2px 8px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        borderRadius: '4px',
+                        border: isVoiceListening ? '1px solid #EF4444' : '1px solid #CBD5E1',
+                        background: isVoiceListening ? '#FEF2F2' : '#F8FAFC',
+                        color: isVoiceListening ? '#DC2626' : '#334155',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title={isVoiceListening ? "Listening... click to stop" : "Voice input: click and speak"}
+                    >
+                      <Mic size={11} color={isVoiceListening ? '#DC2626' : '#64748B'} />
+                      <span>{isVoiceListening ? 'Listening...' : 'Voice Input'}</span>
+                    </button>
+                  </div>
 
                   <textarea 
                     className="feedback-textarea"
