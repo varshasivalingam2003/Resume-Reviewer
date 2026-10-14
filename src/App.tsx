@@ -36,20 +36,20 @@ const AppContent: React.FC = () => {
         {isAuthenticated && activeRole === 'volunteer' && currentView !== 'workspace' && currentView !== 'login' && <Navbar />}
 
         <div className="app-main-content">
-          {activeRole === 'student' ? (
-            !isStudentLoggedIn ? (
-              <StudentLoginView />
+          {isAuthenticated && activeRole === 'volunteer' ? (
+            currentView === 'workspace' ? (
+              <ResumeWorkspaceView />
+            ) : currentView === 'completed' ? (
+              <CompletedView />
+            ) : currentView === 'login' ? (
+              <LoginView />
             ) : (
-              <StudentFeedbackView />
+              <DashboardView />
             )
-          ) : currentView === 'login' || !isAuthenticated ? (
-            <LoginView />
-          ) : currentView === 'workspace' ? (
-            <ResumeWorkspaceView />
-          ) : currentView === 'completed' ? (
-            <CompletedView />
+          ) : isStudentLoggedIn && activeRole === 'student' ? (
+            <StudentFeedbackView />
           ) : (
-            <DashboardView />
+            <LoginView />
           )}
         </div>
 

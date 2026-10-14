@@ -28,52 +28,106 @@ type AnimState = 'idle' | 'verifying' | 'success' | 'error';
 
 interface CarouselSlide {
   id: number;
-  badge: string;
+  badge: number;
   headingStart: string;
   headingHighlight: string;
   description: string;
-  type: 'volunteer' | 'resume' | 'feedback' | 'success';
+  image: string;
+  alt: string;
+  animType: 'fade' | 'smooth' | 'slide' | 'impact';
 }
 
-const CAROUSEL_SLIDES: CarouselSlide[] = [
+const VOLUNTEER_SLIDES: CarouselSlide[] = [
   {
     id: 1,
-    badge: 'Slide 1',
-    headingStart: 'Turn resumes ',
-    headingHighlight: 'into brighter futures.',
-    description: 'Read, highlight, share feedback and approve resumes to help students grow with confidence.',
-    type: 'volunteer'
+    badge: 1,
+    headingStart: 'Turn Resumes ',
+    headingHighlight: 'Into Brighter Futures',
+    description: 'Join as a volunteer and start reviewing resumes.',
+    image: '/images/login-carousel/volunteer-slide1.jpg',
+    alt: 'Realistic Team Everest volunteer reviewing resumes',
+    animType: 'fade'
   },
   {
     id: 2,
-    badge: 'Slide 2',
-    headingStart: 'Spot what can ',
-    headingHighlight: 'be stronger.',
-    description: 'Highlight key sections and help students create impactful resumes.',
-    type: 'resume'
+    badge: 2,
+    headingStart: 'Review ',
+    headingHighlight: 'Resumes',
+    description: 'Read student resumes and highlight key strengths.',
+    image: '/images/login-carousel/volunteer-slide2.jpg',
+    alt: 'Real person reviewing a resume on a laptop',
+    animType: 'smooth'
   },
   {
     id: 3,
-    badge: 'Slide 3',
-    headingStart: 'Your feedback ',
-    headingHighlight: 'creates opportunities.',
-    description: 'Give constructive feedback and guide students to showcase their strengths.',
-    type: 'feedback'
+    badge: 3,
+    headingStart: 'Share Your ',
+    headingHighlight: 'Feedback',
+    description: 'Rate and write comments to guide students.',
+    image: '/images/login-carousel/volunteer-slide3.jpg',
+    alt: 'Real volunteer providing resume feedback',
+    animType: 'slide'
   },
   {
     id: 4,
-    badge: 'Slide 4',
-    headingStart: 'Every review ',
-    headingHighlight: 'builds confidence.',
-    description: 'Help students present their best and take a step forward in their journey.',
-    type: 'success'
+    badge: 4,
+    headingStart: 'Together We ',
+    headingHighlight: 'Make an Impact',
+    description: 'Your feedback creates real opportunities for students.',
+    image: '/images/login-carousel/volunteer-slide4.jpg',
+    alt: 'Realistic volunteering group photo',
+    animType: 'impact'
+  }
+];
+
+const STUDENT_SLIDES: CarouselSlide[] = [
+  {
+    id: 1,
+    badge: 1,
+    headingStart: 'Showcase Your ',
+    headingHighlight: 'Journey',
+    description: 'Share your profile and let volunteers help you grow.',
+    image: '/images/login-carousel/student-slide1.jpg',
+    alt: 'Real student working on a laptop',
+    animType: 'fade'
+  },
+  {
+    id: 2,
+    badge: 2,
+    headingStart: 'Upload Your ',
+    headingHighlight: 'Resume',
+    description: 'Share your latest resume to get feedback.',
+    image: '/images/login-carousel/student-slide2.jpg',
+    alt: 'Realistic laptop displaying a resume upload screen',
+    animType: 'smooth'
+  },
+  {
+    id: 3,
+    badge: 3,
+    headingStart: 'Get Valuable ',
+    headingHighlight: 'Feedback',
+    description: 'Receive personalized feedback to improve your resume.',
+    image: '/images/login-carousel/student-slide3.jpg',
+    alt: 'Real student reviewing volunteer feedback',
+    animType: 'slide'
+  },
+  {
+    id: 4,
+    badge: 4,
+    headingStart: 'Take the Next Step ',
+    headingHighlight: 'With Confidence',
+    description: 'Build a stronger resume for a brighter future.',
+    image: '/images/login-carousel/student-slide4.jpg',
+    alt: 'Realistic confident student photo',
+    animType: 'impact'
   }
 ];
 
 export const LoginView: React.FC = () => {
-  const { students, loginWithOtp, currentView, setCurrentView, isAuthenticated, volunteer, loginStudent, setActiveRole, setIsStudentLoggedIn } = useApp();
+  const { students, loginWithOtp, currentView, setCurrentView, isAuthenticated, volunteer, loginStudent, activeRole, setActiveRole, setIsStudentLoggedIn } = useApp();
   
-  const [role, setRole] = useState<'volunteer' | 'student'>('volunteer');
+  const [step, setStep] = useState<'carousel' | 'login'>('carousel');
+  const [role, setRole] = useState<'volunteer' | 'student'>(activeRole === 'student' ? 'student' : 'volunteer');
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -90,6 +144,7 @@ export const LoginView: React.FC = () => {
   }, [currentView, setCurrentView]);
   
   // Carousel State
+  const slides = role === 'student' ? STUDENT_SLIDES : VOLUNTEER_SLIDES;
   const [activeSlide, setActiveSlide] = useState<number>(0);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const touchStartX = useRef<number | null>(null);
@@ -98,14 +153,14 @@ export const LoginView: React.FC = () => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-play carousel every 5 seconds (pausing on hover/interaction)
+  // Auto-play carousel every 3 seconds (pausing on hover/interaction)
   useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % CAROUSEL_SLIDES.length);
-    }, 5000);
+      setActiveSlide(prev => (prev + 1) % slides.length);
+    }, 3000);
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, role, slides.length]);
 
   // Touch Swipe handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -121,21 +176,21 @@ export const LoginView: React.FC = () => {
     const distance = touchStartX.current - touchEndX.current;
     if (distance > 45) {
       // Swiped left -> next slide
-      setActiveSlide(prev => (prev + 1) % CAROUSEL_SLIDES.length);
+      setActiveSlide(prev => (prev + 1) % slides.length);
     } else if (distance < -45) {
       // Swiped right -> prev slide
-      setActiveSlide(prev => (prev - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
+      setActiveSlide(prev => (prev - 1 + slides.length) % slides.length);
     }
     touchStartX.current = null;
     touchEndX.current = null;
   };
 
   const goToPrevSlide = () => {
-    setActiveSlide(prev => (prev - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
+    setActiveSlide(prev => (prev - 1 + slides.length) % slides.length);
   };
 
   const goToNextSlide = () => {
-    setActiveSlide(prev => (prev + 1) % CAROUSEL_SLIDES.length);
+    setActiveSlide(prev => (prev + 1) % slides.length);
   };
 
   const computeOffsets = () => {
@@ -170,6 +225,8 @@ export const LoginView: React.FC = () => {
 
   const handleRoleChange = (newRole: 'volunteer' | 'student') => {
     setRole(newRole);
+    setActiveRole(newRole);
+    setActiveSlide(0);
     setErrorMessage('');
     setAnimState('idle');
     setBoxOffsets([]);
@@ -332,7 +389,7 @@ export const LoginView: React.FC = () => {
     }
   };
 
-  const currentSlide = CAROUSEL_SLIDES[activeSlide];
+  const currentSlide = slides[activeSlide % slides.length];
 
   return (
     <div className="login-view">
@@ -378,10 +435,10 @@ export const LoginView: React.FC = () => {
         <div className="login-split-container">
           
           {/* =========================================================
-              LEFT SIDE: 4-Slide Auto-Playing Visual Carousel (~60%)
+              LEFT SIDE: Welcome Animation Slideshow
               ========================================================= */}
           <section 
-            className="login-carousel-pane"
+            className={`login-carousel-pane ${step === 'carousel' ? 'welcome-fullwidth' : 'login-column-mode mobile-hidden'}`}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={handleTouchStart}
@@ -390,158 +447,69 @@ export const LoginView: React.FC = () => {
             aria-label="Welcome Presentation Carousel"
           >
             <div className="carousel-card">
-              {/* Card Header: Prev/Next Navigation */}
+              {/* Card Header: Journey Switcher + Skip */}
               <div className="carousel-header-row">
-                <div className="carousel-nav-arrows">
+                <div className="carousel-journey-toggle" role="tablist" aria-label="Journey Switcher">
                   <button 
                     type="button" 
-                    className="carousel-arrow-btn"
-                    onClick={goToPrevSlide}
-                    aria-label="Previous Slide"
+                    className={`carousel-journey-btn ${role === 'volunteer' ? 'active' : ''}`}
+                    onClick={() => handleRoleChange('volunteer')}
+                    role="tab"
+                    aria-selected={role === 'volunteer'}
                   >
-                    <ChevronLeft size={18} />
+                    <GraduationCap size={13} />
+                    <span>Volunteer Journey</span>
                   </button>
                   <button 
                     type="button" 
-                    className="carousel-arrow-btn"
-                    onClick={goToNextSlide}
-                    aria-label="Next Slide"
+                    className={`carousel-journey-btn ${role === 'student' ? 'active' : ''}`}
+                    onClick={() => handleRoleChange('student')}
+                    role="tab"
+                    aria-selected={role === 'student'}
                   >
-                    <ChevronRight size={18} />
+                    <User size={13} />
+                    <span>Student Journey</span>
+                  </button>
+                </div>
+
+                <div className="carousel-header-right-actions">
+                  <button 
+                    type="button" 
+                    className="carousel-mobile-skip-btn"
+                    onClick={() => {
+                      setStep('login');
+                      setTimeout(() => inputRefs.current[0]?.focus(), 60);
+                    }}
+                    title="Skip to login"
+                    aria-label="Skip to login"
+                  >
+                    <span>Skip</span>
+                    <ArrowRight size={13} />
                   </button>
                 </div>
               </div>
 
               {/* Dynamic Slide Content */}
               <div className="carousel-body">
-                <div key={currentSlide.id} className="carousel-slide-content">
+                <div key={`${role}-${currentSlide.id}`} className={`carousel-slide-content anim-${currentSlide.animType}`}>
                   <h1 className="slide-heading">
                     {currentSlide.headingStart}
                     <span className="yellow-accent">{currentSlide.headingHighlight}</span>
                   </h1>
                   <p className="slide-description">{currentSlide.description}</p>
 
-                  {/* Slide Visual Presentation based on active slide theme */}
+                  {/* Slide Visual Presentation with step badge & realistic photo */}
                   <div className="slide-visual-stage">
-                    {currentSlide.type === 'volunteer' && (
-                      <>
-                        <img 
-                          src="/images/login-carousel/slide1.jpg" 
-                          alt="Volunteer reviewing student resume" 
-                          className="slide-photo slide1-photo" 
-                          onError={(e) => {
-                            // Fallback if local asset is loading
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div className="slide-doodle-callout">
-                          <Heart size={14} className="doodle-heart" fill="#EF4444" />
-                          <span className="doodle-text">Your feedback creates opportunities!</span>
-                        </div>
-                      </>
-                    )}
-
-                    {currentSlide.type === 'resume' && (
-                      <div className="slide2-resume-canvas">
-                        <div className="resume-paper-card">
-                          <div className="resume-paper-header">
-                            <div className="resume-paper-avatar">
-                              <User size={16} />
-                            </div>
-                            <div className="resume-paper-meta">
-                              <div className="resume-paper-title">Resume</div>
-                              <div className="resume-paper-line-sm"></div>
-                            </div>
-                          </div>
-                          <div className="resume-paper-lines">
-                            <div className="resume-paper-line"></div>
-                            <div className="resume-paper-line short"></div>
-                            <div className="resume-paper-line"></div>
-                            <div className="resume-paper-line short"></div>
-                          </div>
-                        </div>
-
-                        {/* Floating Highlight Labels matching reference */}
-                        <div className="floating-tag-stack">
-                          <div className="floating-tag tag-objective">
-                            <Star size={12} fill="#CA8A04" />
-                            <span>Objective</span>
-                          </div>
-                          <div className="floating-tag tag-skills">
-                            <Briefcase size={12} />
-                            <span>Skills</span>
-                          </div>
-                          <div className="floating-tag tag-projects">
-                            <Zap size={12} fill="#16A34A" />
-                            <span>Projects</span>
-                          </div>
-                          <div className="floating-tag tag-experience">
-                            <Layers size={12} />
-                            <span>Experience</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {currentSlide.type === 'feedback' && (
-                      <>
-                        <img 
-                          src="/images/login-carousel/slide3.jpg" 
-                          alt="Volunteer providing constructive feedback" 
-                          className="slide-photo slide3-photo" 
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div className="slide3-feedback-stack">
-                          <div className="feedback-bubble green">
-                            <Check size={13} />
-                            <span>Good summary! Keep it concise.</span>
-                          </div>
-                          <div className="feedback-bubble yellow">
-                            <Star size={13} fill="#D97706" />
-                            <span>Add more project details.</span>
-                          </div>
-                          <div className="feedback-bubble blue">
-                            <Zap size={13} />
-                            <span>Highlight your key skills.</span>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {currentSlide.type === 'success' && (
-                      <>
-                        <img 
-                          src="/images/login-carousel/slide4.jpg" 
-                          alt="Confident student celebrating resume review" 
-                          className="slide-photo slide4-photo" 
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <div className="slide4-approval-card">
-                          <div className="approval-badge-header">
-                            <ShieldCheck size={15} />
-                            <span>Resume Approved</span>
-                          </div>
-                          <div className="approval-checklist">
-                            <div className="approval-check-item">
-                              <Check size={13} className="approval-check-icon" />
-                              <span>Stronger Profile</span>
-                            </div>
-                            <div className="approval-check-item">
-                              <Check size={13} className="approval-check-icon" />
-                              <span>Better Opportunities</span>
-                            </div>
-                            <div className="approval-check-item">
-                              <Check size={13} className="approval-check-icon" />
-                              <span>Brighter Future</span>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    <div className="carousel-step-badge">{currentSlide.badge}</div>
+                    <img 
+                      key={`slide-img-${role}-${currentSlide.id}`}
+                      src={currentSlide.image} 
+                      alt={currentSlide.alt} 
+                      className={`slide-photo anim-${currentSlide.animType}`} 
+                      onError={(e) => {
+                        console.warn(`[LoginView] Image failed to load: ${currentSlide.image}`);
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -580,7 +548,7 @@ export const LoginView: React.FC = () => {
 
                 {/* 4 Pagination Dots */}
                 <div className="carousel-dots-row">
-                  {CAROUSEL_SLIDES.map((slide, idx) => (
+                  {slides.map((slide, idx) => (
                     <button
                       key={slide.id}
                       type="button"
@@ -590,59 +558,72 @@ export const LoginView: React.FC = () => {
                     />
                   ))}
                 </div>
+
+                {/* Bottom Navigation: Get Started */}
+                <div className="carousel-mobile-footer">
+                  <button 
+                    type="button" 
+                    className="carousel-action-btn primary full-width"
+                    onClick={() => {
+                      setStep('login');
+                      setTimeout(() => inputRefs.current[0]?.focus(), 60);
+                    }}
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
               </div>
             </div>
           </section>
 
           {/* =========================================================
-              RIGHT SIDE: Elevated White Login Card (~40%)
+              OTP LOGIN: Elevated White Login Card (~40%)
               ========================================================= */}
-          <section className="login-form-pane">
-            <div className="login-card">
-              
-              {/* Top Navigation Row inside Card */}
-              <div className="login-card-top-nav">
-                {/* Segmented Role Switcher */}
-                <div className="login-role-tabs">
+          {step === 'login' && (
+            <section className="login-form-pane">
+              <div className="login-card">
+                
+                {/* Top Navigation Row inside Card */}
+                <div className="login-card-top-nav">
+                  {/* Segmented Role Switcher */}
+                  <div className="login-role-tabs">
+                    <button 
+                      type="button"
+                      className={`login-role-tab ${role === 'volunteer' ? 'active' : ''}`}
+                      onClick={() => handleRoleChange('volunteer')}
+                    >
+                      <GraduationCap size={14} />
+                      <span>Volunteer</span>
+                    </button>
+                    <button 
+                      type="button"
+                      className={`login-role-tab ${role === 'student' ? 'active' : ''}`}
+                      onClick={() => handleRoleChange('student')}
+                    >
+                      <User size={14} />
+                      <span>Student</span>
+                    </button>
+                  </div>
+
                   <button 
                     type="button"
-                    className={`login-role-tab ${role === 'volunteer' ? 'active' : ''}`}
-                    onClick={() => handleRoleChange('volunteer')}
+                    className="login-back-home-link"
+                    onClick={() => setStep('carousel')}
+                    aria-label="Back to Welcome Journey"
+                    title="Back to Welcome Journey"
                   >
-                    <GraduationCap size={14} />
-                    <span>Volunteer</span>
-                  </button>
-                  <button 
-                    type="button"
-                    className={`login-role-tab ${role === 'student' ? 'active' : ''}`}
-                    onClick={() => handleRoleChange('student')}
-                  >
-                    <User size={14} />
-                    <span>Student</span>
+                    <ArrowLeft size={13} />
+                    <span>Back</span>
                   </button>
                 </div>
 
-                <a 
-                  href="#"
-                  className="login-back-home-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setErrorMessage('');
-                    setOtp(['', '', '', '', '', '']);
-                    inputRefs.current[0]?.focus();
-                  }}
-                >
-                  <ArrowLeft size={13} />
-                  <span>Back to Home</span>
-                </a>
-              </div>
-
-              {/* Friendly 3D Character Illustration Avatar */}
+              {/* Profile Avatar: Volunteer avatar for volunteer, realistic student photo for student */}
               <div className="login-avatar-stage">
                 <img 
-                  src="/images/login-carousel/avatar.png" 
-                  alt="Team Everest Volunteer Avatar" 
-                  className="login-avatar-img"
+                  src={role === 'volunteer' ? "/images/login-carousel/avatar.png" : "/images/login-carousel/student-slide4.jpg"} 
+                  alt={role === 'volunteer' ? "Team Everest Volunteer Avatar" : "Team Everest Student"} 
+                  className={`login-avatar-img ${role === 'student' ? 'student-avatar' : ''}`}
                   onError={(e) => {
                     // Fallback to stylized SVG avatar if image is unavailable
                     (e.target as HTMLElement).style.display = 'none';
@@ -775,6 +756,7 @@ export const LoginView: React.FC = () => {
               </form>
             </div>
           </section>
+        )}
 
         </div>
       </main>

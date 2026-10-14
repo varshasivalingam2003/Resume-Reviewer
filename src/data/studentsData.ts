@@ -7,7 +7,7 @@ export interface VolunteerSubtopic {
   isReviewed: boolean;
   category?: 'suggestion' | 'must_fix' | 'praise' | 'question';
   suggestedRewrite?: { before: string; after: string };
-  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string };
+  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string };
 }
 
 export interface EducationItem {
@@ -62,7 +62,7 @@ export interface Student {
   resumeSections: ResumeSection[];
   oldResumeSections?: ResumeSection[];
   newResumeSections?: ResumeSection[];
-  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string };
+  audioNote?: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string };
   rubricScores?: Record<string, number>;
 }
 

@@ -7,51 +7,18 @@ import {
 } from './Icons';
 import { getResumeDownloadUrl, getResumeViewUrl } from '../services/zohoApi';
 import { 
-  GraduationCap, 
   Home,
   Save, 
   Check, 
-  FileText, 
   Edit3, 
-  Sparkles, 
   RefreshCw, 
   Mic, 
-  BarChart3, 
-  Lightbulb, 
-  AlertCircle, 
-  Award, 
-  HelpCircle, 
   X, 
-  Eye, 
-  Wrench, 
-  Rocket, 
-  BookOpen, 
-  ArrowRight, 
-  ArrowLeft, 
-  CheckCircle2, 
-  Square, 
-  Circle, 
   Play, 
   Pause, 
-  RotateCcw, 
-  MessageSquare, 
-  Clock, 
-  Mail, 
-  Phone, 
-  MapPin, 
   AlertTriangle, 
-  FilePlus, 
-  Target, 
-  Bookmark,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-  ThumbsUp,
-  Layers,
   Lock,
-  Download,
-  Trash2
+  Download
 } from 'lucide-react';
 
 // Privacy Mask interface for PDF visual redaction layer
@@ -108,15 +75,7 @@ export const ResumeWorkspaceView: React.FC = () => {
     mobileTab,
     setMobileTab,
     addVolunteerSubtopic,
-    removeVolunteerSubtopic,
-    toggleSubtopicHighlight,
-    updateSubtopicCommand,
-    updateSubtopicCategory,
-    updateSubtopicRewrite,
-    updateSubtopicAudioNote,
     saveAudioNote,
-    saveRubricScores,
-    toggleSubtopicReviewed,
     quickHighlightFromCanvas,
     updateGeneralFeedback,
     setRating,
@@ -135,6 +94,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [privacyMasks, setPrivacyMasks] = useState<PrivacyMask[]>([]);
   const [detectedSections, setDetectedSections] = useState<DetectedPdfSection[]>([]);
   const [inlinePopoverSection, setInlinePopoverSection] = useState<DetectedPdfSection | null>(null);
+  const [hoveredSectionKey, setHoveredSectionKey] = useState<string | null>(null);
   const [reloadNonce, setReloadNonce] = useState(0);
   const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 640;
 
@@ -146,7 +106,6 @@ export const ResumeWorkspaceView: React.FC = () => {
 
   // Pin & Annotation States (PDF Review Model)
   const [activePin, setActivePin] = useState<{ page: number; x: number; y: number } | null>(null);
-  const [activeCommentTool, setActiveCommentTool] = useState<'sections' | 'mentor_audit' | 'rewrite_diff' | 'voice_memo' | 'rubric'>('sections');
   
   // Method 1: Subtopic Definition State
   const [newSubtopicTitle, setNewSubtopicTitle] = useState('');
@@ -154,22 +113,38 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [newCommandText, setNewCommandText] = useState('');
   const [newCategory, setNewCategory] = useState<'suggestion' | 'must_fix' | 'praise' | 'question'>('suggestion');
   const [isDefiningSubtopic, setIsDefiningSubtopic] = useState(false);
-  const [editingSubtopicId, setEditingSubtopicId] = useState<string | null>(null);
-  const [editingCommandText, setEditingCommandText] = useState('');
 
   // Voice Input Speech-to-Text State for Add Note Popup
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const speechRecognitionRef = useRef<any>(null);
+  const noteBaseTextRef = useRef<string>('');
+  const committedSpeechRef = useRef<string>('');
+  const lastHandledIndexRef = useRef<number>(0);
 
   const toggleVoiceInput = () => {
     if (isVoiceListening) {
       if (speechRecognitionRef.current) {
         try {
+          speechRecognitionRef.current.onresult = null;
+          speechRecognitionRef.current.onerror = null;
+          speechRecognitionRef.current.onend = null;
           speechRecognitionRef.current.stop();
         } catch (_) {}
+        speechRecognitionRef.current = null;
       }
       setIsVoiceListening(false);
       return;
+    }
+
+    // Stop and clean up any previous instance before creating a new one
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.onresult = null;
+        speechRecognitionRef.current.onerror = null;
+        speechRecognitionRef.current.onend = null;
+        speechRecognitionRef.current.abort();
+      } catch (_) {}
+      speechRecognitionRef.current = null;
     }
 
     const SpeechRecognitionClass = 
@@ -184,35 +159,65 @@ export const ResumeWorkspaceView: React.FC = () => {
 
     try {
       const recognition = new SpeechRecognitionClass();
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
+
+      // Capture currently typed note before speech starts
+      noteBaseTextRef.current = (newCommandText || '').trim();
+      committedSpeechRef.current = '';
+      lastHandledIndexRef.current = 0;
 
       recognition.onstart = () => {
         setIsVoiceListening(true);
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((res: any) => res[0]?.transcript || '')
-          .join('')
-          .trim();
-
-        if (transcript) {
-          setNewCommandText(prev => {
-            const current = (prev || '').trim();
-            return current ? `${current} ${transcript}` : transcript;
-          });
+        let interim = '';
+        for (let i = lastHandledIndexRef.current; i < event.results.length; i++) {
+          const res = event.results[i];
+          const chunk = (res[0]?.transcript || '').trim();
+          if (res.isFinal) {
+            if (chunk) {
+              committedSpeechRef.current = committedSpeechRef.current
+                ? `${committedSpeechRef.current} ${chunk}`
+                : chunk;
+            }
+            lastHandledIndexRef.current = i + 1;
+          } else {
+            interim = interim ? `${interim} ${chunk}` : chunk;
+          }
         }
+
+        const base = noteBaseTextRef.current;
+        const committed = committedSpeechRef.current;
+        const finalDisplay = base
+          ? (committed ? `${base} ${committed}` : base)
+          : committed;
+        const currentDisplay = interim
+          ? (finalDisplay ? `${finalDisplay} ${interim}` : interim)
+          : finalDisplay;
+
+        setNewCommandText(currentDisplay);
       };
 
       recognition.onerror = (e: any) => {
-        console.error('Speech recognition error:', e.error);
+        console.warn('Speech recognition notice:', e.error);
         setIsVoiceListening(false);
       };
 
       recognition.onend = () => {
         setIsVoiceListening(false);
+        // Ensure final committed text is persisted to state
+        const base = noteBaseTextRef.current;
+        const committed = committedSpeechRef.current;
+        const finalDisplay = base
+          ? (committed ? `${base} ${committed}` : base)
+          : committed;
+        if (finalDisplay) {
+          setNewCommandText(finalDisplay);
+        }
+        speechRecognitionRef.current = null;
       };
 
       speechRecognitionRef.current = recognition;
@@ -220,6 +225,7 @@ export const ResumeWorkspaceView: React.FC = () => {
     } catch (err) {
       console.error('Failed to start speech recognition:', err);
       setIsVoiceListening(false);
+      speechRecognitionRef.current = null;
     }
   };
 
@@ -227,8 +233,12 @@ export const ResumeWorkspaceView: React.FC = () => {
     return () => {
       if (speechRecognitionRef.current) {
         try {
-          speechRecognitionRef.current.stop();
+          speechRecognitionRef.current.onresult = null;
+          speechRecognitionRef.current.onerror = null;
+          speechRecognitionRef.current.onend = null;
+          speechRecognitionRef.current.abort();
         } catch (_) {}
+        speechRecognitionRef.current = null;
       }
     };
   }, []);
@@ -237,50 +247,32 @@ export const ResumeWorkspaceView: React.FC = () => {
     if (!isDefiningSubtopic && isVoiceListening) {
       if (speechRecognitionRef.current) {
         try {
+          speechRecognitionRef.current.onresult = null;
+          speechRecognitionRef.current.onerror = null;
+          speechRecognitionRef.current.onend = null;
           speechRecognitionRef.current.stop();
         } catch (_) {}
+        speechRecognitionRef.current = null;
       }
       setIsVoiceListening(false);
     }
   }, [isDefiningSubtopic, isVoiceListening]);
 
-  // Method 2: 4-Stage Guided Mentor Audit State
-  const [currentAuditStage, setCurrentAuditStage] = useState<1 | 2 | 3 | 4>(1);
-  const [auditStage1, setAuditStage1] = useState({
-    verdict: 'clean' as 'clean' | 'slightly_cluttered' | 'dense',
-    notes: 'Contact info is masked for privacy. Layout margins and visual hierarchy are well balanced.',
-    highlightSection: 'contact'
-  });
-  const [auditStage2, setAuditStage2] = useState({
-    selectedProject: 'Academic / Technical Project',
-    authenticity: 'genuine_challenge' as 'genuine_challenge' | 'academic_standard' | 'tutorial_clone',
-    challengeNotes: 'Describe technical challenges, architecture decisions, and concurrency/scale handling.',
-    proofOfWork: 'https://github.com/'
-  });
-  const [auditStage3, setAuditStage3] = useState({
-    interviewQuestion: 'How would your application handle 10x traffic spikes or database concurrency?',
-    prepTip: 'Explain database indexing, asynchronous worker queues, and caching patterns.'
-  });
-  const [auditStage4, setAuditStage4] = useState({
-    task1: 'Add quantified impact metrics (% latency reduction, users served).',
-    task2: 'Categorize technical skills cleanly into Languages, Frameworks, and Tools.',
-    encouragement: 'Strong engineering fundamentals! Polish these key areas to be interview ready.'
-  });
-  const [auditAppliedSuccess, setAuditAppliedSuccess] = useState(false);
-
-  // Method 3: Rewrite Suggestion Tool
-  const [rewriteTargetSection, setRewriteTargetSection] = useState('objective');
-  const [rewriteOriginal, setRewriteOriginal] = useState('Enthusiastic computer science student seeking an entry level developer job to gain experience and help the company grow.');
-  const [rewriteProposed, setRewriteProposed] = useState('Results-driven Software Engineering candidate with hands-on full-stack development experience, seeking to build high-performance web applications.');
-  const [rewriteSavedAlert, setRewriteSavedAlert] = useState(false);
-
-  // Method 4: Voice Feedback Recorder Simulation & Transcription
-  const [voiceTarget, setVoiceTarget] = useState<string>('overall');
+  // Voice Feedback Recorder & Transcription
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
   const [maxVoiceSeconds, setMaxVoiceSeconds] = useState<number>(300); // 5 mins
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [playingSubtopicAudioId, setPlayingSubtopicAudioId] = useState<string | null>(null);
+
+  const [feedbackSpokenLang, setFeedbackSpokenLang] = useState<string>('ta-IN');
+  const [isTranslatingVoice, setIsTranslatingVoice] = useState(false);
+  const [isWorkspaceAudioPlaying, setIsWorkspaceAudioPlaying] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const feedbackRecognitionRef = useRef<any>(null);
+  const feedbackTranscriptRef = useRef<string>('');
+  const feedbackBaseTextRef = useRef<string>('');
+  const workspaceAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const formatVoiceTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -294,14 +286,7 @@ export const ResumeWorkspaceView: React.FC = () => {
       timer = setInterval(() => {
         setVoiceSeconds(prev => {
           if (prev >= maxVoiceSeconds) {
-            setIsVoiceRecording(false);
-            const duration = formatVoiceTime(maxVoiceSeconds);
-            const timestamp = 'Just now';
-            if (voiceTarget === 'overall') {
-              saveAudioNote({ recorded: true, duration, timestamp });
-            } else {
-              updateSubtopicAudioNote(voiceTarget, { recorded: true, duration, timestamp });
-            }
+            handleToggleVoice();
             return maxVoiceSeconds;
           }
           return prev + 1;
@@ -309,32 +294,24 @@ export const ResumeWorkspaceView: React.FC = () => {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isVoiceRecording, voiceTarget, maxVoiceSeconds]);
+  }, [isVoiceRecording, maxVoiceSeconds]);
 
-  // Method 5: Evaluation Rubric Scorecard
-  const [rubricScores, setRubricScoresLocal] = useState({
-    atsFormat: activeStudent?.rubricScores?.atsFormat || 4,
-    metricsImpact: activeStudent?.rubricScores?.metricsImpact || 3,
-    techDepth: activeStudent?.rubricScores?.techDepth || 4,
-    grammarClarity: activeStudent?.rubricScores?.grammarClarity || 5
-  });
-
-  const handleRubricScoreChange = (key: 'atsFormat' | 'metricsImpact' | 'techDepth' | 'grammarClarity', value: number) => {
-    const updated = { ...rubricScores, [key]: value };
-    setRubricScoresLocal(updated);
-    saveRubricScores(updated);
-  };
-
-  const calculateRubricOverall = () => {
-    const avg = (rubricScores.atsFormat + rubricScores.metricsImpact + rubricScores.techDepth + rubricScores.grammarClarity) / 4;
-    return Math.round((avg / 5) * 100);
-  };
-
-  const handleInsertRubricSummary = () => {
-    const summary = `\n\nMENTOR EVALUATION RUBRIC (Score: ${calculateRubricOverall()}%):\n• ATS & Layout: ${rubricScores.atsFormat}/5\n• Impact & Metrics: ${rubricScores.metricsImpact}/5\n• Technical Stack Depth: ${rubricScores.techDepth}/5\n• Clarity & Action Verbs: ${rubricScores.grammarClarity}/5`;
-    updateGeneralFeedback((activeStudent?.generalFeedback || '') + summary);
-    alert('Rubric scorecard appended to Overall Feedback!');
-  };
+  useEffect(() => {
+    return () => {
+      if (workspaceAudioRef.current) {
+        workspaceAudioRef.current.pause();
+        workspaceAudioRef.current = null;
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+      if (feedbackRecognitionRef.current) {
+        try { feedbackRecognitionRef.current.stop(); } catch (_) {}
+        feedbackRecognitionRef.current = null;
+      }
+    };
+  }, []);
 
   if (!activeStudent) {
     return <div style={{ padding: '40px', textAlign: 'center' }}>Student not found.</div>;
@@ -361,7 +338,6 @@ export const ResumeWorkspaceView: React.FC = () => {
     return null;
   });
 
-  const [showMoreTools, setShowMoreTools] = useState<boolean>(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -426,14 +402,222 @@ export const ResumeWorkspaceView: React.FC = () => {
     }
   };
 
-  const handleToggleVoice = () => {
+  const translateToEnglish = async (text: string, sourceLang: string): Promise<string> => {
+    const trimmed = text.trim();
+    if (!trimmed) return '';
+
+    // If source language is English, preserve English without unnecessary rewriting
+    if (sourceLang.startsWith('en') && /^[\x00-\x7F\s.,!?'"()-]+$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(trimmed)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          const translated = data[0].map((item: any) => item[0] || '').join('').trim();
+          if (translated) return translated;
+        }
+      }
+    } catch (err) {
+      console.warn('Translation request warning:', err);
+    }
+
+    // Never save an invented or placeholder translation: return accurate transcript
+    return trimmed;
+  };
+
+  const handleToggleVoice = async () => {
     if (!isVoiceRecording) {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+        alert('Microphone recording is not supported in this browser.');
+        return;
+      }
+
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+      } catch (err: any) {
+        console.warn('Microphone permission denied or not available:', err);
+        alert('Microphone access is required to record voice feedback. Please check permissions.');
+        return;
+      }
+
+      // Initialize MediaRecorder for real microphone audio recording
+      try {
+        let mimeType = 'audio/webm';
+        if (typeof MediaRecorder !== 'undefined') {
+          if (!MediaRecorder.isTypeSupported('audio/webm')) {
+            if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+            else if (MediaRecorder.isTypeSupported('audio/ogg')) mimeType = 'audio/ogg';
+            else mimeType = '';
+          }
+        }
+        const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            audioChunksRef.current.push(e.data);
+          }
+        };
+        mediaRecorderRef.current = recorder;
+        recorder.start(250);
+      } catch (err) {
+        console.warn('MediaRecorder initialization warning:', err);
+      }
+
+      // Initialize SpeechRecognition for speech transcription & translation
+      feedbackTranscriptRef.current = '';
+      feedbackBaseTextRef.current = activeStudent.generalFeedback || '';
+      const SpeechRecognitionClass = 
+        typeof window !== 'undefined'
+          ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+          : null;
+
+      if (SpeechRecognitionClass) {
+        try {
+          const rec = new SpeechRecognitionClass();
+          rec.continuous = true;
+          rec.interimResults = false;
+          rec.lang = feedbackSpokenLang;
+          rec.onresult = (e: any) => {
+            let full = '';
+            for (let i = 0; i < e.results.length; i++) {
+              full += e.results[i][0]?.transcript || '';
+            }
+            feedbackTranscriptRef.current = full.trim();
+          };
+          rec.onerror = (e: any) => console.warn('SpeechRecognition feedback warning:', e);
+          rec.start();
+          feedbackRecognitionRef.current = rec;
+        } catch (err) {
+          console.warn('Speech recognition warning:', err);
+        }
+      }
+
+      setVoiceSeconds(0);
       setIsVoiceRecording(true);
     } else {
+      // STOP RECORDING
       setIsVoiceRecording(false);
-      const duration = formatVoiceTime(voiceSeconds);
-      saveAudioNote({ recorded: true, duration, timestamp: 'Just now' });
+      const totalSecs = Math.max(voiceSeconds, 1);
+      const duration = formatVoiceTime(totalSecs);
+
+      // Stop SpeechRecognition
+      if (feedbackRecognitionRef.current) {
+        try {
+          feedbackRecognitionRef.current.stop();
+        } catch (_) {}
+      }
+
+      // Stop MediaRecorder and persist real recorded audio as base64 Data URL
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.onstop = () => {
+          if (mediaStreamRef.current) {
+            mediaStreamRef.current.getTracks().forEach(t => t.stop());
+            mediaStreamRef.current = null;
+          }
+          const blob = new Blob(audioChunksRef.current, {
+            type: mediaRecorderRef.current?.mimeType || 'audio/webm'
+          });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const audioDataUrl = reader.result as string;
+            saveAudioNote({
+              recorded: true,
+              duration,
+              timestamp: 'Just now',
+              audioUrl: audioDataUrl
+            });
+            try {
+              localStorage.setItem(`student_audio_note_${activeStudent.id}`, JSON.stringify({
+                recorded: true,
+                duration,
+                timestamp: 'Just now',
+                audioUrl: audioDataUrl
+              }));
+            } catch (_) {}
+          };
+          reader.readAsDataURL(blob);
+        };
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (_) {}
+      } else if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+
+      // Translate speech transcript to English and insert into Additional Note textarea
+      const rawSpoken = feedbackTranscriptRef.current.trim();
+      if (rawSpoken) {
+        setIsTranslatingVoice(true);
+        translateToEnglish(rawSpoken, feedbackSpokenLang).then(englishText => {
+          setIsTranslatingVoice(false);
+          if (englishText) {
+            const base = (feedbackBaseTextRef.current || '').trim();
+            const updatedNote = base ? `${base}\n\n${englishText}` : englishText;
+            updateGeneralFeedback(updatedNote);
+          }
+        }).catch(() => {
+          setIsTranslatingVoice(false);
+          const base = (feedbackBaseTextRef.current || '').trim();
+          const updatedNote = base ? `${base}\n\n${rawSpoken}` : rawSpoken;
+          updateGeneralFeedback(updatedNote);
+        });
+      }
     }
+  };
+
+  const handleToggleWorkspaceAudioPlayback = () => {
+    let audioUrl = activeStudent.audioNote?.audioUrl;
+    if (!audioUrl && activeStudent?.id) {
+      try {
+        const cached = localStorage.getItem(`student_audio_note_${activeStudent.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          audioUrl = parsed?.audioUrl;
+        }
+      } catch (_) {}
+    }
+
+    if (!audioUrl) {
+      alert(`Voice note duration: ${activeStudent.audioNote?.duration || 'Saved'}. No recorded audio stream available.`);
+      return;
+    }
+
+    if (isWorkspaceAudioPlaying && workspaceAudioRef.current) {
+      workspaceAudioRef.current.pause();
+      setIsWorkspaceAudioPlaying(false);
+      return;
+    }
+
+    if (workspaceAudioRef.current) {
+      workspaceAudioRef.current.pause();
+      workspaceAudioRef.current = null;
+    }
+
+    const audio = new Audio(audioUrl);
+    workspaceAudioRef.current = audio;
+    audio.onended = () => {
+      setIsWorkspaceAudioPlaying(false);
+      workspaceAudioRef.current = null;
+    };
+    audio.onerror = () => {
+      setIsWorkspaceAudioPlaying(false);
+      workspaceAudioRef.current = null;
+      alert('Unable to play recording in this browser.');
+    };
+    audio.play().then(() => {
+      setIsWorkspaceAudioPlaying(true);
+    }).catch(err => {
+      console.warn('Playback error:', err);
+      setIsWorkspaceAudioPlaying(false);
+      workspaceAudioRef.current = null;
+    });
   };
 
   const standardSections: { key: string; title: string }[] = [
@@ -1125,7 +1309,6 @@ export const ResumeWorkspaceView: React.FC = () => {
 
     setActivePin({ page: activeResumePage, x: clampedX, y: clampedY });
     setIsDefiningSubtopic(true);
-    setActiveCommentTool('sections');
     setNewSubtopicTitle(`Page ${activeResumePage} Note`);
     setSelectedSectionKey(`page_${activeResumePage}`);
   };
@@ -1148,65 +1331,6 @@ export const ResumeWorkspaceView: React.FC = () => {
     setActivePin(null);
   };
 
-  const handleStartEditSubtopic = (sub: VolunteerSubtopic) => {
-    setEditingSubtopicId(sub.id);
-    setEditingCommandText(sub.command || '');
-  };
-
-  const handleSaveEditSubtopic = (subId: string) => {
-    updateSubtopicCommand(subId, editingCommandText);
-    setEditingSubtopicId(null);
-  };
-
-  const handleApplyAuditToReview = () => {
-    const s1Cat = auditStage1.verdict === 'clean' ? 'praise' : 'must_fix';
-    const s1Label = auditStage1.verdict === 'clean' ? 'Clean & Scannable' : auditStage1.verdict === 'slightly_cluttered' ? 'Needs Spacing Fix' : 'Dense Layout';
-    addVolunteerSubtopic(
-      `Stage 1: 6-Sec Glance (${s1Label})`,
-      auditStage1.highlightSection || 'contact',
-      auditStage1.notes,
-      s1Cat
-    );
-
-    const s2Cat = auditStage2.authenticity === 'genuine_challenge' ? 'praise' : 'must_fix';
-    addVolunteerSubtopic(
-      `Stage 2: Tech Depth (${auditStage2.selectedProject})`,
-      'projects',
-      `${auditStage2.challengeNotes}\n\n[Proof of Work]: ${auditStage2.proofOfWork}`,
-      s2Cat
-    );
-
-    addVolunteerSubtopic(
-      'Stage 3: Interview Defense Question',
-      'projects',
-      `Mock Question: "${auditStage3.interviewQuestion}"\n\n[Coaching Tip]: ${auditStage3.prepTip}`,
-      'suggestion'
-    );
-
-    addVolunteerSubtopic(
-      'Stage 4: 7-Day Action Plan',
-      'overall',
-      `1. ${auditStage4.task1}\n2. ${auditStage4.task2}\n\n[Mentor Encouragement]: ${auditStage4.encouragement}`,
-      'must_fix'
-    );
-
-    updateGeneralFeedback(`${auditStage4.encouragement}\n\nKey Interview Question to Prepare: "${auditStage3.interviewQuestion}"`);
-    setAuditAppliedSuccess(true);
-    setTimeout(() => setAuditAppliedSuccess(false), 4000);
-  };
-
-  const handleSaveRewriteSuggestion = () => {
-    const targetSub = volunteerSubtopics.find(s => s.sectionKey === rewriteTargetSection) || volunteerSubtopics[0];
-    if (targetSub) {
-      updateSubtopicRewrite(targetSub.id, { before: rewriteOriginal, after: rewriteProposed });
-      updateSubtopicCommand(targetSub.id, `${targetSub.command || ''}\n\n[Suggested Rewrite]: "${rewriteProposed}"`);
-    } else {
-      addVolunteerSubtopic(`Suggested Rewrite: ${rewriteTargetSection.toUpperCase()}`, rewriteTargetSection, `[Suggested Rewrite]: "${rewriteProposed}"`);
-    }
-    setRewriteSavedAlert(true);
-    setTimeout(() => setRewriteSavedAlert(false), 3000);
-  };
-
   const formatStatus = (status: string) => {
     switch (status) {
       case 'pending': return 'Pending';
@@ -1220,7 +1344,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   // ---------------------------------------------------------------------------
   // SIMPLIFIED VOLUNTEER REVIEW FLOW (SHARED DESKTOP & MOBILE)
   // ---------------------------------------------------------------------------
-  const renderSimplifiedReviewContent = (isMobile = false, advancedToolsSlot?: React.ReactNode) => (
+  const renderSimplifiedReviewContent = (isMobile = false) => (
     <div className="simplified-review-container">
       {/* 1. Header with Student Name, Student X of Y, Progress (Desktop only; Mobile uses sheet header) */}
       {!isMobile ? (
@@ -1308,10 +1432,16 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
                 onClick={handleToggleVoice}
-                title="Record or stop audio feedback note"
+                title={isVoiceRecording ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
               >
                 <Mic size={12} />
-                <span>{isVoiceRecording ? `Stop (${formatVoiceTime(voiceSeconds)})` : '🎤 Speak Feedback'}</span>
+                <span>
+                  {isVoiceRecording 
+                    ? `Stop (${formatVoiceTime(voiceSeconds)})` 
+                    : isTranslatingVoice 
+                    ? 'Translating...' 
+                    : '🎤 Speak Feedback'}
+                </span>
               </button>
             </div>
             <textarea
@@ -1327,10 +1457,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
-                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto' }}
-                  onClick={() => alert(`Playing voice feedback (${activeStudent.audioNote?.duration})...`)}
+                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  onClick={handleToggleWorkspaceAudioPlayback}
                 >
-                  <Play size={10} /> Play
+                  {isWorkspaceAudioPlaying ? <><Pause size={10} /> Pause</> : <><Play size={10} /> Play</>}
                 </button>
               </div>
             )}
@@ -1417,10 +1547,16 @@ export const ResumeWorkspaceView: React.FC = () => {
                 type="button"
                 className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
                 onClick={handleToggleVoice}
-                title="Record or stop audio feedback note"
+                title={isVoiceRecording ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
               >
                 <Mic size={12} />
-                <span>{isVoiceRecording ? `Stop (${formatVoiceTime(voiceSeconds)})` : '🎤 Speak Feedback'}</span>
+                <span>
+                  {isVoiceRecording 
+                    ? `Stop (${formatVoiceTime(voiceSeconds)})` 
+                    : isTranslatingVoice 
+                    ? 'Translating...' 
+                    : '🎤 Speak Feedback'}
+                </span>
               </button>
             </div>
             <textarea
@@ -1436,10 +1572,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
-                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto' }}
-                  onClick={() => alert(`Playing voice feedback (${activeStudent.audioNote?.duration})...`)}
+                  style={{ padding: '2px 8px', fontSize: '11px', height: 'auto', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  onClick={handleToggleWorkspaceAudioPlayback}
                 >
-                  <Play size={10} /> Play
+                  {isWorkspaceAudioPlaying ? <><Pause size={10} /> Pause</> : <><Play size={10} /> Play</>}
                 </button>
               </div>
             )}
@@ -1489,27 +1625,7 @@ export const ResumeWorkspaceView: React.FC = () => {
         </div>
       )}
 
-      {/* 6. Collapsible More Review Tools Section */}
-      {advancedToolsSlot && (
-        <div className="more-tools-accordion">
-          <button
-            type="button"
-            className="more-tools-toggle-btn"
-            onClick={() => setShowMoreTools(!showMoreTools)}
-            title="Expand advanced review tools"
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>✨ More Review Tools</span>
-              <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>
-                (Section Notes, Audit, Rewrite, Rubric)
-              </span>
-            </span>
-            {showMoreTools ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
 
-          {showMoreTools && advancedToolsSlot}
-        </div>
-      )}
     </div>
   );
 
@@ -1862,8 +1978,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                     />
                   ))}
 
-                  {/* Inline Review Action: [✎ Add Note] directly on the PDF Viewer for each detected section */}
+                  {/* Inline Review Action: [✎ Add Note] directly on the PDF Viewer revealed on section hover */}
                   {detectedSections.map(sec => {
+                    const isHovered = hoveredSectionKey === sec.key;
                     const sectionNotes = volunteerSubtopics.filter(sub => 
                       sub.sectionKey === sec.key || sub.title.toLowerCase().includes(sec.title.toLowerCase())
                     );
@@ -1871,64 +1988,82 @@ export const ResumeWorkspaceView: React.FC = () => {
                     return (
                       <div
                         key={sec.id}
-                        className="pdf-inline-section-action"
+                        className="pdf-section-hover-zone"
+                        onMouseEnter={() => setHoveredSectionKey(sec.key)}
+                        onMouseLeave={() => setHoveredSectionKey(null)}
                         style={{
                           position: 'absolute',
-                          left: `${sec.pixelRight + 12}px`,
-                          top: `${Math.max(4, sec.pixelTop - 2)}px`,
-                          zIndex: 16,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
+                          left: `${Math.max(0, sec.pixelLeft - 6)}px`,
+                          top: `${Math.max(0, sec.pixelTop - 4)}px`,
+                          width: `${Math.max(sec.pixelWidth + 140, 240)}px`,
+                          height: `${Math.max(sec.pixelHeight + 8, 28)}px`,
+                          pointerEvents: 'auto',
+                          zIndex: 14
                         }}
-                        onClick={(e) => e.stopPropagation()}
                       >
-                        <button
-                          type="button"
-                          className="btn-pdf-add-note"
-                          onClick={() => {
-                            setSelectedSectionKey(sec.key);
-                            setNewSubtopicTitle(sec.title);
-                            setActivePin({ page: activeResumePage, x: sec.pdfX, y: sec.pdfY });
-                            setInlinePopoverSection(sec);
-                            setIsDefiningSubtopic(true);
-                          }}
-                          title={`Add review note directly to ${sec.title}`}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '3px 8px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            background: '#FFFFFF',
-                            color: '#0F172A',
-                            border: '1.5px solid #CBD5E1',
-                            borderRadius: '6px',
-                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.12)',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          <span style={{ color: '#D97706' }}>✎</span>
-                          <span>Add Note</span>
-                        </button>
-
-                        {sectionNotes.length > 0 && (
-                          <span
+                        {isHovered && (
+                          <div
+                            className="pdf-inline-section-action"
                             style={{
-                              fontSize: '10px',
-                              fontWeight: 800,
-                              background: '#FEF3C7',
-                              color: '#B45309',
-                              padding: '2px 6px',
-                              borderRadius: '10px',
-                              border: '1px solid #FDE68A'
+                              position: 'absolute',
+                              left: `${sec.pixelRight - sec.pixelLeft + 12}px`,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              zIndex: 16,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
                             }}
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {sectionNotes.length} note{sectionNotes.length > 1 ? 's' : ''}
-                          </span>
+                            <button
+                              type="button"
+                              className="btn-pdf-add-note"
+                              onClick={() => {
+                                setSelectedSectionKey(sec.key);
+                                setNewSubtopicTitle(sec.title);
+                                setActivePin({ page: activeResumePage, x: sec.pdfX, y: sec.pdfY });
+                                setInlinePopoverSection(sec);
+                                setIsDefiningSubtopic(true);
+                              }}
+                              title={`Add review note directly to ${sec.title}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                background: '#FFFFFF',
+                                color: '#0F172A',
+                                border: '1.5px solid #CBD5E1',
+                                borderRadius: '6px',
+                                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.12)',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <span style={{ color: '#D97706' }}>✎</span>
+                              <span>Add Note</span>
+                            </button>
+
+                            {sectionNotes.length > 0 && (
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  background: '#FEF3C7',
+                                  color: '#B45309',
+                                  padding: '2px 6px',
+                                  borderRadius: '10px',
+                                  border: '1px solid #FDE68A'
+                                }}
+                              >
+                                {sectionNotes.length} note{sectionNotes.length > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -2177,24 +2312,20 @@ export const ResumeWorkspaceView: React.FC = () => {
                           position: 'absolute',
                           left: `${pinX}%`,
                           top: `${pinY}%`,
-                          transform: 'translate(0, -50%)',
+                          transform: 'translate(-50%, -50%)',
                           zIndex: 15,
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '5px',
-                          padding: '2px 8px',
-                          borderRadius: '12px',
+                          justifyContent: 'center',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
                           background: catBg,
-                          border: `1px solid ${catColor}`,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                          fontSize: '10.5px',
-                          fontWeight: 700,
-                          color: catColor,
+                          border: `1.5px solid ${catColor}`,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+                          fontSize: '11px',
                           cursor: 'pointer',
-                          maxWidth: '200px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
+                          transition: 'all 0.2s ease'
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -2203,7 +2334,6 @@ export const ResumeWorkspaceView: React.FC = () => {
                         title={`${sub.title}: ${sub.command || ''} (Click to view)`}
                       >
                         <span>{cat === 'must_fix' ? '⚠️' : cat === 'praise' ? '🌟' : cat === 'question' ? '❓' : '💡'}</span>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub.title}</span>
                       </div>
                     );
                   })}
@@ -2215,753 +2345,7 @@ export const ResumeWorkspaceView: React.FC = () => {
 
         {/* Right Pane: Simplified Review & Feedback Panel (Desktop) */}
         <aside className="review-feedback-pane" style={{ flex: 1, minWidth: '380px', maxWidth: '480px', borderLeft: '1px solid var(--border-color)' }}>
-          {renderSimplifiedReviewContent(false, (
-            <div className="more-tools-content-box">
-              {/* 5 Feedback Tabs */}
-              <div className="commenting-tools-tabs" role="tablist" aria-label="Volunteer Feedback Options">
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'sections' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('sections')}
-              title="Section commands with severity tags & highlights"
-            >
-              <span className="tab-icon">✍️</span>
-              <span className="tab-label">Section Notes</span>
-              <span className="tab-count-pill">{volunteerSubtopics.length}</span>
-            </button>
-
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'mentor_audit' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('mentor_audit')}
-              title="4-Stage Mentor Audit"
-            >
-              <span className="tab-icon">✨</span>
-              <span className="tab-label">Mentor Audit</span>
-            </button>
-
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'rewrite_diff' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('rewrite_diff')}
-              title="Suggest specific Before/After text replacements"
-            >
-              <span className="tab-icon">🔄</span>
-              <span className="tab-label">Rewrite</span>
-            </button>
-
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'voice_memo' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('voice_memo')}
-              title="Record up to 5-10 minute voice feedback"
-            >
-              <span className="tab-icon">🎙️</span>
-              <span className="tab-label">Voice Memo</span>
-            </button>
-
-            <button 
-              type="button"
-              className={`comment-tool-tab ${activeCommentTool === 'rubric' ? 'active' : ''}`}
-              onClick={() => setActiveCommentTool('rubric')}
-              title="Evaluate ATS, Impact, Tech Depth & Clarity"
-            >
-              <span className="tab-icon">📊</span>
-              <span className="tab-label">Rubric</span>
-            </button>
-          </div>
-
-          {/* =========================================================================
-              METHOD 1: SECTION NOTES & SUBTOPIC COMMANDS (WITH SEVERITY TAGS)
-             ========================================================================= */}
-          {activeCommentTool === 'sections' && (
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span className="review-section-label" style={{ fontSize: '13px', margin: 0 }}>
-                  Section Commands & Notes
-                </span>
-                <button 
-                  className="btn btn-secondary btn-sm"
-                  style={{ padding: '4px 10px', fontSize: '12px' }}
-                  onClick={() => setIsDefiningSubtopic(!isDefiningSubtopic)}
-                >
-                  {isDefiningSubtopic ? 'Cancel' : '+ Add Note'}
-                </button>
-              </div>
-
-              {/* Define Subtopic Form */}
-              {isDefiningSubtopic && (
-                <form onSubmit={handleAddSubtopic} className="define-subtopic-box">
-                  <div style={{ fontSize: '12px', fontWeight: '700', color: '#854D0E', marginBottom: '6px' }}>
-                    Define Note & Assign Feedback Category:
-                  </div>
-
-                  {/* Feedback Severity Category Selector */}
-                  <div className="category-pill-group">
-                    <span style={{ fontSize: '11px', fontWeight: '600', color: '#64748B', marginRight: '4px' }}>Type:</span>
-                    <button 
-                      type="button" 
-                      className={`cat-select-btn ${newCategory === 'suggestion' ? 'active cat-suggestion' : ''}`}
-                      onClick={() => setNewCategory('suggestion')}
-                    >
-                      💡 Suggestion
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`cat-select-btn ${newCategory === 'must_fix' ? 'active cat-must_fix' : ''}`}
-                      onClick={() => setNewCategory('must_fix')}
-                    >
-                      ⚠️ Must Fix
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`cat-select-btn ${newCategory === 'praise' ? 'active cat-praise' : ''}`}
-                      onClick={() => setNewCategory('praise')}
-                    >
-                      🌟 Praise
-                    </button>
-                    <button 
-                      type="button" 
-                      className={`cat-select-btn ${newCategory === 'question' ? 'active cat-question' : ''}`}
-                      onClick={() => setNewCategory('question')}
-                    >
-                      ❓ Question
-                    </button>
-                  </div>
-
-                  {/* Quick Section Chips */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '11px', color: '#64748B', width: '100%' }}>
-                      Target Section:
-                    </span>
-                    {standardSections.map(sec => (
-                      <button 
-                        type="button" 
-                        key={sec.key}
-                        className={`suggested-section-chip ${selectedSectionKey === sec.key ? 'active' : ''}`}
-                        onClick={() => {
-                          setSelectedSectionKey(sec.key);
-                          setNewSubtopicTitle(sec.title);
-                        }}
-                        style={{
-                          background: selectedSectionKey === sec.key ? '#FEF08A' : '#F1F5F9',
-                          borderColor: selectedSectionKey === sec.key ? '#EAB308' : '#CBD5E1'
-                        }}
-                      >
-                        {sec.title}
-                      </button>
-                    ))}
-                  </div>
-
-                  <input 
-                    type="text"
-                    className="search-field"
-                    style={{ height: '36px', marginBottom: '8px', fontSize: '13px' }}
-                    placeholder="Note title (e.g. Technical Stack, Project Impact)..."
-                    value={newSubtopicTitle}
-                    onChange={(e) => setNewSubtopicTitle(e.target.value)}
-                    autoFocus
-                  />
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Feedback Note:</span>
-                    <button
-                      type="button"
-                      onClick={toggleVoiceInput}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '2px 8px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        borderRadius: '4px',
-                        border: isVoiceListening ? '1px solid #EF4444' : '1px solid #CBD5E1',
-                        background: isVoiceListening ? '#FEF2F2' : '#F8FAFC',
-                        color: isVoiceListening ? '#DC2626' : '#334155',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                      title={isVoiceListening ? "Listening... click to stop" : "Voice input: click and speak"}
-                    >
-                      <Mic size={11} color={isVoiceListening ? '#DC2626' : '#64748B'} />
-                      <span>{isVoiceListening ? 'Listening...' : 'Voice Input'}</span>
-                    </button>
-                  </div>
-
-                  <textarea 
-                    className="feedback-textarea"
-                    style={{ minHeight: '60px', marginBottom: '8px', fontSize: '12px', padding: '8px' }}
-                    placeholder="Write detailed comment or actionable guidance for student..."
-                    value={newCommandText}
-                    onChange={(e) => setNewCommandText(e.target.value)}
-                  />
-
-                  {activePin && (
-                    <div style={{ fontSize: '11px', color: '#047857', fontWeight: 600, marginBottom: '8px' }}>
-                      📍 Attached to Page {activePin.page} at ({activePin.x}%, {activePin.y}%)
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button 
-                      type="button" 
-                      className="btn btn-outline btn-sm"
-                      onClick={() => {
-                        setIsDefiningSubtopic(false);
-                        setActivePin(null);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary btn-sm">
-                      Save Note
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Subtopics List */}
-              <div className="section-checklist">
-                {volunteerSubtopics.length === 0 ? (
-                  <div className="no-subtopics-placeholder" style={{ padding: '24px', textAlign: 'center', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-                    <p style={{ fontWeight: 600, color: '#64748B' }}>No review notes added yet.</p>
-                    <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
-                      Click <strong>"+ Add Note"</strong> or click directly on the resume to annotate!
-                    </p>
-                  </div>
-                ) : (
-                  volunteerSubtopics.map(sub => {
-                    const isActive = activeHighlightSection === sub.sectionKey;
-                    const cat = sub.category || 'suggestion';
-                    const isEditing = editingSubtopicId === sub.id;
-
-                    return (
-                      <div key={sub.id} className="volunteer-subtopic-card" style={{ marginBottom: '10px' }}>
-                        {/* Header Row */}
-                        <div 
-                          className={`subtopic-card-header ${isActive ? 'active' : ''}`}
-                          style={{ cursor: 'pointer', padding: '10px 12px' }}
-                        >
-                          <div className="subtopic-card-title-wrap">
-                            <div 
-                              className={`section-check-circle ${sub.isReviewed ? 'checked' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSubtopicReviewed(sub.id);
-                              }}
-                              title={sub.isReviewed ? "Mark as Incomplete" : "Mark as Reviewed"}
-                            >
-                              {sub.isReviewed && '✓'}
-                            </div>
-                            <span className="subtopic-card-title" style={{ fontWeight: 700 }}>{sub.title}</span>
-                            <span className={`subtopic-badge badge-${cat}`}>
-                              {cat === 'must_fix' ? '⚠️ Must Fix' : cat === 'praise' ? '🌟 Praise' : cat === 'question' ? '❓ Question' : '💡 Suggestion'}
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <button 
-                              type="button"
-                              className="btn btn-outline btn-sm"
-                              style={{ padding: '2px 6px', fontSize: '11px', height: 'auto' }}
-                              onClick={() => handleStartEditSubtopic(sub)}
-                              title="Edit note"
-                            >
-                              <Edit3 size={11} />
-                            </button>
-                            <button 
-                              type="button"
-                              className="btn btn-outline btn-sm"
-                              style={{ padding: '2px 6px', fontSize: '11px', height: 'auto', color: '#EF4444' }}
-                              onClick={() => removeVolunteerSubtopic(sub.id)}
-                              title="Delete note"
-                            >
-                              <Trash2 size={11} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Note / Command Body */}
-                        <div style={{ padding: '8px 12px', background: '#FFFFFF', borderTop: '1px solid #F1F5F9' }}>
-                          {isEditing ? (
-                            <div>
-                              <textarea
-                                className="feedback-textarea"
-                                style={{ minHeight: '52px', fontSize: '12px', padding: '6px', marginBottom: '6px' }}
-                                value={editingCommandText}
-                                onChange={(e) => setEditingCommandText(e.target.value)}
-                              />
-                              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-                                <button 
-                                  type="button" 
-                                  className="btn btn-outline btn-sm"
-                                  style={{ padding: '2px 8px', fontSize: '11px' }}
-                                  onClick={() => setEditingSubtopicId(null)}
-                                >
-                                  Cancel
-                                </button>
-                                <button 
-                                  type="button" 
-                                  className="btn btn-primary btn-sm"
-                                  style={{ padding: '2px 8px', fontSize: '11px' }}
-                                  onClick={() => handleSaveEditSubtopic(sub.id)}
-                                >
-                                  Save
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', whiteSpace: 'pre-wrap' }}>
-                              {sub.command || 'No comment added yet.'}
-                            </p>
-                          )}
-
-                          {sub.suggestedRewrite && (
-                            <div style={{ marginTop: '6px', padding: '6px 8px', background: '#F0FDF4', borderRadius: '4px', border: '1px solid #BBF7D0', fontSize: '11.5px' }}>
-                              <span style={{ fontWeight: 700, color: '#166534' }}>Suggested Rewrite:</span>
-                              <div style={{ color: '#15803D', marginTop: '2px' }}>"{sub.suggestedRewrite.after}"</div>
-                            </div>
-                          )}
-
-                          {sub.audioNote?.recorded && (
-                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', color: '#047857' }}>
-                              <Mic size={12} />
-                              <span>Audio note attached ({sub.audioNote.duration})</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </>
-          )}
-
-          {/* =========================================================================
-              METHOD 2: 4-STAGE GUIDED MENTOR AUDIT
-             ========================================================================= */}
-          {activeCommentTool === 'mentor_audit' && (
-            <div className="mentor-audit-box">
-              <div style={{ marginBottom: '14px' }}>
-                <span className="review-section-label">4-Stage Guided Mentor Audit</span>
-                <p style={{ fontSize: '12px', color: '#64748B', marginTop: '3px' }}>
-                  Systematic audit evaluating layout scan, technical depth, interview questions, and 7-day action plan.
-                </p>
-              </div>
-
-              {/* Audit Stage Tabs */}
-              <div style={{ display: 'flex', gap: '4px', marginBottom: '14px' }}>
-                {[1, 2, 3, 4].map((stage) => (
-                  <button
-                    type="button"
-                    key={stage}
-                    className={`btn btn-sm ${currentAuditStage === stage ? 'btn-primary' : 'btn-outline'}`}
-                    style={{ flex: 1, padding: '4px', fontSize: '11.5px' }}
-                    onClick={() => setCurrentAuditStage(stage as any)}
-                  >
-                    Stage {stage}
-                  </button>
-                ))}
-              </div>
-
-              {/* Stage 1 */}
-              {currentAuditStage === 1 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
-                    Stage 1: 6-Second First Glance
-                  </div>
-                  <div className="category-pill-group">
-                    <button 
-                      type="button"
-                      className={`cat-select-btn ${auditStage1.verdict === 'clean' ? 'active cat-praise' : ''}`}
-                      onClick={() => setAuditStage1({ ...auditStage1, verdict: 'clean' })}
-                    >
-                      🌟 Clean & Clear
-                    </button>
-                    <button 
-                      type="button"
-                      className={`cat-select-btn ${auditStage1.verdict === 'slightly_cluttered' ? 'active cat-suggestion' : ''}`}
-                      onClick={() => setAuditStage1({ ...auditStage1, verdict: 'slightly_cluttered' })}
-                    >
-                      💡 Needs Spacing
-                    </button>
-                    <button 
-                      type="button"
-                      className={`cat-select-btn ${auditStage1.verdict === 'dense' ? 'active cat-must_fix' : ''}`}
-                      onClick={() => setAuditStage1({ ...auditStage1, verdict: 'dense' })}
-                    >
-                      ⚠️ Dense Layout
-                    </button>
-                  </div>
-                  <textarea
-                    className="feedback-textarea"
-                    style={{ minHeight: '60px', fontSize: '12px' }}
-                    value={auditStage1.notes}
-                    onChange={(e) => setAuditStage1({ ...auditStage1, notes: e.target.value })}
-                    placeholder="Scan notes regarding contact info, spacing, margins..."
-                  />
-                </div>
-              )}
-
-              {/* Stage 2 */}
-              {currentAuditStage === 2 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
-                    Stage 2: Technical Depth & Authenticity
-                  </div>
-                  <input
-                    type="text"
-                    className="search-field"
-                    style={{ height: '34px', fontSize: '12px' }}
-                    value={auditStage2.selectedProject}
-                    onChange={(e) => setAuditStage2({ ...auditStage2, selectedProject: e.target.value })}
-                    placeholder="Project Name..."
-                  />
-                  <textarea
-                    className="feedback-textarea"
-                    style={{ minHeight: '60px', fontSize: '12px' }}
-                    value={auditStage2.challengeNotes}
-                    onChange={(e) => setAuditStage2({ ...auditStage2, challengeNotes: e.target.value })}
-                    placeholder="Describe how technical challenges, concurrency, or scale were solved..."
-                  />
-                </div>
-              )}
-
-              {/* Stage 3 */}
-              {currentAuditStage === 3 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
-                    Stage 3: Interview Defense Question
-                  </div>
-                  <textarea
-                    className="feedback-textarea"
-                    style={{ minHeight: '52px', fontSize: '12px' }}
-                    value={auditStage3.interviewQuestion}
-                    onChange={(e) => setAuditStage3({ ...auditStage3, interviewQuestion: e.target.value })}
-                    placeholder="Mock technical interview question..."
-                  />
-                  <textarea
-                    className="feedback-textarea"
-                    style={{ minHeight: '44px', fontSize: '12px' }}
-                    value={auditStage3.prepTip}
-                    onChange={(e) => setAuditStage3({ ...auditStage3, prepTip: e.target.value })}
-                    placeholder="Mentoring answer tip..."
-                  />
-                </div>
-              )}
-
-              {/* Stage 4 */}
-              {currentAuditStage === 4 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
-                    Stage 4: 7-Day Action Plan
-                  </div>
-                  <input
-                    type="text"
-                    className="search-field"
-                    style={{ height: '34px', fontSize: '12px' }}
-                    value={auditStage4.task1}
-                    onChange={(e) => setAuditStage4({ ...auditStage4, task1: e.target.value })}
-                    placeholder="Task 1: Add impact metrics..."
-                  />
-                  <input
-                    type="text"
-                    className="search-field"
-                    style={{ height: '34px', fontSize: '12px' }}
-                    value={auditStage4.task2}
-                    onChange={(e) => setAuditStage4({ ...auditStage4, task2: e.target.value })}
-                    placeholder="Task 2: Categorize skills..."
-                  />
-                  <textarea
-                    className="feedback-textarea"
-                    style={{ minHeight: '44px', fontSize: '12px' }}
-                    value={auditStage4.encouragement}
-                    onChange={(e) => setAuditStage4({ ...auditStage4, encouragement: e.target.value })}
-                    placeholder="Mentor encouragement note..."
-                  />
-                </div>
-              )}
-
-              {/* Apply Audit to Review */}
-              <div style={{ marginTop: '16px' }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                  onClick={handleApplyAuditToReview}
-                >
-                  <Check size={14} /> Apply Audit to Review Notes
-                </button>
-                {auditAppliedSuccess && (
-                  <div style={{ marginTop: '8px', color: '#047857', fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
-                    ✓ 4 Audit stages converted to review notes!
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              METHOD 3: REWRITE SUGGESTION TOOL (BEFORE / AFTER)
-             ========================================================================= */}
-          {activeCommentTool === 'rewrite_diff' && (
-            <div className="rewrite-tool-box">
-              <span className="review-section-label">Rewrite Suggestion Tool</span>
-              <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 12px' }}>
-                Propose an improved phrasing or strong action verb replacement for candidate bullet points.
-              </p>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Target Section</label>
-                <select
-                  className="search-field"
-                  style={{ height: '34px', fontSize: '12px', marginTop: '3px' }}
-                  value={rewriteTargetSection}
-                  onChange={(e) => setRewriteTargetSection(e.target.value)}
-                >
-                  <option value="objective">Career Objective</option>
-                  <option value="projects">Projects & Technical Work</option>
-                  <option value="education">Education</option>
-                  <option value="skills">Technical Skills</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626' }}>Original Text (From Resume)</label>
-                <textarea
-                  className="feedback-textarea"
-                  style={{ minHeight: '52px', fontSize: '12px', marginTop: '3px', background: '#FEF2F2', borderColor: '#FECACA' }}
-                  value={rewriteOriginal}
-                  onChange={(e) => setRewriteOriginal(e.target.value)}
-                />
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857' }}>Proposed Replacement (Rewritten)</label>
-                <textarea
-                  className="feedback-textarea"
-                  style={{ minHeight: '60px', fontSize: '12px', marginTop: '3px', background: '#F0FDF4', borderColor: '#BBF7D0' }}
-                  value={rewriteProposed}
-                  onChange={(e) => setRewriteProposed(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                onClick={handleSaveRewriteSuggestion}
-              >
-                <Sparkles size={14} /> Attach Rewrite Suggestion
-              </button>
-
-              {rewriteSavedAlert && (
-                <div style={{ marginTop: '8px', color: '#047857', fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
-                  ✓ Suggested rewrite attached to review notes!
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* =========================================================================
-              METHOD 4: VOICE FEEDBACK RECORDER
-             ========================================================================= */}
-          {activeCommentTool === 'voice_memo' && (
-            <div className="voice-memo-box">
-              <span className="review-section-label">Voice Memo & Dictation</span>
-              <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 14px' }}>
-                Record verbal feedback (up to 5 mins) to give personal coaching and encouragement.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '14px' }}>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: isVoiceRecording ? '#DC2626' : '#1E293B', fontFamily: 'monospace', marginBottom: '12px' }}>
-                  {formatVoiceTime(voiceSeconds)} / {formatVoiceTime(maxVoiceSeconds)}
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  {!isVoiceRecording ? (
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm"
-                      style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                      onClick={() => setIsVoiceRecording(true)}
-                    >
-                      <Mic size={14} /> Start Recording
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                      onClick={() => {
-                        setIsVoiceRecording(false);
-                        const duration = formatVoiceTime(voiceSeconds);
-                        saveAudioNote({ recorded: true, duration, timestamp: 'Just now' });
-                        alert('Voice memo saved to Overall Review!');
-                      }}
-                    >
-                      <Square size={14} /> Stop & Save
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    onClick={() => {
-                      setIsVoiceRecording(false);
-                      setVoiceSeconds(0);
-                    }}
-                  >
-                    <RotateCcw size={13} /> Reset
-                  </button>
-                </div>
-              </div>
-
-              {activeStudent.audioNote?.recorded && (
-                <div style={{ padding: '10px 12px', background: '#F0FDF4', borderRadius: '6px', border: '1px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#166534', fontWeight: 600 }}>
-                    <Mic size={13} />
-                    <span>Saved Audio Memo ({activeStudent.audioNote.duration})</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-sm"
-                    style={{ padding: '2px 8px', fontSize: '11px', height: 'auto' }}
-                    onClick={() => alert(`Playing voice memo (${activeStudent.audioNote?.duration})...`)}
-                  >
-                    <Play size={10} /> Play
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* =========================================================================
-              METHOD 5: EVALUATION RUBRIC SCORECARD & OVERALL FEEDBACK
-             ========================================================================= */}
-          {activeCommentTool === 'rubric' && (
-            <div className="rubric-scorecard-box">
-              <span className="review-section-label">Candidate Evaluation Rubric</span>
-              <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 14px' }}>
-                Score across 4 key hiring dimensions and assign overall star rating.
-              </p>
-
-              {/* 4 Rubric Dimensions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                {[
-                  { key: 'atsFormat', label: 'ATS Compatibility & Layout', val: rubricScores.atsFormat },
-                  { key: 'metricsImpact', label: 'Impact & Quantified Metrics', val: rubricScores.metricsImpact },
-                  { key: 'techDepth', label: 'Technical Stack Depth', val: rubricScores.techDepth },
-                  { key: 'grammarClarity', label: 'Grammar, Action Verbs & Clarity', val: rubricScores.grammarClarity }
-                ].map(r => (
-                  <div key={r.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>{r.label}</span>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      {[1, 2, 3, 4, 5].map(score => (
-                        <button
-                          key={score}
-                          type="button"
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            border: '1px solid',
-                            borderColor: r.val >= score ? '#EAB308' : '#CBD5E1',
-                            background: r.val >= score ? '#FEF08A' : '#FFFFFF',
-                            color: r.val >= score ? '#854D0E' : '#64748B',
-                            fontWeight: 700,
-                            fontSize: '11px',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => handleRubricScoreChange(r.key as any, score)}
-                        >
-                          {score}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Overall Rubric Score */}
-              <div style={{ padding: '10px 14px', background: '#FEFCE8', borderRadius: '6px', border: '1px solid #FEF08A', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#854D0E' }}>Overall Preparedness Score:</span>
-                <span style={{ fontSize: '16px', fontWeight: 800, color: '#854D0E' }}>{calculateRubricOverall()}%</span>
-              </div>
-
-              {/* Star Rating */}
-              <div className="review-rating-box" style={{ marginBottom: '14px' }}>
-                <span className="review-section-label">Overall Star Rating:</span>
-                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' }}
-                    >
-                      <StarIcon size={22} filled={star <= (activeStudent.rating || 4)} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Improvement Tags */}
-              <div className="improve-tags-box" style={{ marginBottom: '14px' }}>
-                <span className="review-section-label">Areas to Improve:</span>
-                <div className="improve-chips-wrap" style={{ marginTop: '6px' }}>
-                  {improveTagOptions.map(tag => {
-                    const isSelected = activeStudent.improveTags?.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        className={`improve-chip ${isSelected ? 'selected' : ''}`}
-                        onClick={() => toggleImproveTag(tag)}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* General Feedback Textarea */}
-              <div className="review-feedback-box" style={{ marginBottom: '14px' }}>
-                <span className="review-section-label">General Feedback for Student:</span>
-                <textarea
-                  className="feedback-textarea"
-                  style={{ minHeight: '80px', marginTop: '4px' }}
-                  value={activeStudent.generalFeedback || ''}
-                  onChange={(e) => updateGeneralFeedback(e.target.value)}
-                  placeholder="Summarize overall recommendations and career coaching advice..."
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm"
-                  style={{ flex: 1 }}
-                  onClick={handleInsertRubricSummary}
-                >
-                  Append Rubric to Notes
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  style={{ flex: 1 }}
-                  onClick={() => alert('Rubric and overall evaluation saved successfully!')}
-                >
-                  Save Feedback Draft
-                </button>
-              </div>
-            </div>
-          )}
-            </div>
-          ))}
+          {renderSimplifiedReviewContent(false)}
         </aside>
       </div>
 

@@ -69,8 +69,8 @@ export interface AppContextType {
   updateSubtopicCommand: (subtopicId: string, command: string) => void;
   updateSubtopicCategory: (subtopicId: string, category: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
   updateSubtopicRewrite: (subtopicId: string, rewrite: { before: string; after: string }) => void;
-  updateSubtopicAudioNote: (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => void;
-  saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => void;
+  updateSubtopicAudioNote: (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string }) => void;
+  saveAudioNote: (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string }) => void;
   saveRubricScores: (scores: Record<string, number>) => void;
   toggleSubtopicReviewed: (subtopicId: string) => void;
   quickHighlightFromCanvas: (sectionKey: string, sectionTitle: string) => void;
@@ -178,7 +178,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   const [studentResolvedItems, setStudentResolvedItems] = useState<Record<string, boolean>>({});
-  const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean>(false);
+  const [isStudentLoggedIn, setIsStudentLoggedIn] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('resume_reviewer_react_state_v3');
+      if (saved) return JSON.parse(saved).isStudentLoggedIn || false;
+    } catch (e) { }
+    return false;
+  });
 
   const [volunteerAssignmentMode, setVolunteerAssignmentMode] = useState<'single' | 'group'>(() => {
     try {
@@ -238,6 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         filterStatus,
         activeSidebarTab,
         activeRole,
+        isStudentLoggedIn,
         selectedStudentForViewId,
         studentResolvedItems,
         volunteerAssignmentMode
@@ -249,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isAuthenticated, volunteer, currentView, activeStudentId, students,
     deviceMode, mobileTab, activeResumePage, zoomLevel,
     activeHighlightSection, searchQuery, filterStatus, activeSidebarTab,
-    activeRole, selectedStudentForViewId, studentResolvedItems, volunteerAssignmentMode
+    activeRole, isStudentLoggedIn, selectedStudentForViewId, studentResolvedItems, volunteerAssignmentMode
   ]);
 
   // Current active student object with guaranteed resumeSections
@@ -315,7 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // 1. Try to fetch from backend Supabase student login
     try {
-      const response = await fetch('http://localhost:5001/api/student/login', {
+      const response = await fetch('/api/student/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sOtp: clean })
@@ -329,15 +336,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const prevStatus = prev[idx].status;
             const newStatus = (prevStatus === 'approved') ? 'approved' : (data.student.status || prevStatus);
             const prevDate = prev[idx].completedDate;
+            let cachedAudio: any = prev[idx].audioNote;
+            if (!cachedAudio) {
+              try {
+                const raw = localStorage.getItem(`student_audio_note_${data.student.id}`);
+                if (raw) cachedAudio = JSON.parse(raw);
+              } catch (_) {}
+            }
             updated[idx] = { 
               ...prev[idx], 
               ...data.student, 
+              audioNote: cachedAudio || data.student.audioNote,
+              generalFeedback: prev[idx].generalFeedback || data.student.generalFeedback,
+              volunteerSubtopics: (prev[idx].volunteerSubtopics && prev[idx].volunteerSubtopics.length > 0) ? prev[idx].volunteerSubtopics : (data.student.volunteerSubtopics || []),
               status: newStatus,
               completedDate: prevDate || data.student.completedDate || (newStatus === 'approved' ? '08 Sep 2026' : undefined)
             };
             return updated;
           }
-          return [...prev, data.student];
+          let cachedAudio: any = data.student.audioNote;
+          if (!cachedAudio) {
+            try {
+              const raw = localStorage.getItem(`student_audio_note_${data.student.id}`);
+              if (raw) cachedAudio = JSON.parse(raw);
+            } catch (_) {}
+          }
+          return [...prev, cachedAudio ? { ...data.student, audioNote: cachedAudio } : data.student];
         });
         if (data.volunteer) {
           setVolunteer(prev => ({ ...prev, ...data.volunteer }));
@@ -402,7 +426,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (role === 'volunteer') {
       try {
         const response = await fetch(
-          'http://localhost:5001/api/volunteer/login',
+          '/api/volunteer/login',
           {
             method: 'POST',
 
@@ -748,7 +772,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const updateSubtopicAudioNote = (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => {
+  const updateSubtopicAudioNote = (subtopicId: string, audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string }) => {
     if (!activeStudent) return;
     setStudents(prev => prev.map(s => {
       if (s.id === activeStudent.id) {
@@ -763,8 +787,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string }) => {
+  const saveAudioNote = (audioNote: { recorded: boolean; duration: string; timestamp: string; transcript?: string; audioUrl?: string }) => {
     if (!activeStudent) return;
+    try {
+      localStorage.setItem(`student_audio_note_${activeStudent.id}`, JSON.stringify(audioNote));
+    } catch (_) {}
     setStudents(prev => prev.map(s => {
       if (s.id === activeStudent.id) {
         return { ...s, audioNote };

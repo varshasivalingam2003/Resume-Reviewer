@@ -781,6 +781,8 @@ const styles = `/* Resume Review Workspace Styles */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .additional-note-label {

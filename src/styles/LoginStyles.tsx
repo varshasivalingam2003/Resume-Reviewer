@@ -183,43 +183,106 @@ const styles = `/* =============================================================
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 2vw 28px 2vw;
+  padding: 18px 28px;
   box-sizing: border-box;
-  min-height: calc(100vh - 75px);
+  min-height: calc(100vh - 64px);
+  width: 100%;
 }
 
 .login-split-container {
   display: flex;
-  width: 96vw;
-  max-width: 1680px;
-  gap: 36px;
+  width: 100%;
+  max-width: 1360px;
+  gap: 24px;
   align-items: stretch;
   justify-content: center;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* ==========================================================================
    LEFT SIDE: 4-Slide Auto-Playing Visual Carousel
    ========================================================================== */
 .login-carousel-pane {
-  flex: 64;
+  flex: 1.25;
+  width: 100%;
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Desktop Welcome Animation — Full Width Mode */
+.login-carousel-pane.welcome-fullwidth {
+  flex: 1;
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.welcome-fullwidth .carousel-card {
+  padding: 26px 36px 24px 36px;
+}
+
+.welcome-fullwidth .slide-heading {
+  font-size: clamp(24px, 2.2vw, 30px);
+  margin-bottom: 6px;
+}
+
+.welcome-fullwidth .slide-description {
+  font-size: 14.5px;
+  margin-bottom: 12px;
+  max-width: 860px;
+}
+
+.welcome-fullwidth .slide-visual-stage {
+  height: clamp(280px, 35vh, 400px);
+}
+
+.welcome-fullwidth .slide-feature-bar {
+  gap: 16px;
+  padding-top: 14px;
+}
+
+.welcome-fullwidth .carousel-mobile-footer {
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.welcome-fullwidth .carousel-action-btn {
+  max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 24px;
+  font-size: 14.5px;
+}
+
+/* Desktop Two-Column Login Mode — Left Slideshow */
+.login-carousel-pane.login-column-mode {
+  flex: 1.25;
+  max-width: 780px;
+  width: 100%;
+  min-width: 0;
+}
+
+.login-carousel-pane.login-column-mode .carousel-mobile-skip-btn {
+  display: none !important;
+}
+
+.login-carousel-pane.login-column-mode .carousel-mobile-footer {
+  display: none !important;
 }
 
 .carousel-card {
   position: relative;
   background: #FFFDF5;
   border: 1.5px solid rgba(254, 240, 138, 0.9);
-  border-radius: 28px;
-  box-shadow: 0 20px 45px -12px rgba(234, 179, 8, 0.16), 0 4px 16px rgba(0, 0, 0, 0.03);
-  padding: 36px 42px 28px 42px;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px -12px rgba(234, 179, 8, 0.16), 0 4px 16px rgba(0, 0, 0, 0.03);
+  padding: 22px 28px 20px 28px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  min-height: 600px;
   box-sizing: border-box;
   overflow: hidden;
   user-select: none;
@@ -250,14 +313,131 @@ const styles = `/* =============================================================
   pointer-events: none;
 }
 
-/* Carousel Header (Navigation Controls) */
+/* Carousel Header (Navigation Controls & Switcher) */
 .carousel-header-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
   position: relative;
   z-index: 2;
+  gap: 12px;
+}
+
+.carousel-journey-toggle {
+  display: inline-flex;
+  background: #F1F5F9;
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid #E2E8F0;
+  align-items: center;
+  gap: 2px;
+}
+
+.carousel-journey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.carousel-journey-btn:hover {
+  color: #0F172A;
+}
+
+.carousel-journey-btn.active {
+  background: #FFED32;
+  color: #0F172A;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.carousel-header-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carousel-mobile-skip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.carousel-mobile-skip-btn:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+.carousel-mobile-footer {
+  display: flex;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.carousel-btn-pair {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.carousel-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.carousel-action-btn.secondary {
+  background: #FFFFFF;
+  color: #334155;
+  border: 1.5px solid #CBD5E1;
+}
+
+.carousel-action-btn.secondary:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+.carousel-action-btn.primary {
+  background: #FFED32;
+  color: #0F172A;
+  border: 1.5px solid #EAB308;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.25);
+}
+
+.carousel-action-btn.primary:hover {
+  background: #FACC15;
+}
+
+.carousel-action-btn.full-width {
+  width: 100%;
 }
 
 .carousel-nav-arrows {
@@ -267,8 +447,8 @@ const styles = `/* =============================================================
 }
 
 .carousel-arrow-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
@@ -317,12 +497,12 @@ const styles = `/* =============================================================
 }
 
 .slide-heading {
-  font-size: clamp(28px, 2.2vw, 36px);
+  font-size: clamp(20px, 1.7vw, 26px);
   font-weight: 800;
   line-height: 1.25;
   color: #0F172A;
-  letter-spacing: -0.6px;
-  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+  margin: 0 0 4px 0;
 }
 
 .yellow-accent {
@@ -334,21 +514,21 @@ const styles = `/* =============================================================
 }
 
 .slide-description {
-  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  font-size: clamp(12.5px, 0.9vw, 14px);
   color: #64748B;
-  line-height: 1.55;
-  margin: 0 0 16px 0;
-  max-width: 720px;
+  line-height: 1.45;
+  margin: 0 0 10px 0;
+  max-width: 680px;
 }
 
 /* Visual Stage for each slide */
 .slide-visual-stage {
   position: relative;
   width: 100%;
-  height: clamp(270px, 21vw, 340px);
-  border-radius: 20px;
+  height: clamp(210px, 25vh, 280px);
+  border-radius: 18px;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   background: #FFFDF0;
   border: 1px solid rgba(254, 240, 138, 0.6);
   display: flex;
@@ -742,9 +922,9 @@ const styles = `/* =============================================================
    RIGHT SIDE: Elevated White Login Card
    ========================================================================== */
 .login-form-pane {
-  flex: 36;
+  flex: 0.85;
   min-width: 360px;
-  max-width: 520px;
+  max-width: 440px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -752,10 +932,10 @@ const styles = `/* =============================================================
 
 .login-card {
   background: #FFFFFF;
-  border-radius: 28px;
+  border-radius: 24px;
   border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
-  padding: 34px 36px;
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
+  padding: 24px 28px 22px 28px;
   box-sizing: border-box;
   text-align: center;
   position: relative;
@@ -767,16 +947,22 @@ const styles = `/* =============================================================
 .login-card-top-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.login-back-home-link {
+  display: none;
 }
 
 .login-back-home-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  font-family: inherit;
   font-size: 11.5px;
   font-weight: 700;
+  line-height: 1.2;
   color: #64748B;
   background: transparent;
   border: none;
@@ -851,6 +1037,10 @@ const styles = `/* =============================================================
   position: relative;
   z-index: 1;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
+}
+
+.login-avatar-img.student-avatar {
+  object-position: center 16%;
 }
 
 .login-card-title {
@@ -1315,293 +1505,498 @@ const styles = `/* =============================================================
 }
 
 @media (max-width: 640px) {
-  /* Prevent ANY horizontal page overflow */
+  /* Prevent horizontal overflow on mobile viewports and ensure full viewport usage */
   .login-view {
     overflow-x: hidden !important;
     width: 100% !important;
     max-width: 100vw !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
     box-sizing: border-box !important;
   }
+
   .login-top-bar {
-    padding: 10px 14px;
-    width: 100%;
-    box-sizing: border-box;
+    padding: 8px 12px !important;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
   }
+
   .login-brand-name {
-    font-size: 14px;
+    font-size: 13.5px !important;
   }
+
   .login-brand-portal {
-    font-size: 10.5px;
+    font-size: 10px !important;
   }
+
   .login-header-user-info {
-    display: none;
+    display: none !important;
   }
+
+  /* Main Stage uses full available height below header */
   .login-main-stage {
-    padding: 12px 14px 28px 14px !important;
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)) 10px !important;
     width: 100% !important;
     max-width: 100vw !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
   }
+
   .login-split-container {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 14px !important;
+    justify-content: stretch !important;
+    gap: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
   }
+
+  /* Controlled Visibility for Mobile Steps */
   .login-carousel-pane {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .login-carousel-pane.mobile-hidden {
+    display: none !important;
+  }
+
+  .login-form-pane {
+    display: flex !important;
+    flex-direction: column !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    padding-top: 6px !important;
     box-sizing: border-box !important;
   }
+
+  .login-form-pane.mobile-hidden {
+    display: none !important;
+  }
+
+  /* STEP 1: Mobile Carousel Card - Full Available Height & Width */
   .carousel-card {
-    padding: 16px 14px 14px 14px !important;
+    padding: 12px 14px 12px 14px !important;
+    border-radius: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1.5px solid rgba(254, 240, 138, 0.9) !important;
+    box-shadow: 0 10px 28px -6px rgba(234, 179, 8, 0.16), 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+  }
+
+  .carousel-header-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 6px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .carousel-journey-toggle {
+    display: inline-flex !important;
+    background: #F1F5F9 !important;
+    border-radius: 14px !important;
+    padding: 2px !important;
+  }
+
+  .carousel-journey-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    border-radius: 12px !important;
+    gap: 4px !important;
+  }
+
+  .carousel-header-right-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  .carousel-mobile-skip-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #64748B !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 3px 5px !important;
+    cursor: pointer !important;
+  }
+
+  .carousel-nav-arrows {
+    display: none !important;
+  }
+
+  .carousel-body {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+  }
+
+  .carousel-slide-content {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+  }
+
+  .slide-heading {
+    font-size: clamp(17px, 4.4vw, 21px) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.4px !important;
+    margin: 0 0 2px 0 !important;
+    word-break: break-word !important;
+    flex-shrink: 0 !important;
+  }
+
+  .slide-description {
+    font-size: clamp(12px, 3.2vw, 13px) !important;
+    line-height: 1.35 !important;
+    margin: 0 0 6px 0 !important;
+    color: #64748B !important;
+    word-break: break-word !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Visual Stage naturally stretches to make photo visually prominent */
+  .slide-visual-stage {
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 180px !important;
+    max-height: none !important;
+    height: 100% !important;
+    border-radius: 14px !important;
+    margin-bottom: 6px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .slide-photo {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center 20% !important;
+    display: block !important;
+  }
+
+  .carousel-step-badge {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 11px !important;
+    top: 8px !important;
+    left: 8px !important;
+  }
+
+  /* Hide feature bar on mobile to keep carousel compact and prevent overflow */
+  .slide-feature-bar {
+    display: none !important;
+  }
+
+  .carousel-dots-row {
+    margin-top: 6px !important;
+    margin-bottom: 4px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .carousel-dot-btn {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
+  .carousel-dot-btn.active {
+    width: 20px !important;
+    height: 6px !important;
+  }
+
+  /* Mobile Carousel Footer Buttons */
+  .carousel-mobile-footer {
+    display: flex !important;
+    width: 100% !important;
+    margin-top: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .carousel-btn-pair {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .carousel-action-btn {
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .carousel-action-btn.secondary {
+    background: #FFFFFF !important;
+    color: #334155 !important;
+    border: 1.5px solid #CBD5E1 !important;
+  }
+
+  .carousel-action-btn.primary {
+    background: #FFED32 !important;
+    color: #0F172A !important;
+    border: 1.5px solid #EAB308 !important;
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.25) !important;
+  }
+
+  .carousel-action-btn.full-width {
+    width: 100% !important;
+  }
+
+  /* STEP 2: Mobile Login Card - Compact, Professional, Clean Spacing */
+  .login-card {
+    padding: 18px 16px 20px 16px !important;
     border-radius: 20px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
     min-height: auto !important;
     height: auto !important;
+    flex: none !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
-  }
-  .carousel-header-row {
+    background: #FFFFFF !important;
+    border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.08), 0 4px 14px rgba(0, 0, 0, 0.03) !important;
     display: flex !important;
-    justify-content: flex-end !important;
-    margin-bottom: 6px !important;
-    position: relative !important;
-    z-index: 10 !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
   }
-  .carousel-nav-arrows {
+
+  .login-card-top-nav {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    justify-content: space-between !important;
+    margin-bottom: 12px !important;
+    flex-shrink: 0 !important;
   }
-  .carousel-arrow-btn {
-    width: 32px !important;
-    height: 32px !important;
-  }
-  .carousel-body {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-  .carousel-slide-content {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-  .slide-heading {
-    font-size: clamp(17px, 4.8vw, 20px) !important;
-    line-height: 1.25 !important;
-    letter-spacing: -0.4px !important;
-    margin: 0 0 6px 0 !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-  .slide-description {
-    font-size: clamp(12px, 3.3vw, 13px) !important;
-    line-height: 1.45 !important;
-    margin: 0 0 10px 0 !important;
+
+  .login-back-home-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
     color: #64748B !important;
-    word-break: break-word !important;
+    padding: 5px 8px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    border-radius: 6px !important;
   }
-  .slide-visual-stage {
-    width: 100% !important;
-    height: clamp(155px, 44vw, 195px) !important;
-    border-radius: 14px !important;
-    margin-bottom: 10px !important;
-    box-sizing: border-box !important;
-    position: relative !important;
-    overflow: hidden !important;
-  }
-  .slide-photo {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-  }
-  .slide-photo.slide1-photo {
-    object-position: center 15% !important;
-  }
-  .slide-photo.slide3-photo {
-    object-position: center 20% !important;
-  }
-  .slide-photo.slide4-photo {
-    object-position: 36% 22% !important;
-  }
-  .slide-doodle-callout {
-    top: 8px !important;
-    right: 8px !important;
-    padding: 4px 10px !important;
-    font-size: 10.5px !important;
+
+  .login-role-tabs {
+    display: inline-flex !important;
+    background: #F1F5F9 !important;
     border-radius: 16px !important;
-    max-width: calc(100% - 16px) !important;
-    box-sizing: border-box !important;
+    padding: 2px !important;
   }
-  .slide2-resume-canvas {
-    padding: 8px !important;
-    box-sizing: border-box !important;
-  }
-  .slide2-resume-canvas .resume-paper-card {
-    width: 155px !important;
-    max-width: calc(100% - 95px) !important;
-    padding: 8px 10px !important;
-  }
-  .floating-tag-stack {
-    right: 6px !important;
-    gap: 4px !important;
-  }
-  .floating-tag {
-    padding: 3px 7px !important;
-    font-size: 9.5px !important;
-  }
-  .slide3-feedback-stack {
-    max-width: 145px !important;
-    right: 8px !important;
-    top: 8px !important;
-    gap: 4px !important;
-  }
-  .slide3-feedback-stack .feedback-bubble {
-    padding: 4px 8px !important;
-    font-size: 9.5px !important;
-    border-radius: 8px !important;
-  }
-  .slide4-approval-card {
-    right: 8px !important;
-    top: 8px !important;
-    padding: 6px 10px !important;
-    gap: 4px !important;
-    max-width: 145px !important;
-    border-radius: 10px !important;
-    box-sizing: border-box !important;
-  }
-  .slide4-approval-card .approval-badge-header {
-    font-size: 10px !important;
-    padding: 2px 6px !important;
-    gap: 4px !important;
-  }
-  .slide4-approval-card .approval-check-item {
-    font-size: 9.5px !important;
-    gap: 4px !important;
-  }
-  .slide-feature-bar {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    padding-top: 8px !important;
-    width: 100% !important;
-  }
-  .feature-item-card {
-    padding: 7px 10px !important;
-    border-radius: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-  }
-  .feature-item-title {
-    font-size: 12px !important;
+
+  .login-role-tab {
+    padding: 5px 12px !important;
+    font-size: 11.5px !important;
+    border-radius: 12px !important;
     font-weight: 700 !important;
   }
-  .feature-item-sub {
-    font-size: 10.5px !important;
-    color: #64748B !important;
-  }
-  .carousel-dots-row {
-    margin-top: 8px !important;
-    margin-bottom: 2px !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 6px !important;
-  }
-  .carousel-dot {
-    width: 7px !important;
-    height: 7px !important;
-  }
-  .carousel-dot.active {
-    width: 22px !important;
-    height: 7px !important;
-  }
-  .login-form-pane {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-  }
-  .login-card {
-    padding: 22px 16px !important;
-    border-radius: 20px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
+
   .login-avatar-stage {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 6px;
+    width: 60px !important;
+    height: 60px !important;
+    margin: 0 auto 10px auto !important;
+    background: #FFFDF0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
+
   .login-avatar-img {
-    width: 74px;
-    height: 74px;
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
   }
+
+  .login-avatar-img.student-avatar {
+    object-position: center 16% !important;
+  }
+
   .login-card-title {
-    font-size: 20px;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px !important;
+    flex-shrink: 0 !important;
   }
+
   .login-card-prompt {
-    font-size: 12px;
-    margin-bottom: 14px;
+    font-size: 12.5px !important;
+    margin-bottom: 14px !important;
+    color: #64748B !important;
+    line-height: 1.4 !important;
+    flex-shrink: 0 !important;
   }
+
   .otp-inputs-wrapper {
-    gap: 5px;
+    gap: 4px !important;
+    margin-bottom: 14px !important;
+    min-height: 48px !important;
+    flex-shrink: 0 !important;
   }
+
+  .otp-boxes-track {
+    gap: clamp(5px, 2vw, 8px) !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
   .otp-box {
-    width: 42px;
-    height: 48px;
-    font-size: 19px;
-    border-radius: 9px;
+    width: clamp(40px, 12vw, 48px) !important;
+    height: clamp(46px, 13vw, 52px) !important;
+    font-size: 21px !important;
+    border-radius: 12px !important;
   }
+
   .btn-login-submit {
-    padding: 12px 16px;
-    font-size: 14.5px;
-    border-radius: 12px;
+    padding: 13px 16px !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    border-radius: 13px !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .login-or-divider {
+    margin: 12px 0 !important;
+    font-size: 10.5px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .login-info-card {
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    border-radius: 11px !important;
+    margin-top: 2px !important;
+    margin-bottom: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .login-need-help-link {
+    font-size: 11.5px !important;
+    margin-top: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .student-login-main-stage {
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)) 10px !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
   }
 }
 
-/* Extreme compact screens (360px) */
+/* Compact screens (360px) */
 @media (max-width: 380px) {
+  .carousel-journey-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+  }
+  .carousel-journey-btn span {
+    display: inline !important;
+  }
   .slide-visual-stage {
-    height: 155px !important;
+    min-height: 150px !important;
   }
-  .slide4-approval-card {
-    max-width: 132px !important;
-    padding: 5px 8px !important;
+  .slide-heading {
+    font-size: 16px !important;
   }
-  .slide4-approval-card .approval-badge-header {
-    font-size: 9.5px !important;
+  .slide-description {
+    font-size: 11.5px !important;
   }
-  .slide4-approval-card .approval-check-item {
-    font-size: 9px !important;
-  }
-  .slide3-feedback-stack {
-    max-width: 135px !important;
-  }
-  .slide2-resume-canvas .resume-paper-card {
-    width: 140px !important;
-    max-width: calc(100% - 85px) !important;
-  }
-  .otp-inputs-wrapper {
-    gap: 4px;
+  .otp-boxes-track {
+    gap: 4px !important;
   }
   .otp-box {
-    width: 38px;
-    height: 44px;
-    font-size: 17px;
+    width: 38px !important;
+    height: 44px !important;
+    font-size: 17px !important;
+  }
+  .carousel-action-btn {
+    padding: 10px 12px !important;
+    font-size: 12.5px !important;
+  }
+  .login-card {
+    padding: 14px 12px 16px 12px !important;
   }
 }
 
@@ -1645,6 +2040,9 @@ const styles = `/* =============================================================
   width: 100% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
+}
+.mobile-frame-mode .login-carousel-pane.mobile-hidden {
+  display: none !important;
 }
 .mobile-frame-mode .carousel-card {
   padding: 16px 12px !important;
@@ -1714,6 +2112,499 @@ const styles = `/* =============================================================
 .mobile-frame-mode .otp-box {
   width: 40px;
   height: 46px;
+}
+
+/* ==========================================================================
+   Team Everest Welcome Screen (Responsive for Desktop & Mobile)
+   ========================================================================== */
+
+.welcome-screen-view {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.welcome-top-bar {
+  width: 100%;
+  padding: 16px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  box-sizing: border-box;
+  z-index: 20;
+}
+
+.welcome-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.welcome-header-logo {
+  height: 42px;
+  width: auto;
+  max-width: 48px;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+
+.welcome-brand-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.welcome-brand-portal {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748B;
+  letter-spacing: 0.2px;
+}
+
+/* Desktop Main Stage */
+.welcome-main-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.welcome-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcome-journey-toggle {
+  display: inline-flex;
+  background: #F1F5F9;
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid #E2E8F0;
+}
+
+.welcome-journey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.welcome-journey-btn:hover {
+  color: #0F172A;
+}
+
+.welcome-journey-btn.active {
+  background: #FFED32;
+  color: #0F172A;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-skip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.welcome-skip-link:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+/* Desktop Main Stage */
+.welcome-main-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.welcome-carousel-card {
+  max-width: 580px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 26px;
+  padding: 24px 28px 24px 28px;
+  box-shadow: 
+    0 24px 48px -12px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.welcome-active-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.2px;
+}
+
+.carousel-journey-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #854D0E;
+  background: #FEF08A;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.2px;
+}
+
+/* Welcome Slide Presentation & Realistic Photo */
+.welcome-slide-anim {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.welcome-slide-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  background: #F1F5F9;
+}
+
+.welcome-slide-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+}
+
+/* Step Badge Number 1, 2, 3, 4 */
+.carousel-step-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FFED32;
+  color: #0F172A;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+  z-index: 10;
+  border: 2px solid #FFFFFF;
+}
+
+.welcome-slide-text {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.welcome-slide-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
+  margin: 0 0 6px 0;
+  word-break: break-word;
+}
+
+.welcome-slide-desc {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}
+
+/* Welcome Carousel Footer Buttons */
+.welcome-carousel-footer {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.welcome-btn-pair {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.welcome-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.welcome-btn-secondary:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.welcome-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: #FFED32;
+  color: #0F172A;
+  font-size: 14.5px;
+  font-weight: 800;
+  border: 1px solid rgba(202, 138, 4, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.welcome-btn-primary:hover {
+  background: #FACC15;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 179, 8, 0.45);
+}
+
+.welcome-btn-primary:active {
+  transform: translateY(0);
+}
+
+.welcome-btn-primary.full-width {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Smooth Carousel Animations (Fade, Smooth, Slide, Impact)
+   ========================================================================== */
+
+.anim-fade .welcome-slide-photo,
+.anim-fade .slide-photo {
+  animation: slidePhotoFadeIn 0.5s ease-out both;
+}
+.anim-fade .welcome-slide-heading,
+.anim-fade .slide-heading {
+  animation: slideHeadingFadeIn 0.55s ease-out both;
+}
+
+.anim-smooth .welcome-slide-photo,
+.anim-smooth .slide-photo {
+  animation: slidePhotoSmooth 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-smooth .welcome-slide-heading,
+.anim-smooth .slide-heading,
+.anim-smooth .welcome-slide-desc,
+.anim-smooth .slide-description {
+  animation: slideTextSmooth 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-slide .welcome-slide-photo,
+.anim-slide .slide-photo {
+  animation: slidePhotoSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-slide .welcome-slide-heading,
+.anim-slide .slide-heading,
+.anim-slide .welcome-slide-desc,
+.anim-slide .slide-description {
+  animation: slideTextSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-impact .welcome-slide-photo,
+.anim-impact .slide-photo {
+  animation: slidePhotoImpact 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.anim-impact .welcome-slide-heading,
+.anim-impact .slide-heading,
+.anim-impact .welcome-slide-desc,
+.anim-impact .slide-description {
+  animation: slideTextSmooth 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slidePhotoFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideHeadingFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slidePhotoSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideTextSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slidePhotoSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideTextSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slidePhotoImpact {
+  0% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade .welcome-slide-photo,
+  .anim-fade .slide-photo,
+  .anim-fade .welcome-slide-heading,
+  .anim-fade .slide-heading,
+  .anim-smooth .welcome-slide-photo,
+  .anim-smooth .slide-photo,
+  .anim-smooth .welcome-slide-heading,
+  .anim-smooth .slide-heading,
+  .anim-smooth .welcome-slide-desc,
+  .anim-smooth .slide-description,
+  .anim-slide .welcome-slide-photo,
+  .anim-slide .slide-photo,
+  .anim-slide .welcome-slide-heading,
+  .anim-slide .slide-heading,
+  .anim-slide .welcome-slide-desc,
+  .anim-slide .slide-description,
+  .anim-impact .welcome-slide-photo,
+  .anim-impact .slide-photo,
+  .anim-impact .welcome-slide-heading,
+  .anim-impact .slide-heading,
+  .anim-impact .welcome-slide-desc,
+  .anim-impact .slide-description,
+  .welcome-btn-primary {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Mobile Frame Simulation Support */
+.mobile-frame-mode .welcome-screen-view {
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+}
+.mobile-frame-mode .welcome-top-bar {
+  padding: 8px 12px !important;
+}
+.mobile-frame-mode .welcome-main-stage {
+  padding: 10px 12px 14px 12px !important;
+}
+.mobile-frame-mode .welcome-carousel-card {
+  height: 100% !important;
+  padding: 12px 12px !important;
+}
+.mobile-frame-mode .welcome-slide-photo-wrap {
+  height: 140px !important;
 }
 `;
 

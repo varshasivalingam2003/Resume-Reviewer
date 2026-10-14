@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import { zohoProxyMiddleware } from './server/proxyMiddleware.js';
 
 export default defineConfig(({ mode }) => {
   // Load environment variables (including non-VITE_ ones) into process.env for the server proxy
@@ -10,20 +9,16 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [
-      react(),
-      {
-        name: 'zoho-backend-proxy',
-        configureServer(server) {
-          server.middlewares.use((req, res, next) => {
-            zohoProxyMiddleware(req, res, next);
-          });
-        }
-      }
-    ],
+    plugins: [react()],
     server: {
       port: 5173,
-      open: false
+      open: false,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5001',
+          changeOrigin: true
+        }
+      }
     }
   };
 });

@@ -51,7 +51,6 @@ export const StudentFeedbackView: React.FC = () => {
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const [isAudioPaused, setIsAudioPaused] = useState(false);
   const currentAudioElementRef = useRef<HTMLAudioElement | null>(null);
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [showSubmitSuccessModal, setShowSubmitSuccessModal] = useState(false);
 
   // PDF Loading & Rendering States for Actual Uploaded Resume
@@ -63,6 +62,7 @@ export const StudentFeedbackView: React.FC = () => {
   const [pdfError, setPdfError] = useState(false);
   const [pdfTotalPages, setPdfTotalPages] = useState<number>(activeStudent?.totalPages || 1);
   const [reloadNonce, setReloadNonce] = useState(0);
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 640;
 
   interface DetectedSection {
     key: string;
@@ -376,6 +376,16 @@ export const StudentFeedbackView: React.FC = () => {
     return text.replace(/\[Annotation Pin:[^\]]*\]/gi, '').trim();
   };
 
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudioElementRef.current) {
+        currentAudioElementRef.current.pause();
+        currentAudioElementRef.current = null;
+      }
+    };
+  }, []);
+
   const handlePlayVoice = (id: string, audioNote?: any, fallbackText?: string) => {
     // If clicking the currently active track: toggle pause / resume
     if (playingAudioId === id) {
@@ -383,101 +393,80 @@ export const StudentFeedbackView: React.FC = () => {
         // Pause playback
         if (currentAudioElementRef.current) {
           currentAudioElementRef.current.pause();
-        } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          window.speechSynthesis.pause();
         }
         setIsAudioPaused(true);
       } else {
         // Resume playback
         if (currentAudioElementRef.current) {
-          currentAudioElementRef.current.play().catch(e => console.warn(e));
-        } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-          } else {
-            const raw = audioNote?.transcript || fallbackText || '';
-            const cleaned = cleanFeedbackText(raw);
-            if (cleaned) {
-              const utterance = new SpeechSynthesisUtterance(cleaned);
-              utterance.rate = 0.95;
-              utterance.pitch = 1.0;
-              utterance.onend = () => {
-                setPlayingAudioId(null);
-                setIsAudioPaused(false);
-              };
-              utterance.onerror = () => {
-                setPlayingAudioId(null);
-                setIsAudioPaused(false);
-              };
-              currentUtteranceRef.current = utterance;
-              window.speechSynthesis.speak(utterance);
-            }
-          }
+          currentAudioElementRef.current.play().catch(e => {
+            console.warn('Playback resume error:', e);
+            setIsAudioPaused(false);
+            setPlayingAudioId(null);
+          });
         }
         setIsAudioPaused(false);
       }
       return;
     }
 
-    // Stop any currently playing audio or speech
+    // Stop any currently playing audio
     if (currentAudioElementRef.current) {
       currentAudioElementRef.current.pause();
       currentAudioElementRef.current = null;
     }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+
+    // Identify real voice note source (persisted in student record or cached for student)
+    let audioUrl = audioNote?.audioUrl || audioNote?.url || audioNote?.audioSrc || audioNote?.src || audioNote?.blobUrl;
+    if (!audioUrl && activeStudent?.id) {
+      try {
+        const cached = localStorage.getItem(`student_audio_note_${activeStudent.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          audioUrl = parsed?.audioUrl;
+        }
+      } catch (_) {}
     }
 
-    // Identify voice note source
-    const audioUrl = audioNote?.audioUrl || audioNote?.url || audioNote?.audioSrc || audioNote?.src || audioNote?.blobUrl;
-    const textToSpeak = cleanFeedbackText(audioNote?.transcript || fallbackText || '');
-
     if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      currentAudioElementRef.current = audio;
-      setPlayingAudioId(id);
-      setIsAudioPaused(false);
+      try {
+        const audio = new Audio(audioUrl);
+        currentAudioElementRef.current = audio;
 
-      audio.onended = () => {
-        setPlayingAudioId(null);
-        setIsAudioPaused(false);
-        currentAudioElementRef.current = null;
-      };
-      audio.onerror = () => {
-        console.warn('Audio playback error for:', audioUrl);
-        setPlayingAudioId(null);
-        setIsAudioPaused(false);
-        currentAudioElementRef.current = null;
-      };
-      audio.play().catch(err => {
-        console.warn('Playback error:', err);
-        setPlayingAudioId(null);
-        setIsAudioPaused(false);
-        currentAudioElementRef.current = null;
-      });
-    } else if (textToSpeak && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      setPlayingAudioId(id);
-      setIsAudioPaused(false);
+        audio.onended = () => {
+          setPlayingAudioId(null);
+          setIsAudioPaused(false);
+          currentAudioElementRef.current = null;
+        };
+        audio.onerror = () => {
+          console.warn('Audio playback error for:', audioUrl);
+          setPlayingAudioId(null);
+          setIsAudioPaused(false);
+          currentAudioElementRef.current = null;
+          alert('Could not play voice recording. The format may not be supported by your browser.');
+        };
 
-      utterance.onend = () => {
+        // Play real microphone audio - only enter playing state after audio starts
+        audio.play().then(() => {
+          setPlayingAudioId(id);
+          setIsAudioPaused(false);
+        }).catch(err => {
+          console.warn('Audio play failed:', err);
+          setPlayingAudioId(null);
+          setIsAudioPaused(false);
+          currentAudioElementRef.current = null;
+          alert('Audio playback could not be started.');
+        });
+      } catch (err) {
+        console.warn('Failed to initialize Audio:', err);
         setPlayingAudioId(null);
         setIsAudioPaused(false);
-      };
-      utterance.onerror = (e) => {
-        console.warn('Speech synthesis error:', e);
-        setPlayingAudioId(null);
-        setIsAudioPaused(false);
-      };
-      currentUtteranceRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
+      }
     } else {
-      // Source missing or invalid: do NOT show fake playing state
+      // Audio source missing: never substitute synthetic speech or browser text-to-speech
       console.warn('Voice note source missing for item:', id);
       setPlayingAudioId(null);
       setIsAudioPaused(false);
+      alert('No voice recording is available for this feedback.');
     }
   };
 
@@ -1311,8 +1300,8 @@ export const StudentFeedbackView: React.FC = () => {
 
                     return (
                       <React.Fragment key={`sub-highlight-${sub.id}`}>
-                        {/* Section Highlight Box */}
-                        {sec && (
+                        {/* Section Highlight Box (only when spotlighted or on desktop) */}
+                        {sec && (!isMobileDevice || isSpotlighted) && (
                           <div
                             id={`resume-section-highlight-${sub.sectionKey}`}
                             style={{
@@ -1335,18 +1324,21 @@ export const StudentFeedbackView: React.FC = () => {
                         {/* Volunteer Feedback Pin / Marker Badge */}
                         <div
                           id={`resume-annotation-${sub.sectionKey}`}
-                          className="student-feedback-marker"
+                          className={`student-feedback-marker ${isSpotlighted ? 'is-spotlighted' : ''}`}
                           style={{
                             position: 'absolute',
                             left: pinX !== null ? `${pinX}%` : (sec ? `${sec.pdfX}%` : '10%'),
                             top: pinY !== null ? `${pinY}%` : (sec ? `${Math.max(2, sec.pdfY - 3)}%` : '12%'),
-                            transform: 'translate(0, -50%)',
+                            transform: isMobileDevice ? 'translate(-50%, -50%)' : 'translate(0, -50%)',
                             zIndex: 15,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '3px 10px',
-                            borderRadius: '14px',
+                            justifyContent: isMobileDevice ? 'center' : 'flex-start',
+                            gap: isMobileDevice ? 0 : '6px',
+                            padding: isMobileDevice ? 0 : '3px 10px',
+                            width: isMobileDevice ? '24px' : 'auto',
+                            height: isMobileDevice ? '24px' : 'auto',
+                            borderRadius: isMobileDevice ? '50%' : '14px',
                             background: isSpotlighted ? '#FEF3C7' : (isResolved ? '#F0FDF4' : catBg),
                             border: isSpotlighted ? '2px solid #F59E0B' : (isResolved ? '1.5px solid #22C55E' : `1.5px solid ${catColor}`),
                             boxShadow: isSpotlighted ? '0 4px 14px rgba(245, 158, 11, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.12)',
@@ -1354,7 +1346,7 @@ export const StudentFeedbackView: React.FC = () => {
                             fontWeight: 700,
                             color: isResolved ? '#15803D' : catColor,
                             cursor: 'pointer',
-                            maxWidth: '260px',
+                            maxWidth: isMobileDevice ? '24px' : '260px',
                             whiteSpace: 'nowrap',
                             transition: 'all 0.2s ease'
                           }}
@@ -1365,14 +1357,18 @@ export const StudentFeedbackView: React.FC = () => {
                               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             }
                           }}
-                          title={`${formatSubtopicTitle(sub.title)}: ${cleanFeedbackText(sub.command)} (Click to view on left)`}
+                          title={`${formatSubtopicTitle(sub.title)}: ${cleanFeedbackText(sub.command)} (Click to view)`}
                         >
                           <span>{isResolved ? '✓' : (cat === 'must_fix' ? '⚠️' : '💡')}</span>
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatSubtopicTitle(sub.title)}</span>
-                          {isResolved && (
-                            <span style={{ fontSize: '9.5px', background: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '8px' }}>
-                              Fixed
-                            </span>
+                          {!isMobileDevice && (
+                            <>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatSubtopicTitle(sub.title)}</span>
+                              {isResolved && (
+                                <span style={{ fontSize: '9.5px', background: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '8px' }}>
+                                  Fixed
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </React.Fragment>

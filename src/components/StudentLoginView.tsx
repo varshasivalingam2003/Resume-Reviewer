@@ -235,12 +235,12 @@ export const StudentLoginView: React.FC = () => {
               </a>
             </div>
 
-            {/* Friendly 3D Character Illustration Avatar */}
+            {/* Student Profile Avatar */}
             <div className="login-avatar-stage">
               <img 
-                src="/images/login-carousel/avatar.png" 
-                alt="Team Everest Volunteer Avatar" 
-                className="login-avatar-img"
+                src="/images/login-carousel/student-slide4.jpg" 
+                alt="Team Everest Student" 
+                className="login-avatar-img student-avatar"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}

@@ -220,58 +220,7 @@ const styles = `/* ========================================================
     }
   }
 
-  /* Login Screens */
-  .login-container {
-    flex-direction: column !important;
-    width: 100% !important;
-    padding: 12px 10px !important;
-  }
-
-  .login-hero {
-    display: none !important;
-  }
-
-  .login-form-pane {
-    padding: 0 !important;
-    width: 100% !important;
-    display: flex !important;
-    justify-content: center !important;
-  }
-
-  .login-card {
-    border: 1px solid var(--border-color) !important;
-    box-shadow: var(--shadow-sm) !important;
-    padding: 20px 14px !important;
-    border-radius: var(--radius-xl) !important;
-    max-width: 460px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin: 0 auto !important;
-  }
-
-  .login-role-tabs {
-    margin-bottom: 12px !important;
-  }
-
-  .login-role-tab {
-    font-size: 11.5px !important;
-    padding: 6px 8px !important;
-  }
-
-  .otp-inputs-wrapper {
-    gap: clamp(4px, 1.8vw, 6px) !important;
-    margin-bottom: 14px !important;
-    justify-content: center !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .otp-box {
-    width: clamp(38px, 11vw, 44px) !important;
-    height: clamp(44px, 12.5vw, 50px) !important;
-    font-size: clamp(17px, 4.5vw, 20px) !important;
-    box-sizing: border-box !important;
-  }
+  /* Login screen styles are managed cohesively in LoginStyles.tsx */
 
   /* Volunteer Dashboard View */
   .dashboard-sidebar {
@@ -408,7 +357,7 @@ const styles = `/* ========================================================
   .workspace-top-bar {
     padding: 8px 10px !important;
     height: auto !important;
-    min-height: 50px !important;
+    min-height: auto !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -416,6 +365,7 @@ const styles = `/* ========================================================
     border-bottom: 1px solid #E2E8F0 !important;
     flex-shrink: 0 !important;
     width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .workspace-left-meta {
@@ -423,6 +373,9 @@ const styles = `/* ========================================================
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
   }
 
   .workspace-back-btn,
@@ -430,9 +383,9 @@ const styles = `/* ========================================================
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    padding: 4px 10px !important;
-    font-size: 12px !important;
-    height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 11.5px !important;
+    height: 30px !important;
     border-radius: 6px !important;
     border: 1px solid #CBD5E1 !important;
   }
@@ -440,18 +393,35 @@ const styles = `/* ========================================================
   .workspace-student-title-box {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
     flex: 1 !important;
     justify-content: flex-end !important;
+    flex-wrap: wrap !important;
+    min-width: 0 !important;
+  }
+
+  .workspace-student-select {
+    font-size: 12px !important;
+    height: 30px !important;
+    padding: 2px 6px !important;
+    max-width: 125px !important;
+    border-radius: 6px !important;
   }
 
   .workspace-student-name {
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 800 !important;
     color: #0F172A !important;
-    max-width: 130px !important;
+    max-width: 110px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .simplified-student-counter {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    border-radius: 999px !important;
     white-space: nowrap !important;
   }
 
@@ -461,12 +431,33 @@ const styles = `/* ========================================================
 
   .workspace-student-title-box .status-badge {
     font-size: 9.5px !important;
-    padding: 2px 7px !important;
+    padding: 2px 6px !important;
     border-radius: 999px !important;
   }
 
   .workspace-top-actions {
-    display: none !important;
+    display: flex !important;
+    width: 100% !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .workspace-top-actions .btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    padding: 6px 4px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    border-radius: 6px !important;
   }
 
   /* Mobile Workspace Layout: Resume First + Sticky Bottom Review Action */
@@ -1443,13 +1434,15 @@ const styles = `/* ========================================================
 .mobile-frame-mode .workspace-top-bar {
   padding: 8px 10px !important;
   height: auto !important;
-  min-height: 50px !important;
+  min-height: auto !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 8px !important;
   background: #FFFFFF !important;
   border-bottom: 1px solid #E2E8F0 !important;
   flex-shrink: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .mobile-frame-mode .workspace-left-meta {
@@ -1457,30 +1450,55 @@ const styles = `/* ========================================================
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
 }
 
-.mobile-frame-mode .workspace-back-btn {
+.mobile-frame-mode .workspace-back-btn,
+.mobile-frame-mode .workspace-home-btn {
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
-  padding: 4px 10px !important;
-  font-size: 12px !important;
-  height: 32px !important;
+  padding: 4px 8px !important;
+  font-size: 11.5px !important;
+  height: 30px !important;
   border-radius: 6px !important;
+  border: 1px solid #CBD5E1 !important;
 }
 
 .mobile-frame-mode .workspace-student-title-box {
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
+  gap: 5px !important;
+  flex: 1 !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+}
+
+.mobile-frame-mode .workspace-student-select {
+  font-size: 12px !important;
+  height: 30px !important;
+  padding: 2px 6px !important;
+  max-width: 125px !important;
+  border-radius: 6px !important;
 }
 
 .mobile-frame-mode .workspace-student-name {
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
-  max-width: 130px !important;
+  color: #0F172A !important;
+  max-width: 110px !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.mobile-frame-mode .simplified-student-counter {
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  border-radius: 999px !important;
   white-space: nowrap !important;
 }
 
@@ -1488,8 +1506,35 @@ const styles = `/* ========================================================
   display: none !important;
 }
 
+.mobile-frame-mode .workspace-student-title-box .status-badge {
+  font-size: 9.5px !important;
+  padding: 2px 6px !important;
+  border-radius: 999px !important;
+}
+
 .mobile-frame-mode .workspace-top-actions {
-  display: none !important;
+  display: flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
+}
+
+.mobile-frame-mode .workspace-top-actions .btn {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  padding: 6px 4px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  border-radius: 6px !important;
 }
 
 .mobile-frame-mode .mobile-workspace-tabs-bar {
