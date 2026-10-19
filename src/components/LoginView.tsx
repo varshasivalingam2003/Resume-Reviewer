@@ -134,7 +134,7 @@ export const LoginView: React.FC = () => {
   const [bounceIndex, setBounceIndex] = useState<number | null>(null);
   const [boxOffsets, setBoxOffsets] = useState<{ tx: number; ty: number; ctx: number; cty: number }[]>([]);
   const isNavigatingRef = useRef<boolean>(false);
-  const successNavTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const successNavTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clean up success timer on unmount
   useEffect(() => {

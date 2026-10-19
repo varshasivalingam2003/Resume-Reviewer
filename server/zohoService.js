@@ -211,9 +211,7 @@ export async function verifyVolunteerOtp(vOtp) {
   const rawText = await response.text();
   console.log(`[Zoho Proxy] Zoho Custom API HTTP Status: ${response.status}`);
   console.log(`[Zoho Proxy] Safe Zoho Response:`, rawText);
-  try {
-    fs.writeFileSync('/Users/logesh/.gemini/antigravity-ide/brain/87b50c2b-bf47-48ff-8ef9-897b800d4751/scratch/last_zoho_response.json', rawText);
-  } catch (_) { }
+
 
   let data;
   try {

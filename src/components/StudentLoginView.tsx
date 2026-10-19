@@ -167,7 +167,7 @@ export const StudentLoginView: React.FC = () => {
       <header className="login-top-bar">
         <div className="login-brand-group">
           <img 
-            src="/images/login-carousel/team_everest_logo.png" 
+            src="/images/team-everest-logo.png" 
             alt="Team Everest Logo" 
             className="team-everest-header-logo" 
             onError={(e) => {
