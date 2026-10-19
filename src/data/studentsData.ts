@@ -58,6 +58,7 @@ export interface Student {
   rating: number;
   improveTags: string[];
   generalFeedback: string;
+  categoryFeedback?: Record<string, string>;
   volunteerSubtopics: VolunteerSubtopic[];
   resumeSections: ResumeSection[];
   oldResumeSections?: ResumeSection[];
@@ -94,9 +95,9 @@ export const initialStudents: Student[] = [
     assignedDate: "06 Sep 2026",
     otp: "101010",
     totalPages: 2,
-    rating: 4,
-    improveTags: ["Formatting"],
-    generalFeedback: "Clean resume layout. Provide more measurable impact metrics for projects and quantify achievements.",
+    rating: 0,
+    improveTags: [],
+    generalFeedback: "",
     
     volunteerSubtopics: [
       {

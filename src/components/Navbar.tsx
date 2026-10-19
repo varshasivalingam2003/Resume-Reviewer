@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { PortalLogoIcon } from './Icons';
-import { Home, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { isAuthenticated, volunteer, setCurrentView, setActiveRole, logout } = useApp();
+  const { isAuthenticated, volunteer, setCurrentView, setActiveRole, openModal } = useApp();
 
   return (
     <header className="portal-navbar">
@@ -26,18 +26,6 @@ export const Navbar: React.FC = () => {
       </div>
 
       <div className="portal-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <button 
-          className="portal-home-btn"
-          onClick={() => {
-            setActiveRole('volunteer');
-            setCurrentView('login');
-          }}
-          title="Return to main Landing / Login page"
-        >
-          <Home size={14} />
-          <span>Home</span>
-        </button>
-
         {isAuthenticated && (
           <>
             <div 
@@ -50,7 +38,7 @@ export const Navbar: React.FC = () => {
 
             <button 
               className="portal-logout-btn"
-              onClick={() => logout()}
+              onClick={() => openModal('logout')}
               title="Log out from volunteer portal"
             >
               <LogOut size={14} />

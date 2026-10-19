@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { initialStudents, Student, VolunteerSubtopic, ResumeSection } from '../data/studentsData';
 import { 
@@ -18,20 +18,15 @@ import {
   Pause, 
   AlertTriangle, 
   Lock,
-  Download
+  Download,
+  ChevronDown
 } from 'lucide-react';
-
-// Privacy Mask interface for PDF visual redaction layer
-interface PrivacyMask {
-  id: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  type: 'email' | 'phone' | 'address' | 'photo';
-  label: string;
-  originalText?: string;
-}
+import { 
+  extractPrivacyMasksAndSections, 
+  getRelevantCategories, 
+  PrivacyMask, 
+  DetectedPdfSection 
+} from '../utils/privacyMasking';
 
 // PDF Pin Annotation
 interface AnnotationPin {
@@ -43,21 +38,6 @@ interface AnnotationPin {
   label: string;
   category: 'suggestion' | 'must_fix' | 'praise' | 'question';
   comment: string;
-}
-
-// Detected Section on Actual PDF
-interface DetectedPdfSection {
-  id: string;
-  key: string;
-  title: string;
-  page: number;
-  pixelLeft: number;
-  pixelTop: number;
-  pixelRight: number;
-  pixelWidth: number;
-  pixelHeight: number;
-  pdfX: number;
-  pdfY: number;
 }
 
 export const ResumeWorkspaceView: React.FC = () => {
@@ -78,6 +58,7 @@ export const ResumeWorkspaceView: React.FC = () => {
     saveAudioNote,
     quickHighlightFromCanvas,
     updateGeneralFeedback,
+    updateCategoryFeedback,
     setRating,
     toggleImproveTag,
     openModal,
@@ -93,6 +74,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   const [pdfTotalPages, setPdfTotalPages] = useState<number>(activeStudent?.totalPages || 1);
   const [privacyMasks, setPrivacyMasks] = useState<PrivacyMask[]>([]);
   const [detectedSections, setDetectedSections] = useState<DetectedPdfSection[]>([]);
+  const [isScannedPdfFallback, setIsScannedPdfFallback] = useState(false);
   const [inlinePopoverSection, setInlinePopoverSection] = useState<DetectedPdfSection | null>(null);
   const [hoveredSectionKey, setHoveredSectionKey] = useState<string | null>(null);
   const [reloadNonce, setReloadNonce] = useState(0);
@@ -260,11 +242,13 @@ export const ResumeWorkspaceView: React.FC = () => {
 
   // Voice Feedback Recorder & Transcription
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
+  const [recordingTarget, setRecordingTarget] = useState<string | null>(null);
   const [voiceSeconds, setVoiceSeconds] = useState(0);
   const [maxVoiceSeconds, setMaxVoiceSeconds] = useState<number>(300); // 5 mins
 
   const [feedbackSpokenLang, setFeedbackSpokenLang] = useState<string>('ta-IN');
   const [isTranslatingVoice, setIsTranslatingVoice] = useState(false);
+  const [translatingTarget, setTranslatingTarget] = useState<string | null>(null);
   const [isWorkspaceAudioPlaying, setIsWorkspaceAudioPlaying] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -272,6 +256,7 @@ export const ResumeWorkspaceView: React.FC = () => {
   const feedbackRecognitionRef = useRef<any>(null);
   const feedbackTranscriptRef = useRef<string>('');
   const feedbackBaseTextRef = useRef<string>('');
+  const feedbackTargetRef = useRef<string>('general');
   const workspaceAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const formatVoiceTime = (totalSeconds: number) => {
@@ -286,7 +271,7 @@ export const ResumeWorkspaceView: React.FC = () => {
       timer = setInterval(() => {
         setVoiceSeconds(prev => {
           if (prev >= maxVoiceSeconds) {
-            handleToggleVoice();
+            handleToggleVoice(feedbackTargetRef.current || 'general');
             return maxVoiceSeconds;
           }
           return prev + 1;
@@ -339,6 +324,11 @@ export const ResumeWorkspaceView: React.FC = () => {
   });
 
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState<boolean>(false);
+  const [isImprovementSectionOpen, setIsImprovementSectionOpen] = useState<boolean>(true);
+
+  useEffect(() => {
+    setIsImprovementSectionOpen(true);
+  }, [activeStudent?.id]);
 
   useEffect(() => {
     if (activeStudent.status === 'approved') {
@@ -350,16 +340,9 @@ export const ResumeWorkspaceView: React.FC = () => {
     }
   }, [activeStudent.id, activeStudent.status]);
 
-  const simplifiedImproveTags = [
-    'Career Objective',
-    'Education',
-    'Skills',
-    'Projects',
-    'Experience',
-    'Formatting',
-    'Grammar',
-    'Other'
-  ];
+  const simplifiedImproveTags = useMemo(() => {
+    return getRelevantCategories(activeStudent, detectedSections);
+  }, [activeStudent?.id, activeStudent?.improveTags, activeStudent?.categoryFeedback, detectedSections, activeStudent?.resumeSections]);
 
   const quickFeedbackChips = [
     'Add more details',
@@ -429,80 +412,12 @@ export const ResumeWorkspaceView: React.FC = () => {
     return trimmed;
   };
 
-  const handleToggleVoice = async () => {
-    if (!isVoiceRecording) {
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-        alert('Microphone recording is not supported in this browser.');
-        return;
-      }
-
-      let stream: MediaStream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaStreamRef.current = stream;
-      } catch (err: any) {
-        console.warn('Microphone permission denied or not available:', err);
-        alert('Microphone access is required to record voice feedback. Please check permissions.');
-        return;
-      }
-
-      // Initialize MediaRecorder for real microphone audio recording
-      try {
-        let mimeType = 'audio/webm';
-        if (typeof MediaRecorder !== 'undefined') {
-          if (!MediaRecorder.isTypeSupported('audio/webm')) {
-            if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
-            else if (MediaRecorder.isTypeSupported('audio/ogg')) mimeType = 'audio/ogg';
-            else mimeType = '';
-          }
-        }
-        const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-        audioChunksRef.current = [];
-        recorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            audioChunksRef.current.push(e.data);
-          }
-        };
-        mediaRecorderRef.current = recorder;
-        recorder.start(250);
-      } catch (err) {
-        console.warn('MediaRecorder initialization warning:', err);
-      }
-
-      // Initialize SpeechRecognition for speech transcription & translation
-      feedbackTranscriptRef.current = '';
-      feedbackBaseTextRef.current = activeStudent.generalFeedback || '';
-      const SpeechRecognitionClass = 
-        typeof window !== 'undefined'
-          ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
-          : null;
-
-      if (SpeechRecognitionClass) {
-        try {
-          const rec = new SpeechRecognitionClass();
-          rec.continuous = true;
-          rec.interimResults = false;
-          rec.lang = feedbackSpokenLang;
-          rec.onresult = (e: any) => {
-            let full = '';
-            for (let i = 0; i < e.results.length; i++) {
-              full += e.results[i][0]?.transcript || '';
-            }
-            feedbackTranscriptRef.current = full.trim();
-          };
-          rec.onerror = (e: any) => console.warn('SpeechRecognition feedback warning:', e);
-          rec.start();
-          feedbackRecognitionRef.current = rec;
-        } catch (err) {
-          console.warn('Speech recognition warning:', err);
-        }
-      }
-
-      setVoiceSeconds(0);
-      setIsVoiceRecording(true);
-    } else {
+  const handleToggleVoice = async (target: string = 'general') => {
+    if (isVoiceRecording) {
+      const currentTarget = feedbackTargetRef.current || 'general';
       // STOP RECORDING
       setIsVoiceRecording(false);
+      setRecordingTarget(null);
       const totalSecs = Math.max(voiceSeconds, 1);
       const duration = formatVoiceTime(totalSecs);
 
@@ -551,25 +466,114 @@ export const ResumeWorkspaceView: React.FC = () => {
         mediaStreamRef.current = null;
       }
 
-      // Translate speech transcript to English and insert into Additional Note textarea
+      // Translate speech transcript to English and insert into the targeted category or general note textarea
       const rawSpoken = feedbackTranscriptRef.current.trim();
       if (rawSpoken) {
         setIsTranslatingVoice(true);
+        setTranslatingTarget(currentTarget);
         translateToEnglish(rawSpoken, feedbackSpokenLang).then(englishText => {
           setIsTranslatingVoice(false);
-          if (englishText) {
+          setTranslatingTarget(null);
+          const textToInsert = englishText || rawSpoken;
+          if (textToInsert) {
             const base = (feedbackBaseTextRef.current || '').trim();
-            const updatedNote = base ? `${base}\n\n${englishText}` : englishText;
-            updateGeneralFeedback(updatedNote);
+            const updated = base ? `${base}\n\n${textToInsert}` : textToInsert;
+            if (currentTarget === 'general') {
+              updateGeneralFeedback(updated);
+            } else {
+              updateCategoryFeedback(currentTarget, updated);
+            }
           }
         }).catch(() => {
           setIsTranslatingVoice(false);
+          setTranslatingTarget(null);
           const base = (feedbackBaseTextRef.current || '').trim();
-          const updatedNote = base ? `${base}\n\n${rawSpoken}` : rawSpoken;
-          updateGeneralFeedback(updatedNote);
+          const updated = base ? `${base}\n\n${rawSpoken}` : rawSpoken;
+          if (currentTarget === 'general') {
+            updateGeneralFeedback(updated);
+          } else {
+            updateCategoryFeedback(currentTarget, updated);
+          }
         });
       }
+      return;
     }
+
+    // START RECORDING
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      alert('Microphone recording is not supported in this browser.');
+      return;
+    }
+
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+    } catch (err: any) {
+      console.warn('Microphone permission denied or not available:', err);
+      alert('Microphone access is required to record voice feedback. Please check permissions.');
+      return;
+    }
+
+    // Initialize MediaRecorder for real microphone audio recording
+    try {
+      let mimeType = 'audio/webm';
+      if (typeof MediaRecorder !== 'undefined') {
+        if (!MediaRecorder.isTypeSupported('audio/webm')) {
+          if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+          else if (MediaRecorder.isTypeSupported('audio/ogg')) mimeType = 'audio/ogg';
+          else mimeType = '';
+        }
+      }
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start(250);
+    } catch (err) {
+      console.warn('MediaRecorder initialization warning:', err);
+    }
+
+    // Initialize SpeechRecognition for speech transcription & translation
+    feedbackTargetRef.current = target;
+    feedbackTranscriptRef.current = '';
+    feedbackBaseTextRef.current = target === 'general'
+      ? (activeStudent.generalFeedback || '')
+      : (activeStudent.categoryFeedback?.[target] || '');
+
+    const SpeechRecognitionClass = 
+      typeof window !== 'undefined'
+        ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+        : null;
+
+    if (SpeechRecognitionClass) {
+      try {
+        const rec = new SpeechRecognitionClass();
+        rec.continuous = true;
+        rec.interimResults = false;
+        rec.lang = feedbackSpokenLang;
+        rec.onresult = (e: any) => {
+          let full = '';
+          for (let i = 0; i < e.results.length; i++) {
+            full += e.results[i][0]?.transcript || '';
+          }
+          feedbackTranscriptRef.current = full.trim();
+        };
+        rec.onerror = (e: any) => console.warn('SpeechRecognition feedback warning:', e);
+        rec.start();
+        feedbackRecognitionRef.current = rec;
+      } catch (err) {
+        console.warn('Speech recognition warning:', err);
+      }
+    }
+
+    setVoiceSeconds(0);
+    setIsVoiceRecording(true);
+    setRecordingTarget(target);
   };
 
   const handleToggleWorkspaceAudioPlayback = () => {
@@ -714,567 +718,14 @@ export const ResumeWorkspaceView: React.FC = () => {
         if (isCancelled) return;
 
         // -----------------------------------------------------------------------
-        // PDF TEXT EXTRACTION: LINE CLUSTERING FOR SECTIONS & FULL PRIVACY MASKING
+        // PDF TEXT EXTRACTION, SECTION DETECTION & PRIVACY MASKING
         // -----------------------------------------------------------------------
-        const textContent = await page.getTextContent();
+        const extraction = await extractPrivacyMasksAndSections(page, viewport, activeStudent, safePageNum);
         if (isCancelled) return;
 
-        interface RawTextItem {
-          str: string;
-          tx: number;
-          ty: number;
-          width: number;
-          height: number;
-        }
-
-        const rawItems: RawTextItem[] = [];
-        textContent.items.forEach((item: any) => {
-          if (!item.str || typeof item.str !== 'string') return;
-          const str = item.str;
-          const tx = item.transform[4];
-          const ty = item.transform[5];
-          const width = Math.max(item.width, 4);
-          const height = Math.max(item.height || Math.abs(item.transform[3]) || 12, 12);
-          rawItems.push({ str, tx, ty, width, height });
-        });
-
-        // Cluster raw items into horizontal text lines (by Y coordinate)
-        interface TextLine {
-          ty: number;
-          items: RawTextItem[];
-          fullText: string;
-          minTx: number;
-          maxTx: number;
-          height: number;
-        }
-
-        const lines: TextLine[] = [];
-        const sortedItems = [...rawItems].sort((a, b) => b.ty - a.ty);
-
-        sortedItems.forEach(item => {
-          const match = lines.find(line => Math.abs(line.ty - item.ty) < 3.5);
-          if (match) {
-            match.items.push(item);
-          } else {
-            lines.push({
-              ty: item.ty,
-              items: [item],
-              fullText: '',
-              minTx: item.tx,
-              maxTx: item.tx + item.width,
-              height: item.height
-            });
-          }
-        });
-
-        lines.forEach(line => {
-          line.items.sort((a, b) => a.tx - b.tx);
-          line.fullText = line.items.map(it => it.str).join(' ').trim();
-          line.minTx = Math.min(...line.items.map(it => it.tx));
-          line.maxTx = Math.max(...line.items.map(it => it.tx + it.width));
-          line.height = Math.max(...line.items.map(it => it.height));
-        });
-
-        // ---------------------------------------------------------------------
-        // 1. SECTION HEADING DETECTION DIRECTLY ON ACTUAL PDF
-        // ---------------------------------------------------------------------
-        const sectionDefs: { regex: RegExp; key: string; title: string }[] = [
-          { regex: /^(career\s+)?objective\b|^professional\s+summary\b|^summary\b|^about\s+me\b/i, key: 'objective', title: 'Career Objective' },
-          { regex: /^technical\s+skills\b|^skills(\s+(&|and)\s+abilities)?\b|^core\s+competencies\b|^key\s+skills\b/i, key: 'skills', title: 'Technical Skills' },
-          { regex: /^education(\s+(&|and)\s+academics)?\b|^academic\s+qualifications?\b|^academic\s+background\b/i, key: 'education', title: 'Education' },
-          { regex: /^(academic\s+|key\s+|personal\s+)?projects\b/i, key: 'projects', title: 'Projects' },
-          { regex: /^(work\s+)?experience\b|^internships?\b|^employment\s+history\b/i, key: 'experience', title: 'Experience' },
-          { regex: /^certifications?\b|^certificates?\b|^achievements?\b|^awards(\s+(&|and)\s+honors)?\b/i, key: 'certifications', title: 'Certifications' },
-          { regex: /^(extra[\s-]?)?curricular(\s+activities)?\b|^activities\b|^co[\s-]curricular\b/i, key: 'activities', title: 'Activities' },
-          { regex: /^interests?(\s+(&|and)\s+hobbies)?\b|^hobbies\b/i, key: 'interests', title: 'Interests & Hobbies' },
-          { regex: /^declaration\b/i, key: 'declaration', title: 'Declaration' }
-        ];
-
-        const pageSections: DetectedPdfSection[] = [];
-        const seenSectionKeys = new Set<string>();
-
-        lines.forEach(line => {
-          const text = line.fullText.trim();
-          if (!text || text.length > 45) return;
-          // Sections are located in the left column or top header (tx < 380)
-          if (line.minTx > 400) return;
-
-          for (const def of sectionDefs) {
-            if (def.regex.test(text) && !seenSectionKeys.has(def.key)) {
-              seenSectionKeys.add(def.key);
-
-              const rect = viewport.convertToViewportRectangle([
-                line.minTx,
-                line.ty,
-                line.maxTx,
-                line.ty + line.height
-              ]);
-
-              const left = Math.min(rect[0], rect[2]);
-              const top = Math.min(rect[1], rect[3]);
-              const right = Math.max(rect[0], rect[2]);
-              const width = Math.abs(rect[2] - rect[0]);
-              const height = Math.abs(rect[3] - rect[1]);
-
-              const canvasW = viewport.width || 1;
-              const canvasH = viewport.height || 1;
-              const pdfX = Math.round((left / canvasW) * 100);
-              const pdfY = Math.round((top / canvasH) * 100);
-
-              pageSections.push({
-                id: `sec-${safePageNum}-${def.key}`,
-                key: def.key,
-                title: def.title,
-                page: safePageNum,
-                pixelLeft: Math.round(left),
-                pixelTop: Math.round(top),
-                pixelRight: Math.round(right),
-                pixelWidth: Math.round(width),
-                pixelHeight: Math.round(height),
-                pdfX,
-                pdfY
-              });
-              break;
-            }
-          }
-        });
-
-        setDetectedSections(pageSections);
-
-        // ---------------------------------------------------------------------
-        // 2. PRIVACY MASKING: WHITE FROSTED BLUR FOR EMAIL, PHONE, ADDRESS & PHOTO
-        // ---------------------------------------------------------------------
-        const rawMasks: PrivacyMask[] = [];
-
-        // Enhanced Email regex supporting standard emails, spaced characters & tags
-        const emailRegex = /[A-Za-z0-9._%+-]+(?:\s*@\s*|\s*\[at\]\s*)[A-Za-z0-9.-]+\s*\.[A-Za-z]{2,}/i;
-
-        // Enhanced Phone regex supporting +91, spaces, dashes, brackets, etc.
-        const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}|\b[6-9]\d{4}[\s.-]?\d{5}\b|\b[6-9]\d{9}\b|\+91[\s-]?\d{10}/;
-
-        // Address indicators covering labels, door/flat numbers, road/street/nagar/salai/kovil, cities, states, pin codes
-        const addressIndicatorRegex = /(?:permanent|current|residential|present|communication|postal)?\s*address[\s:]|\b(?:door|flat|plot|house|d[\s./-]?no|h[\s./-]?no)\b|\b(?:street|road|rd\.?|lane|nagar|colony|layout|salai|cross|main|kovil|temple|apt|apartment|block)\b|\b(?:chennai|coimbatore|madurai|trichy|salem|bangalore|bengaluru|hyderabad|mumbai|delhi|kolkata|pune|kerala|tamil\s*nadu|karnataka|andhra|india)\b|\b(?:thiruvottiyur|tambaram|velachery|guindy|anna\s*nagar|ambattur|avadi|mylapore|adyar|triplicane|chromepet)\b|\b(?:pincode|pin\s*code|postal\s*code|pin[\s:-]*\d{6})\b|\b[1-9]\d{5}\b/i;
-
-        const studentEmail = (activeStudent.email || '').trim().toLowerCase();
-        const studentPhoneClean = (activeStudent.phone || '').replace(/\D/g, '');
-        const studentLocation = (activeStudent.location || '').trim().toLowerCase();
-
-        // Safety filter: NEVER mask student name, education, skills, projects, certifications or academic content
-        const isAcademicHeading = (text: string) => {
-          return /^(education|technical\s+skills|skills|projects|experience|certifications?|activities|declaration|career\s+objective|summary)\b/i.test(text.trim()) ||
-            /\b(b\.?e|b\.?tech|b\.?sc|m\.?tech|m\.?ca|cgpa|percentage|hsc|sslc|cbse|autonomous|university|college|school|curriculum)\b/i.test(text);
-        };
-
-        // -----------------------------------------------------------------------
-        // COLUMN-AWARE HELPERS (used by email, address masking below)
-        // MUST be defined before first use — const arrow functions are NOT hoisted.
-        // -----------------------------------------------------------------------
-
-        // Splits a TextLine's items into column-segments separated by gaps > 18pt.
-        // PDF inter-word spaces are 3–8pt; column gutters are typically > 20pt.
-        interface ColSegment {
-          items: RawTextItem[];
-          minTx: number;
-          maxTx: number;
-          segText: string;
-        }
-        const getColSegments = (lineItems: RawTextItem[]): ColSegment[] => {
-          const sorted = [...lineItems].sort((a, b) => a.tx - b.tx);
-          const segs: ColSegment[] = [];
-          let cur: RawTextItem[] = [];
-          sorted.forEach((it, i) => {
-            if (i === 0) { cur.push(it); return; }
-            const gap = it.tx - (sorted[i - 1].tx + sorted[i - 1].width);
-            if (gap > 18) {
-              segs.push({
-                items: cur,
-                minTx: Math.min(...cur.map(x => x.tx)),
-                maxTx: Math.max(...cur.map(x => x.tx + x.width)),
-                segText: cur.map(x => x.str).join(' ').trim()
-              });
-              cur = [it];
-            } else {
-              cur.push(it);
-            }
-          });
-          if (cur.length > 0) {
-            segs.push({
-              items: cur,
-              minTx: Math.min(...cur.map(x => x.tx)),
-              maxTx: Math.max(...cur.map(x => x.tx + x.width)),
-              segText: cur.map(x => x.str).join(' ').trim()
-            });
-          }
-          return segs;
-        };
-
-        // Given a column X range, returns only items whose midpoint falls within it.
-        const itemsInCol = (lineItems: RawTextItem[], colMinX: number, colMaxX: number): RawTextItem[] => {
-          const colMid = (colMinX + colMaxX) / 2;
-          const colHalf = (colMaxX - colMinX) / 2 + 20; // 20pt tolerance
-          return lineItems.filter(it => {
-            const itMid = it.tx + it.width / 2;
-            return Math.abs(itMid - colMid) <= colHalf;
-          });
-        };
-
-        // Non-personal content guard: stops masking expansion into Profile/Education/Skills etc.
-        const isNonPersonalContent = (text: string) =>
-          /^(profile|summary|about\s+me|career\s+objective|objective|education|technical\s+skills|skills|projects?|experience|internship|certifications?|activities|languages?|achievements?|declaration|linkedin|github|portfolio|cgpa|degree|college|university)/i.test(text.trim()) ||
-          /\b(commerce|graduate|b\.?e\.?|b\.?tech|m\.?tech|cgpa|hsc|sslc|autonomous|university|college|curriculum)\b/i.test(text);
-
-        // A. Full Email Masking — COLUMN-AWARE
-        // Only mask items that clearly belong to the email value.
-        // Never fall back to line.items (which can include Profile text from the right column).
-        lines.forEach(line => {
-          if (isAcademicHeading(line.fullText)) return;
-          const textNoSpaces = line.fullText.replace(/\s+/g, '');
-          const isEmail = emailRegex.test(line.fullText) ||
-                          emailRegex.test(textNoSpaces) ||
-                          (studentEmail && textNoSpaces.toLowerCase().includes(studentEmail.replace(/\s+/g, '')));
-
-          if (isEmail) {
-            // Identify the column segment that actually contains the email.
-            const lineSegs = getColSegments(line.items);
-            const emailSeg = lineSegs.find(seg =>
-              emailRegex.test(seg.segText) ||
-              emailRegex.test(seg.segText.replace(/\s+/g, '')) ||
-              (studentEmail && seg.segText.replace(/\s+/g, '').toLowerCase().includes(studentEmail.replace(/\s+/g, '')))
-            );
-
-            // Fall back to items that directly contain '@' or known email tokens.
-            // Removed: generic /[a-z0-9._%+-]/i — this matched every text item.
-            const emailItems = (emailSeg ? emailSeg.items : line.items).filter(it => {
-              const s = it.str.toLowerCase();
-              return s.includes('@') ||
-                     emailRegex.test(s) ||
-                     /\.(com|in|org|edu|net)\b/i.test(s) ||
-                     (studentEmail && studentEmail.includes(s.trim())) ||
-                     /email|mail/i.test(s);
-            });
-
-            // Use the email segment items if we found a segment, else only the filtered items.
-            // Never use full line.items as that can span multiple columns.
-            const targetItems = emailItems.length > 0
-              ? emailItems
-              : emailSeg
-                ? emailSeg.items
-                : null;
-
-            if (!targetItems || targetItems.length === 0) return;
-
-            const minTx = Math.min(...targetItems.map(t => t.tx));
-            const maxTx = Math.max(...targetItems.map(t => t.tx + t.width));
-            const rect = viewport.convertToViewportRectangle([
-              minTx,
-              line.ty,
-              maxTx,
-              line.ty + line.height
-            ]);
-
-            rawMasks.push({
-              id: `mask-email-${line.ty}-${Math.round(minTx)}`,
-              left: Math.round(Math.min(rect[0], rect[2]) - 6),
-              top: Math.round(Math.min(rect[1], rect[3]) - 3),
-              width: Math.round(Math.abs(rect[2] - rect[0]) + 12),
-              height: Math.round(Math.abs(rect[3] - rect[1]) + 6),
-              type: 'email',
-              label: ''
-            });
-          }
-        });
-
-        // B. Full Phone Masking (e.g. +91 9941864626, 99418 64626, etc.)
-        lines.forEach(line => {
-          if (isAcademicHeading(line.fullText)) return;
-          const cleanDigits = line.fullText.replace(/\D/g, '');
-          const isPhone = phoneRegex.test(line.fullText) || 
-                          (cleanDigits.length >= 10 && (/[6-9]\d{9}/.test(cleanDigits) || (studentPhoneClean && cleanDigits.includes(studentPhoneClean))));
-
-          if (isPhone) {
-            const phoneItems = line.items.filter(it => {
-              const s = it.str;
-              return /\d/.test(s) || 
-                     /[+()/-]/.test(s) || 
-                     /ph|mob|tel|call|contact/i.test(s);
-            });
-
-            const targetItems = phoneItems.length > 0 ? phoneItems : line.items;
-            const minTx = Math.min(...targetItems.map(t => t.tx));
-            const maxTx = Math.max(...targetItems.map(t => t.tx + t.width));
-            const rect = viewport.convertToViewportRectangle([
-              minTx,
-              line.ty,
-              maxTx,
-              line.ty + line.height
-            ]);
-
-            rawMasks.push({
-              id: `mask-phone-${line.ty}-${Math.round(minTx)}`,
-              left: Math.round(Math.min(rect[0], rect[2]) - 6),
-              top: Math.round(Math.min(rect[1], rect[3]) - 3),
-              width: Math.round(Math.abs(rect[2] - rect[0]) + 12),
-              height: Math.round(Math.abs(rect[3] - rect[1]) + 6),
-              type: 'phone',
-              label: ''
-            });
-          }
-        });
-
-        // C. Full Multi-line Address Block Masking — COLUMN-AWARE
-        // Strategy:
-        // 1. Find address anchor items on a line.
-        // 2. Determine the anchor column's X range (colMinX..colMaxX) from items
-        //    belonging to the same horizontal cluster as the address token
-        //    (gap > 18pt separates columns inside a single PDF "line").
-        // 3. For every vertically adjacent candidate line, collect only items
-        //    that fall within the anchor column X range.
-        // 4. Stop expansion when no items in the candidate line fall in the column.
-        // This prevents Profile/Summary text on the right from ever being masked.
-        // (getColSegments, itemsInCol, isNonPersonalContent are defined above section A.)
-
-        // Structure to hold address block segments for ONE anchor at a time.
-        interface AddrBlockSeg {
-          items: RawTextItem[];
-          ty: number;
-          height: number;
-        }
-
-        // Stronger address anchor: require a structural address token, not just a city/PIN alone.
-        // City/PIN alone can false-trigger on Education or Experience sections.
-        const strongAddressAnchorRegex = /(?:permanent|current|residential|present|communication|postal)?\s*address[\s:]|\b(?:door|flat|plot|house|d[\s./-]?no|h[\s./-]?no)\b|\b(?:street|road|rd\.?|lane|nagar|colony|layout|salai|cross|main|kovil|temple|apt|apartment|block)\b/i;
-
-        // Continuation regex: city/PIN/locality can appear AFTER a strong anchor in the same column.
-        const addressContinuationRegex = /\b(?:chennai|coimbatore|madurai|trichy|salem|bangalore|bengaluru|hyderabad|mumbai|delhi|kolkata|pune|kerala|tamil\s*nadu|karnataka|andhra|india)\b|\b(?:thiruvottiyur|tambaram|velachery|guindy|anna\s*nagar|ambattur|avadi|mylapore|adyar|triplicane|chromepet)\b|\b[1-9]\d{5}\b|\bpin\b/i;
-
-        lines.forEach((line, idx) => {
-          // NOTE: guards NEVER run on line.fullText in two-column layouts.
-          // Column splitting happens FIRST; guards apply only to column-filtered text.
-
-          // Split line into column segments.
-          const segs = getColSegments(line.items);
-
-          // Find the segment that contains a STRONG address anchor (not just city/PIN).
-          const anchorSeg = segs.find(seg =>
-            strongAddressAnchorRegex.test(seg.segText) &&
-            !isNonPersonalContent(seg.segText)
-          );
-
-          if (!anchorSeg) return;
-
-          // Each anchor builds its OWN local block — never shared across anchors.
-          const localBlockSegs: AddrBlockSeg[] = [];
-
-          // Column X range of the address anchor segment.
-          const colMinX = anchorSeg.minTx - 5;
-          const colMaxX = anchorSeg.maxTx + 5;
-
-          // Anchor line items in the address column.
-          const anchorItems = itemsInCol(line.items, colMinX, colMaxX);
-          if (anchorItems.length > 0) {
-            localBlockSegs.push({ items: anchorItems, ty: line.ty, height: line.height });
-          }
-
-          // Expand BACKWARDS (upward in PDF coords = higher ty).
-          // Guards run ONLY on column-filtered text — no fullText checks.
-          for (let back = 1; back <= 3; back++) {
-            const prevIdx = idx - back;
-            if (prevIdx < 0) break;
-            const prev = lines[prevIdx];
-            const dy = Math.abs(prev.ty - lines[idx - back + 1].ty);
-            if (dy >= 36) break;
-
-            const prevColItems = itemsInCol(prev.items, colMinX, colMaxX);
-            if (prevColItems.length === 0) break;
-            const prevColText = prevColItems.map(x => x.str).join(' ').trim();
-            if (isNonPersonalContent(prevColText)) break;
-            const isAddrContent = strongAddressAnchorRegex.test(prevColText) ||
-                                  addressContinuationRegex.test(prevColText) ||
-                                  /\d/.test(prevColText) ||
-                                  /,/.test(prevColText);
-            if (!isAddrContent) break;
-            localBlockSegs.push({ items: prevColItems, ty: prev.ty, height: prev.height });
-          }
-
-          // Expand FORWARDS (downward).
-          // Guards run ONLY on column-filtered text — no fullText checks.
-          for (let forward = 1; forward <= 3; forward++) {
-            const nextIdx = idx + forward;
-            if (nextIdx >= lines.length) break;
-            const next = lines[nextIdx];
-            const dy = Math.abs(next.ty - lines[idx + forward - 1].ty);
-            if (dy >= 36) break;
-
-            const nextColItems = itemsInCol(next.items, colMinX, colMaxX);
-            if (nextColItems.length === 0) break;
-            const nextColText = nextColItems.map(x => x.str).join(' ').trim();
-            if (isNonPersonalContent(nextColText)) break;
-            const isAddrContent = strongAddressAnchorRegex.test(nextColText) ||
-                                  addressContinuationRegex.test(nextColText) ||
-                                  /\b\d{6}\b/.test(nextColText) ||
-                                  /\d/.test(nextColText);
-            if (!isAddrContent) break;
-            localBlockSegs.push({ items: nextColItems, ty: next.ty, height: next.height });
-          }
-
-          // Emit ONE mask immediately for THIS anchor's local block only.
-          if (localBlockSegs.length > 0) {
-            const allItems = localBlockSegs.flatMap(s => s.items);
-            const minTx = Math.min(...allItems.map(it => it.tx));
-            const maxTx = Math.max(...allItems.map(it => it.tx + it.width));
-            const minTy = Math.min(...localBlockSegs.map(s => s.ty));
-            const maxTy = Math.max(...localBlockSegs.map(s => s.ty + s.height));
-
-            const rect = viewport.convertToViewportRectangle([minTx, minTy, maxTx, maxTy]);
-            rawMasks.push({
-              id: `mask-address-block-${Math.round(minTy)}-${Math.round(maxTy)}`,
-              left: Math.round(Math.min(rect[0], rect[2]) - 6),
-              top: Math.round(Math.min(rect[1], rect[3]) - 3),
-              width: Math.round(Math.abs(rect[2] - rect[0]) + 12),
-              height: Math.round(Math.abs(rect[3] - rect[1]) + 6),
-              type: 'address',
-              label: ''
-            });
-          }
-        });
-
-        // Each address anchor now emits its own mask inline (localBlockSegs above).
-
-        // D. Profile Photo Masking (Page 1 upper header area)
-        let foundPhoto = false;
-        if (safePageNum === 1) {
-          try {
-            const ops = await page.getOperatorList();
-            const pdfjs = (window as any).pdfjsLib;
-            const paintImageXObject = pdfjs?.OPS?.paintImageXObject;
-            const paintInlineImageXObject = pdfjs?.OPS?.paintInlineImageXObject;
-            const transformOp = pdfjs?.OPS?.transform;
-            const saveOp = pdfjs?.OPS?.save;
-            const restoreOp = pdfjs?.OPS?.restore;
-
-            let ctm = [1, 0, 0, 1, 0, 0];
-            const ctmStack: number[][] = [];
-            const pageH = viewport.viewBox ? viewport.viewBox[3] : 842;
-            const pageW = viewport.viewBox ? viewport.viewBox[2] : 595;
-
-            for (let i = 0; i < ops.fnArray.length; i++) {
-              const fn = ops.fnArray[i];
-              const args = ops.argsArray[i];
-
-              if (fn === saveOp) {
-                ctmStack.push([...ctm]);
-              } else if (fn === restoreOp) {
-                if (ctmStack.length > 0) ctm = ctmStack.pop()!;
-              } else if (fn === transformOp && Array.isArray(args) && args.length === 6) {
-                const [a1, b1, c1, d1, e1, f1] = ctm;
-                const [a2, b2, c2, d2, e2, f2] = args;
-                ctm = [
-                  a1 * a2 + c1 * b2,
-                  b1 * a2 + d1 * b2,
-                  a1 * c2 + c1 * d2,
-                  b1 * c2 + d1 * d2,
-                  a1 * e2 + c1 * f2 + e1,
-                  b1 * e2 + d1 * f2 + f1
-                ];
-              } else if (fn === paintImageXObject || fn === paintInlineImageXObject) {
-                const a = ctm[0], b = ctm[1], c = ctm[2], d = ctm[3], e = ctm[4], f = ctm[5];
-                const x0 = e, y0 = f;
-                const x1 = a + e, y1 = b + f;
-                const x2 = c + e, y2 = d + f;
-                const x3 = a + c + e, y3 = b + d + f;
-
-                const minX = Math.min(x0, x1, x2, x3);
-                const maxX = Math.max(x0, x1, x2, x3);
-                const minY = Math.min(y0, y1, y2, y3);
-                const maxY = Math.max(y0, y1, y2, y3);
-                const imgW = maxX - minX;
-                const imgH = maxY - minY;
-
-                // Candidate headshot criteria:
-                // Upper 42% of page 1, dimensions between 28pt & 240pt, not a full background banner
-                const isTopArea = minY > pageH * 0.58;
-                const isPhotoDimensions = imgW >= 28 && imgW <= 240 && imgH >= 28 && imgH <= 260 && imgW < pageW * 0.45;
-                const aspect = imgW / (imgH || 1);
-                const isHeadshotAspect = aspect >= 0.55 && aspect <= 1.85;
-
-                if (isTopArea && isPhotoDimensions && isHeadshotAspect) {
-                  const rect = viewport.convertToViewportRectangle([minX, minY, maxX, maxY]);
-                  rawMasks.push({
-                    id: `mask-photo-${Math.round(minX)}-${Math.round(minY)}`,
-                    left: Math.round(Math.min(rect[0], rect[2]) - 3),
-                    top: Math.round(Math.min(rect[1], rect[3]) - 3),
-                    width: Math.round(Math.abs(rect[2] - rect[0]) + 6),
-                    height: Math.round(Math.abs(rect[3] - rect[1]) + 6),
-                    type: 'photo',
-                    label: ''
-                  });
-                  foundPhoto = true;
-                  break;
-                }
-              }
-            }
-          } catch (err) {
-            console.warn('[Privacy Masking] Image operator scan note:', err);
-          }
-        }
-
-        // E. Scanned / Image Resume Fallback Strategy (page 1)
-        if (safePageNum === 1 && rawItems.length < 15) {
-          // Flattened/scanned document where text couldn't be extracted
-          if (!foundPhoto) {
-            // Conservative top-right candidate photo box
-            rawMasks.push({
-              id: 'mask-photo-scanned-fallback',
-              left: Math.round(viewport.width - (viewport.width * 0.22) - 16),
-              top: 24,
-              width: Math.round(viewport.width * 0.22),
-              height: Math.round(viewport.width * 0.26),
-              type: 'photo',
-              label: ''
-            });
-          }
-
-          // Conservative contact line overlay below candidate name header (LEFT HALF ONLY)
-          rawMasks.push({
-            id: 'mask-contact-scanned-fallback',
-            left: Math.round(viewport.width * 0.08),
-            top: Math.round(viewport.height * 0.095),
-            width: Math.round(viewport.width * 0.42),
-            height: Math.round(viewport.height * 0.045),
-            type: 'phone',
-            label: ''
-          });
-        }
-
-        // F. Merge nearby / overlapping masks — SAME COLUMN ONLY (horizontal proximity < 30px)
-        const mergedMasks: PrivacyMask[] = [];
-        rawMasks.forEach(mask => {
-          const overlapIdx = mergedMasks.findIndex(m =>
-            m.type === mask.type &&
-            Math.abs(m.top - mask.top) < 10 &&
-            !(mask.left > m.left + m.width + 10 || mask.left + mask.width < m.left - 10) &&
-            // Only merge if both masks are horizontally close (same column)
-            Math.abs(m.left - mask.left) < 30
-          );
-          if (overlapIdx >= 0) {
-            const existing = mergedMasks[overlapIdx];
-            const minLeft = Math.min(existing.left, mask.left);
-            const minTop = Math.min(existing.top, mask.top);
-            const maxRight = Math.max(existing.left + existing.width, mask.left + mask.width);
-            const maxBottom = Math.max(existing.top + existing.height, mask.top + mask.height);
-            mergedMasks[overlapIdx] = {
-              ...existing,
-              left: minLeft,
-              top: minTop,
-              width: maxRight - minLeft,
-              height: maxBottom - minTop
-            };
-          } else {
-            mergedMasks.push(mask);
-          }
-        });
-
-        setPrivacyMasks(mergedMasks);
+        setDetectedSections(extraction.detectedSections);
+        setPrivacyMasks(extraction.privacyMasks);
+        setIsScannedPdfFallback(extraction.isScannedPdf);
         setPdfLoading(false);
       } catch (err: any) {
         if (!isCancelled) {
@@ -1430,15 +881,15 @@ export const ResumeWorkspaceView: React.FC = () => {
               <label className="additional-note-label">Additional Note (Optional)</label>
               <button
                 type="button"
-                className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
-                onClick={handleToggleVoice}
-                title={isVoiceRecording ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
+                className={`speak-feedback-btn ${recordingTarget === 'general' ? 'recording' : ''}`}
+                onClick={() => handleToggleVoice('general')}
+                title={recordingTarget === 'general' ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
               >
                 <Mic size={12} />
                 <span>
-                  {isVoiceRecording 
+                  {recordingTarget === 'general' 
                     ? `Stop (${formatVoiceTime(voiceSeconds)})` 
-                    : isTranslatingVoice 
+                    : translatingTarget === 'general' 
                     ? 'Translating...' 
                     : '🎤 Speak Feedback'}
                 </span>
@@ -1496,27 +947,105 @@ export const ResumeWorkspaceView: React.FC = () => {
         <>
           {/* What needs improvement? */}
           <div className="improvement-selection-card">
-            <div className="improvement-label-row">
-              <span className="improvement-label">What needs improvement?</span>
+            <div 
+              className="improvement-label-row"
+              onClick={() => setIsImprovementSectionOpen(prev => !prev)}
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+              role="button"
+              tabIndex={0}
+              aria-expanded={isImprovementSectionOpen}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsImprovementSectionOpen(prev => !prev);
+                }
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="improvement-label">What needs improvement?</span>
+                <ChevronDown 
+                  size={15} 
+                  style={{ 
+                    transform: isImprovementSectionOpen ? 'rotate(180deg)' : 'rotate(0deg)', 
+                    transition: 'transform 0.2s ease', 
+                    color: '#64748B' 
+                  }} 
+                />
+              </div>
               <span className="improvement-count-hint">
                 {(activeStudent.improveTags || []).length} selected
               </span>
             </div>
-            <div className="improvement-chips-flex">
-              {simplifiedImproveTags.map(tag => {
-                const isSelected = isImproveTagActive(tag);
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`improvement-chip ${isSelected ? 'active' : ''}`}
-                    onClick={() => handleToggleImproveTag(tag)}
-                  >
-                    {isSelected ? `✓ ${tag}` : tag}
-                  </button>
-                );
-              })}
-            </div>
+
+            {isImprovementSectionOpen && (
+              <>
+                <div className="improvement-chips-flex">
+                  {simplifiedImproveTags.map(tag => {
+                    const isSelected = isImproveTagActive(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={`improvement-chip ${isSelected ? 'active' : ''}`}
+                        onClick={() => handleToggleImproveTag(tag)}
+                      >
+                        {isSelected ? `✓ ${tag}` : tag}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Category-Specific Feedback Textareas */}
+                {(activeStudent.improveTags || []).length > 0 && (
+                  <div className="category-feedback-section" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+                    {(activeStudent.improveTags || []).map(tag => {
+                      const currentText = activeStudent.categoryFeedback?.[tag] || '';
+                      const isThisCategoryRecording = recordingTarget === tag;
+                      const isThisCategoryTranslating = translatingTarget === tag;
+                      return (
+                        <div key={tag} className="category-feedback-card" style={{ background: '#FFFFFF', border: '1.5px solid #CBD5E1', borderRadius: '8px', padding: '10px 12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '6px' }}>
+                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: '#EAB308' }} />
+                              {tag} Feedback
+                            </label>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>
+                                {currentText.trim() ? `${currentText.length} chars` : 'Specific advice'}
+                              </span>
+                              <button
+                                type="button"
+                                className={`speak-feedback-btn ${isThisCategoryRecording ? 'recording' : ''}`}
+                                onClick={() => handleToggleVoice(tag)}
+                                title={isThisCategoryRecording ? "Click to stop recording and translate" : `Record audio feedback for ${tag} & translate to English`}
+                                style={{ padding: '3px 8px', fontSize: '11px' }}
+                              >
+                                <Mic size={11} />
+                                <span>
+                                  {isThisCategoryRecording 
+                                    ? `Stop (${formatVoiceTime(voiceSeconds)})` 
+                                    : isThisCategoryTranslating 
+                                    ? 'Translating...' 
+                                    : '🎤 Speak Feedback'}
+                                </span>
+                              </button>
+                            </div>
+                          </div>
+                          <textarea
+                            className="additional-note-textarea category-feedback-textarea"
+                            placeholder={`Enter specific feedback or suggestions for ${tag}...`}
+                            value={currentText}
+                            onChange={(e) => updateCategoryFeedback(tag, e.target.value)}
+                            rows={2}
+                            style={{ minHeight: '60px', width: '100%', boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Quick Feedback Suggestions */}
@@ -1545,15 +1074,15 @@ export const ResumeWorkspaceView: React.FC = () => {
               <label className="additional-note-label">Additional Note (Optional)</label>
               <button
                 type="button"
-                className={`speak-feedback-btn ${isVoiceRecording ? 'recording' : ''}`}
-                onClick={handleToggleVoice}
-                title={isVoiceRecording ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
+                className={`speak-feedback-btn ${recordingTarget === 'general' ? 'recording' : ''}`}
+                onClick={() => handleToggleVoice('general')}
+                title={recordingTarget === 'general' ? "Click to stop recording and translate" : "Record audio feedback note & translate to English"}
               >
                 <Mic size={12} />
                 <span>
-                  {isVoiceRecording 
+                  {recordingTarget === 'general' 
                     ? `Stop (${formatVoiceTime(voiceSeconds)})` 
-                    : isTranslatingVoice 
+                    : translatingTarget === 'general' 
                     ? 'Translating...' 
                     : '🎤 Speak Feedback'}
                 </span>
@@ -1608,20 +1137,16 @@ export const ResumeWorkspaceView: React.FC = () => {
 
       {/* 5. Initial State (No decision yet) */}
       {decision === null && (
-        <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '10px', border: '1px dashed #CBD5E1', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
-            Select <strong>Looks Good</strong> or <strong>Needs Changes</strong> above to review this candidate.
+        <div style={{ 
+          padding: '16px 18px', 
+          background: '#FEF9C3', 
+          borderRadius: '10px', 
+          border: '1.5px solid #FACC15', 
+          textAlign: 'center' 
+        }}>
+          <p style={{ margin: 0, fontSize: '13.5px', color: '#713F12', fontWeight: 700, lineHeight: 1.5 }}>
+            Please select <strong>Looks Good</strong> or <strong>Needs Changes</strong> above to continue reviewing this resume.
           </p>
-          <div style={{ marginTop: '12px' }}>
-            <button
-              type="button"
-              className="secondary-draft-cta"
-              onClick={() => alert('Review draft saved successfully!')}
-            >
-              <Save size={14} />
-              <span>Save Draft</span>
-            </button>
-          </div>
         </div>
       )}
 
@@ -1643,11 +1168,8 @@ export const ResumeWorkspaceView: React.FC = () => {
 
           <button 
             className="workspace-home-btn" 
-            onClick={() => {
-              setActiveRole('volunteer');
-              setCurrentView('login');
-            }}
-            title="Return to main Landing / Login page"
+            onClick={() => setCurrentView('dashboard')}
+            title="Return to Volunteer Dashboard"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -1693,10 +1215,6 @@ export const ResumeWorkspaceView: React.FC = () => {
             ) : (
               <span className="workspace-student-name">{activeStudent.name}</span>
             )}
-            <span className="simplified-student-counter">
-              Student {currentStudentIndex + 1} of {totalStudents}
-            </span>
-            <span className="workspace-student-degree">{activeStudent.degree}</span>
             <span className={`status-badge status-${activeStudent.status}`}>
               {formatStatus(activeStudent.status)}
             </span>
@@ -1704,24 +1222,6 @@ export const ResumeWorkspaceView: React.FC = () => {
         </div>
 
         <div className="workspace-top-actions">
-          <button 
-            className="btn btn-danger-outline btn-sm"
-            onClick={() => openModal('changes')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-          >
-            <AlertTriangle size={13} />
-            <span>Needs Changes</span>
-          </button>
-
-          <button 
-            className="btn btn-primary btn-sm"
-            onClick={() => openModal('approve')}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-          >
-            <Check size={14} />
-            <span>Approve Resume</span>
-          </button>
-
           <button 
             className="btn btn-outline btn-sm"
             onClick={() => alert('Review comments, audit notes, audio memo, and rubric saved successfully!')}
@@ -1747,8 +1247,8 @@ export const ResumeWorkspaceView: React.FC = () => {
               {activeRole === 'volunteer' && (
                 <span className="privacy-protected-pill" style={{ 
                   fontSize: '11px', 
-                  background: '#047857', 
-                  color: '#ECFDF5', 
+                  background: isScannedPdfFallback ? '#B45309' : '#047857', 
+                  color: isScannedPdfFallback ? '#FEF3C7' : '#ECFDF5', 
                   padding: '2px 8px', 
                   borderRadius: '12px', 
                   display: 'inline-flex', 
@@ -1756,7 +1256,15 @@ export const ResumeWorkspaceView: React.FC = () => {
                   gap: '4px',
                   marginLeft: '6px'
                 }}>
-                  <Lock size={10} /> Privacy Protected
+                  {isScannedPdfFallback ? (
+                    <>
+                      <AlertTriangle size={10} /> Scanned PDF (Limited Masking)
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={10} /> Privacy Protected
+                    </>
+                  )}
                 </span>
               )}
             </div>
@@ -1814,13 +1322,17 @@ export const ResumeWorkspaceView: React.FC = () => {
               <button 
                 className="toolbar-action-icon-btn" 
                 onClick={() => {
+                  if (activeRole === 'volunteer') {
+                    alert('Direct unmasked download is restricted during volunteer review to protect candidate privacy.');
+                    return;
+                  }
                   if (activeStudent.resumeAttachment) {
                     window.open(getResumeDownloadUrl(activeStudent.resumeAttachment, activeStudent.name), '_blank');
                   } else {
                     alert(`Resume file not attached for ${activeStudent.name}.`);
                   }
                 }}
-                title="Download Original Resume PDF"
+                title={activeRole === 'volunteer' ? 'Direct download restricted (Privacy Protected)' : 'Download Original Resume PDF'}
                 style={{ color: '#CBD5E1' }}
               >
                 <DownloadIcon size={16} />
@@ -1830,11 +1342,15 @@ export const ResumeWorkspaceView: React.FC = () => {
               <button 
                 className="toolbar-action-icon-btn" 
                 onClick={() => {
+                  if (activeRole === 'volunteer') {
+                    alert('Direct unmasked alternate view is restricted during volunteer review to protect candidate privacy.');
+                    return;
+                  }
                   if (resumePdfUrl) {
                     window.open(resumePdfUrl, '_blank', 'noopener,noreferrer');
                   }
                 }}
-                title="Open Original PDF in New Tab"
+                title={activeRole === 'volunteer' ? 'Alternate view restricted (Privacy Protected)' : 'Open Resume in New Tab'}
                 style={{ color: '#CBD5E1' }}
               >
                 <MaximizeIcon size={16} />
@@ -1945,14 +1461,18 @@ export const ResumeWorkspaceView: React.FC = () => {
                   title="Click anywhere on the resume to drop an annotation pin"
                   style={{
                     position: 'relative',
+                    display: 'inline-block',
                     boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
                     borderRadius: '4px',
                     background: '#FFFFFF',
                     cursor: 'crosshair',
-                    userSelect: 'none'
+                    userSelect: 'none',
+                    lineHeight: 0
                   }}
                 >
-                  <canvas ref={canvasRef} style={{ display: 'block', borderRadius: '4px' }} />
+                  <canvas ref={canvasRef} style={{ display: 'block', borderRadius: '4px', maxWidth: '100%', height: 'auto' }} />
+
+
 
                   {/* Privacy Redaction Layer: White Frosted Blur, No Black Boxes, No Text */}
                   {activeRole === 'volunteer' && privacyMasks.map(mask => (
@@ -1962,10 +1482,10 @@ export const ResumeWorkspaceView: React.FC = () => {
                       title="Personal contact detail is protected in volunteer review."
                       style={{
                         position: 'absolute',
-                        left: `${mask.left}px`,
-                        top: `${mask.top}px`,
-                        width: `${mask.width}px`,
-                        height: `${mask.height}px`,
+                        left: `${mask.leftPercent}%`,
+                        top: `${mask.topPercent}%`,
+                        width: `${mask.widthPercent}%`,
+                        height: `${mask.heightPercent}%`,
                         background: 'rgba(255, 255, 255, 0.88)',
                         backdropFilter: 'blur(9px)',
                         WebkitBackdropFilter: 'blur(9px)',
@@ -2301,6 +1821,9 @@ export const ResumeWorkspaceView: React.FC = () => {
                     if (pinPage !== activeResumePage || pinX === null || pinY === null) return null;
 
                     const cat = sub.category || 'suggestion';
+                    const isLightbulb = !sub.category || sub.category === 'suggestion';
+                    if (isLightbulb) return null;
+
                     const catColor = cat === 'must_fix' ? '#DC2626' : cat === 'praise' ? '#16A34A' : cat === 'question' ? '#2563EB' : '#D97706';
                     const catBg = cat === 'must_fix' ? '#FEF2F2' : cat === 'praise' ? '#F0FDF4' : cat === 'question' ? '#EFF6FF' : '#FFFBEB';
 
@@ -2344,7 +1867,7 @@ export const ResumeWorkspaceView: React.FC = () => {
         </section>
 
         {/* Right Pane: Simplified Review & Feedback Panel (Desktop) */}
-        <aside className="review-feedback-pane" style={{ flex: 1, minWidth: '380px', maxWidth: '480px', borderLeft: '1px solid var(--border-color)' }}>
+        <aside className="review-feedback-pane" style={{ flex: 1, minWidth: '380px', maxWidth: '480px', borderLeft: '1px solid var(--border-color)', alignSelf: 'flex-start', height: 'auto', maxHeight: '100%' }}>
           {renderSimplifiedReviewContent(false)}
         </aside>
       </div>

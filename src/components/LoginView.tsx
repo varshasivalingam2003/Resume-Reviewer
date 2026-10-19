@@ -5,7 +5,6 @@ import {
   GraduationCap, 
   User, 
   ArrowRight, 
-  ArrowLeft,
   ChevronLeft, 
   ChevronRight, 
   FileText, 
@@ -124,7 +123,7 @@ const STUDENT_SLIDES: CarouselSlide[] = [
 ];
 
 export const LoginView: React.FC = () => {
-  const { students, loginWithOtp, currentView, setCurrentView, isAuthenticated, volunteer, loginStudent, activeRole, setActiveRole, setIsStudentLoggedIn } = useApp();
+  const { students, loginWithOtp, currentView, setCurrentView, isAuthenticated, volunteer, loginStudent, activeRole, setActiveRole, isStudentLoggedIn, setIsStudentLoggedIn } = useApp();
   
   const [step, setStep] = useState<'carousel' | 'login'>('carousel');
   const [role, setRole] = useState<'volunteer' | 'student'>(activeRole === 'student' ? 'student' : 'volunteer');
@@ -135,13 +134,24 @@ export const LoginView: React.FC = () => {
   const [bounceIndex, setBounceIndex] = useState<number | null>(null);
   const [boxOffsets, setBoxOffsets] = useState<{ tx: number; ty: number; ctx: number; cty: number }[]>([]);
   const isNavigatingRef = useRef<boolean>(false);
+  const successNavTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Ensure currentView is 'login' so that App.tsx does not switch to dashboard prematurely
+  // Clean up success timer on unmount
   useEffect(() => {
+    return () => {
+      if (successNavTimerRef.current) {
+        clearTimeout(successNavTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Ensure currentView is 'login' so that App.tsx does not switch prematurely when unauthenticated
+  useEffect(() => {
+    if (isAuthenticated || isStudentLoggedIn) return;
     if (!isNavigatingRef.current && currentView !== 'login') {
       setCurrentView('login');
     }
-  }, [currentView, setCurrentView]);
+  }, [isAuthenticated, isStudentLoggedIn, currentView, setCurrentView]);
   
   // Carousel State
   const slides = role === 'student' ? STUDENT_SLIDES : VOLUNTEER_SLIDES;
@@ -328,7 +338,9 @@ export const LoginView: React.FC = () => {
         setAnimState('success');
 
         // 5. Keep this success UI visible for about 800ms.
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => {
+          successNavTimerRef.current = setTimeout(resolve, 800);
+        });
 
         // 6. ONLY THEN execute the EXISTING dashboard navigation.
         isNavigatingRef.current = true;
@@ -368,7 +380,9 @@ export const LoginView: React.FC = () => {
         }
 
         setAnimState('success');
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => {
+          successNavTimerRef.current = setTimeout(resolve, 800);
+        });
         isNavigatingRef.current = true;
         if (authResult?.student) {
           loginStudent(authResult.student.id);
@@ -498,9 +512,8 @@ export const LoginView: React.FC = () => {
                   </h1>
                   <p className="slide-description">{currentSlide.description}</p>
 
-                  {/* Slide Visual Presentation with step badge & realistic photo */}
+                  {/* Slide Visual Presentation with complete realistic photo */}
                   <div className="slide-visual-stage">
-                    <div className="carousel-step-badge">{currentSlide.badge}</div>
                     <img 
                       key={`slide-img-${role}-${currentSlide.id}`}
                       src={currentSlide.image} 
@@ -563,14 +576,17 @@ export const LoginView: React.FC = () => {
                 <div className="carousel-mobile-footer">
                   <button 
                     type="button" 
-                    className="carousel-action-btn primary full-width"
+                    className="carousel-action-btn primary full-width get-started-btn"
                     onClick={() => {
                       setStep('login');
                       setTimeout(() => inputRefs.current[0]?.focus(), 60);
                     }}
                   >
-                    <span>Get Started</span>
-                    <ArrowRight size={15} />
+                    <span className="btn-cover-overlay" aria-hidden="true" />
+                    <span className="btn-text">Get Started</span>
+                    <span className="btn-icon-circle" aria-hidden="true">
+                      <ArrowRight size={15} className="btn-icon-svg" />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -605,17 +621,6 @@ export const LoginView: React.FC = () => {
                       <span>Student</span>
                     </button>
                   </div>
-
-                  <button 
-                    type="button"
-                    className="login-back-home-link"
-                    onClick={() => setStep('carousel')}
-                    aria-label="Back to Welcome Journey"
-                    title="Back to Welcome Journey"
-                  >
-                    <ArrowLeft size={13} />
-                    <span>Back</span>
-                  </button>
                 </div>
 
               {/* Profile Avatar: Volunteer avatar for volunteer, realistic student photo for student */}

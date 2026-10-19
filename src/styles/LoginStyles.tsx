@@ -192,7 +192,7 @@ const styles = `/* =============================================================
 .login-split-container {
   display: flex;
   width: 100%;
-  max-width: 1360px;
+  max-width: 1480px;
   gap: 24px;
   align-items: stretch;
   justify-content: center;
@@ -204,7 +204,7 @@ const styles = `/* =============================================================
    LEFT SIDE: 4-Slide Auto-Playing Visual Carousel
    ========================================================================== */
 .login-carousel-pane {
-  flex: 1.25;
+  flex: 1.45;
   width: 100%;
   min-width: 0;
   display: flex;
@@ -214,13 +214,13 @@ const styles = `/* =============================================================
 /* Desktop Welcome Animation — Full Width Mode */
 .login-carousel-pane.welcome-fullwidth {
   flex: 1;
-  max-width: 1140px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
 }
 
 .welcome-fullwidth .carousel-card {
-  padding: 26px 36px 24px 36px;
+  padding: 22px 36px 18px 36px;
 }
 
 .welcome-fullwidth .slide-heading {
@@ -231,16 +231,22 @@ const styles = `/* =============================================================
 .welcome-fullwidth .slide-description {
   font-size: 14.5px;
   margin-bottom: 12px;
-  max-width: 860px;
+  max-width: 900px;
 }
 
 .welcome-fullwidth .slide-visual-stage {
-  height: clamp(280px, 35vh, 400px);
+  height: clamp(360px, 46vh, 490px);
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  max-width: 820px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 14px;
 }
 
 .welcome-fullwidth .slide-feature-bar {
   gap: 16px;
-  padding-top: 14px;
+  padding-top: 12px;
 }
 
 .welcome-fullwidth .carousel-mobile-footer {
@@ -258,8 +264,8 @@ const styles = `/* =============================================================
 
 /* Desktop Two-Column Login Mode — Left Slideshow */
 .login-carousel-pane.login-column-mode {
-  flex: 1.25;
-  max-width: 780px;
+  flex: 1.45;
+  max-width: 900px;
   width: 100%;
   min-width: 0;
 }
@@ -440,6 +446,122 @@ const styles = `/* =============================================================
   width: 100%;
 }
 
+/* ==========================================================================
+   GET STARTED BUTTON HOVER ANIMATION (Scoped exclusively to Get Started button)
+   ========================================================================== */
+.get-started-btn {
+  position: relative !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+  background-color: #FFED32 !important;
+  color: #0F172A !important;
+  border: 1.5px solid #EAB308 !important;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.28) !important;
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.2s ease !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+
+/* Expanding cover overlay from left to right */
+.get-started-btn .btn-cover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #FACC15 0%, #F59E0B 100%);
+  border-radius: inherit;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.get-started-btn:hover .btn-cover-overlay {
+  width: 100%;
+}
+
+.get-started-btn:hover {
+  background-color: #FACC15 !important;
+  border-color: #D97706 !important;
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.35) !important;
+}
+
+/* Button text with subtle movement to the left on hover */
+.get-started-btn .btn-text {
+  position: relative;
+  z-index: 2;
+  font-weight: 800;
+  color: #0F172A;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.get-started-btn:hover .btn-text {
+  transform: translateX(-5px);
+}
+
+/* Circular icon section */
+.get-started-btn .btn-icon-circle {
+  position: relative;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+.get-started-btn:hover .btn-icon-circle {
+  background: rgba(15, 23, 42, 0.18);
+  transform: translateX(2px);
+}
+
+/* Icon rotation on hover (continuous spin) */
+.get-started-btn .btn-icon-svg {
+  display: block;
+  transition: transform 0.35s ease;
+  color: #0F172A;
+}
+
+.get-started-btn:hover .btn-icon-svg {
+  animation: getStartedIconSpin 1.1s linear infinite;
+}
+
+@keyframes getStartedIconSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Accessibility: focus visibility */
+.get-started-btn:focus-visible {
+  outline: 2px solid #0F172A !important;
+  outline-offset: 3px !important;
+}
+
+/* Accessibility: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .get-started-btn,
+  .get-started-btn .btn-cover-overlay,
+  .get-started-btn .btn-text,
+  .get-started-btn .btn-icon-circle,
+  .get-started-btn .btn-icon-svg {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 .carousel-nav-arrows {
   display: flex;
   align-items: center;
@@ -525,7 +647,9 @@ const styles = `/* =============================================================
 .slide-visual-stage {
   position: relative;
   width: 100%;
-  height: clamp(210px, 25vh, 280px);
+  height: clamp(330px, 40vh, 420px);
+  aspect-ratio: 16 / 11;
+  max-height: 420px;
   border-radius: 18px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -543,6 +667,7 @@ const styles = `/* =============================================================
   object-fit: cover;
   object-position: center 20%;
   transition: transform 0.6s ease;
+  display: block;
 }
 
 .slide-photo.slide1-photo {
@@ -1159,7 +1284,13 @@ const styles = `/* =============================================================
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 15;
+  z-index: 50;
+}
+
+.otp-inputs-wrapper.is-success .otp-success-badge-container {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .otp-success-badge {
@@ -2321,24 +2452,9 @@ const styles = `/* =============================================================
   display: block;
 }
 
-/* Step Badge Number 1, 2, 3, 4 */
+/* Step Badge Number 1, 2, 3, 4 (Hidden per requirements) */
 .carousel-step-badge {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #FFED32;
-  color: #0F172A;
-  font-weight: 800;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-  z-index: 10;
-  border: 2px solid #FFFFFF;
+  display: none !important;
 }
 
 .welcome-slide-text {

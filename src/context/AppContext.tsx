@@ -61,6 +61,7 @@ export interface AppContextType {
   toggleSectionReviewed: (sectionKey: string) => void;
   updateSectionComment: (sectionKey: string, text: string) => void;
   updateGeneralFeedback: (text: string) => void;
+  updateCategoryFeedback: (category: string, text: string) => void;
   setRating: (rating: number) => void;
   toggleImproveTag: (tag: string) => void;
   addVolunteerSubtopic: (title: string, sectionKey?: string, command?: string, category?: 'suggestion' | 'must_fix' | 'praise' | 'question') => void;
@@ -123,12 +124,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.students && parsed.students.length) {
-          // Merge with initialStudents to ensure full structured resumeSections always exist!
           return parsed.students.map((savedStudent: Student) => {
             const initial = initialStudents.find(s => s.id === savedStudent.id) || initialStudents[0];
+            const isPending = savedStudent.status === 'pending';
             return {
               ...initial,
               ...savedStudent,
+              improveTags: isPending ? [] : (savedStudent.improveTags || initial.improveTags || []),
+              rating: isPending ? 0 : (savedStudent.rating ?? initial.rating ?? 0),
+              categoryFeedback: savedStudent.categoryFeedback || initial.categoryFeedback || {},
               resumeSections: (savedStudent.resumeSections && savedStudent.resumeSections.length > 0)
                 ? savedStudent.resumeSections
                 : initial.resumeSections,
@@ -143,7 +147,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return initialStudents;
   });
 
-  const [activeStudentId, setActiveStudentId] = useState<string>('student-1');
+  const [activeStudentId, setActiveStudentId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('resume_reviewer_react_state_v3');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.activeStudentId) return parsed.activeStudentId;
+      }
+    } catch (e) { }
+    return 'student-1';
+  });
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [deviceMode, setDeviceMode] = useState<string>('responsive');
   const [mobileTab, setMobileTab] = useState<string>('resume');
@@ -297,6 +310,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveRole('student');
     setSelectedStudentForViewId(studentId);
     setActiveStudentId(studentId);
+    setCurrentView('student-feedback');
   };
 
   const logout = () => {
@@ -305,6 +319,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentView('login');
     setActiveRole('volunteer');
     setActiveModal(null);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) { }
   };
 
   const logoutStudent = () => {
@@ -619,7 +636,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!target) return;
 
     if (target.status === 'pending') {
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, status: 'in_review' } : s));
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, status: 'in_review', improveTags: s.improveTags?.length ? s.improveTags : [] } : s));
     }
 
     setActiveStudentId(studentId);
@@ -654,6 +671,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateGeneralFeedback = (text: string) => {
     if (!activeStudent) return;
     setStudents(prev => prev.map(s => s.id === activeStudent.id ? { ...s, generalFeedback: text } : s));
+  };
+
+  const updateCategoryFeedback = (category: string, text: string) => {
+    if (!activeStudent || !category) return;
+    setStudents(prev => prev.map(s => {
+      if (s.id === activeStudent.id) {
+        return {
+          ...s,
+          categoryFeedback: {
+            ...(s.categoryFeedback || {}),
+            [category]: text
+          }
+        };
+      }
+      return s;
+    }));
   };
 
   const setRating = (rating: number) => {
@@ -915,7 +948,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     : safeStudents;
 
   const total = taggedStudents.length;
-  const completed = taggedStudents.filter(s => s?.status === 'approved' || s?.status === 'changes_required').length;
+  const completed = taggedStudents.filter(s => s?.status === 'approved').length;
   const pending = Math.max(0, total - completed);
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -977,6 +1010,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleSectionReviewed,
     updateSectionComment,
     updateGeneralFeedback,
+    updateCategoryFeedback,
     setRating,
     toggleImproveTag,
     addVolunteerSubtopic,

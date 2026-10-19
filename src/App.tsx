@@ -8,6 +8,7 @@ import { ResumeWorkspaceView } from './components/ResumeWorkspaceView';
 import { CompletedView } from './components/CompletedView';
 import { ApprovalModal } from './components/ApprovalModal';
 import { ChangesModal } from './components/ChangesModal';
+import { LogoutModal } from './components/LogoutModal';
 import { StudentFeedbackView } from './components/StudentFeedbackView';
 import { StudentLoginView } from './components/StudentLoginView';
 
@@ -36,13 +37,13 @@ const AppContent: React.FC = () => {
         {isAuthenticated && activeRole === 'volunteer' && currentView !== 'workspace' && currentView !== 'login' && <Navbar />}
 
         <div className="app-main-content">
-          {isAuthenticated && activeRole === 'volunteer' ? (
+          {currentView === 'login' ? (
+            <LoginView />
+          ) : isAuthenticated && activeRole === 'volunteer' ? (
             currentView === 'workspace' ? (
               <ResumeWorkspaceView />
             ) : currentView === 'completed' ? (
               <CompletedView />
-            ) : currentView === 'login' ? (
-              <LoginView />
             ) : (
               <DashboardView />
             )
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
         {/* Modal Overlays */}
         {activeModal === 'approve' && <ApprovalModal />}
         {activeModal === 'changes' && <ChangesModal />}
+        {activeModal === 'logout' && <LogoutModal />}
       </div>
     </>
   );

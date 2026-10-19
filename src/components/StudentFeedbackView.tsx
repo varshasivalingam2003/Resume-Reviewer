@@ -7,6 +7,7 @@ import {
   PdfIcon, MaximizeIcon, GithubIcon, StarRating
 } from './Icons';
 import { 
+  Home,
   Hand, 
   FileText, 
   Sparkles,
@@ -27,9 +28,9 @@ import {
   HelpCircle,
   Lightbulb,
   RefreshCw,
-  Home,
   X
 } from 'lucide-react';
+import { extractPrivacyMasksAndSections, PrivacyMask, DetectedPdfSection } from '../utils/privacyMasking';
 
 export const StudentFeedbackView: React.FC = () => {
   const { 
@@ -39,7 +40,9 @@ export const StudentFeedbackView: React.FC = () => {
     toggleResolveItem,
     completeStudentReview,
     logoutStudent,
+    openModal,
     setCurrentView,
+    activeRole,
     setActiveRole
   } = useApp();
 
@@ -64,18 +67,8 @@ export const StudentFeedbackView: React.FC = () => {
   const [reloadNonce, setReloadNonce] = useState(0);
   const isMobileDevice = typeof window !== 'undefined' && window.innerWidth <= 640;
 
-  interface DetectedSection {
-    key: string;
-    title: string;
-    page: number;
-    pixelLeft: number;
-    pixelTop: number;
-    pixelWidth: number;
-    pixelHeight: number;
-    pdfX: number;
-    pdfY: number;
-  }
-  const [detectedSections, setDetectedSections] = useState<DetectedSection[]>([]);
+  const [detectedSections, setDetectedSections] = useState<DetectedPdfSection[]>([]);
+  const [privacyMasks, setPrivacyMasks] = useState<PrivacyMask[]>([]);
 
   // Recalculate fit on window resize
   useEffect(() => {
@@ -207,126 +200,11 @@ export const StudentFeedbackView: React.FC = () => {
 
         if (isCancelled) return;
 
-        // Extract text items to detect section headings and positions
+        // Extract text items to detect section headings and privacy masks
         try {
-          const textContent = await page.getTextContent();
-          const rawItems = (textContent.items || []) as any[];
-
-          interface RawTextItem {
-            str: string;
-            tx: number;
-            ty: number;
-            width: number;
-            height: number;
-          }
-
-          const items: RawTextItem[] = rawItems
-            .filter(it => it.str && typeof it.str === 'string' && it.str.trim().length > 0)
-            .map(it => {
-              const transform = it.transform || [1, 0, 0, 1, 0, 0];
-              return {
-                str: it.str,
-                tx: transform[4],
-                ty: transform[5],
-                width: it.width || 0,
-                height: it.height || 10
-              };
-            });
-
-          interface TextLine {
-            ty: number;
-            items: RawTextItem[];
-            fullText: string;
-            minTx: number;
-            maxTx: number;
-            height: number;
-          }
-
-          const lines: TextLine[] = [];
-          const sortedItems = [...items].sort((a, b) => b.ty - a.ty);
-
-          sortedItems.forEach(item => {
-            const match = lines.find(line => Math.abs(line.ty - item.ty) < 3.5);
-            if (match) {
-              match.items.push(item);
-            } else {
-              lines.push({
-                ty: item.ty,
-                items: [item],
-                fullText: '',
-                minTx: item.tx,
-                maxTx: item.tx + item.width,
-                height: item.height
-              });
-            }
-          });
-
-          lines.forEach(line => {
-            line.items.sort((a, b) => a.tx - b.tx);
-            line.fullText = line.items.map(it => it.str).join(' ').trim();
-            line.minTx = Math.min(...line.items.map(it => it.tx));
-            line.maxTx = Math.max(...line.items.map(it => it.tx + it.width));
-            line.height = Math.max(...line.items.map(it => it.height));
-          });
-
-          const sectionDefs: { regex: RegExp; key: string; title: string }[] = [
-            { regex: /^(career\s+)?objective\b|^professional\s+summary\b|^summary\b|^about\s+me\b/i, key: 'objective', title: 'Career Objective' },
-            { regex: /^technical\s+skills\b|^skills(\s+(&|and)\s+abilities)?\b|^core\s+competencies\b|^key\s+skills\b/i, key: 'skills', title: 'Technical Skills' },
-            { regex: /^education(\s+(&|and)\s+academics)?\b|^academic\s+qualifications?\b|^academic\s+background\b/i, key: 'education', title: 'Education' },
-            { regex: /^(academic\s+|key\s+|personal\s+)?projects\b/i, key: 'projects', title: 'Projects' },
-            { regex: /^(work\s+)?experience\b|^internships?\b|^employment\s+history\b/i, key: 'experience', title: 'Experience' },
-            { regex: /^certifications?\b|^certificates?\b|^achievements?\b|^awards(\s+(&|and)\s+honors)?\b/i, key: 'certifications', title: 'Certifications' },
-            { regex: /^(extra[\s-]?)?curricular(\s+activities)?\b|^activities\b|^co[\s-]curricular\b/i, key: 'activities', title: 'Activities' },
-            { regex: /^interests?(\s+(&|and)\s+hobbies)?\b|^hobbies\b/i, key: 'interests', title: 'Interests & Hobbies' },
-            { regex: /^declaration\b/i, key: 'declaration', title: 'Declaration' }
-          ];
-
-          const pageSections: DetectedSection[] = [];
-          const seenSectionKeys = new Set<string>();
-
-          lines.forEach(line => {
-            const text = line.fullText.trim();
-            if (!text || text.length > 45) return;
-            if (line.minTx > 400) return;
-
-            for (const def of sectionDefs) {
-              if (def.regex.test(text) && !seenSectionKeys.has(def.key)) {
-                seenSectionKeys.add(def.key);
-
-                const rect = viewport.convertToViewportRectangle([
-                  line.minTx,
-                  line.ty,
-                  line.maxTx,
-                  line.ty + line.height
-                ]);
-
-                const left = Math.min(rect[0], rect[2]);
-                const top = Math.min(rect[1], rect[3]);
-                const width = Math.abs(rect[2] - rect[0]);
-                const height = Math.abs(rect[3] - rect[1]);
-
-                const canvasW = viewport.width || 1;
-                const canvasH = viewport.height || 1;
-                const pdfX = Math.round((left / canvasW) * 100);
-                const pdfY = Math.round((top / canvasH) * 100);
-
-                pageSections.push({
-                  key: def.key,
-                  title: def.title,
-                  page: safePageNum,
-                  pixelLeft: Math.round(left),
-                  pixelTop: Math.round(top),
-                  pixelWidth: Math.round(width),
-                  pixelHeight: Math.round(height),
-                  pdfX,
-                  pdfY
-                });
-                break;
-              }
-            }
-          });
-
-          setDetectedSections(pageSections);
+          const extraction = await extractPrivacyMasksAndSections(page, viewport, activeStudent, safePageNum);
+          setDetectedSections(extraction.detectedSections);
+          setPrivacyMasks(extraction.privacyMasks);
         } catch (textErr) {
           console.warn('Could not extract text content for highlights:', textErr);
         }
@@ -547,7 +425,7 @@ export const StudentFeedbackView: React.FC = () => {
           </button>
           <button 
             className="student-logout-btn"
-            onClick={logoutStudent}
+            onClick={() => openModal('logout')}
             title="Log out from student portal"
           >
             <LogoutIcon size={15} />
@@ -658,31 +536,101 @@ export const StudentFeedbackView: React.FC = () => {
               </div>
             </div>
 
-            {/* Improve Areas Tags */}
-            {activeStudent.improveTags && activeStudent.improveTags.length > 0 && (
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
-                  Areas to Improve:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-                  {activeStudent.improveTags.map(tag => (
-                    <span key={tag} className="improve-chip selected" style={{ fontSize: '11px', padding: '3px 10px' }}>
-                      {tag}
-                    </span>
-                  ))}
+            {isCompleted ? (
+              /* Case A & Case B: Volunteer selected Looks Good */
+              <div style={{ marginTop: '16px' }}>
+                <div style={{ 
+                  background: '#ECFDF5', 
+                  border: '1.5px solid #A7F3D0', 
+                  borderRadius: '12px', 
+                  padding: '18px 20px' 
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <CheckCircleIcon size={22} color="#059669" />
+                    <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#065F46' }}>
+                      Your Resume Looks Good!
+                    </h3>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '13.5px', color: '#047857', fontWeight: 500, lineHeight: 1.4 }}>
+                    {activeStudent.generalFeedback && activeStudent.generalFeedback.trim()
+                      ? 'Your volunteer has reviewed your resume and shared feedback.'
+                      : 'Your volunteer has reviewed your resume.'}
+                  </p>
+                  {activeStudent.generalFeedback && activeStudent.generalFeedback.trim() && (
+                    <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #A7F3D0' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#065F46', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Additional Feedback:
+                      </span>
+                      <div className="volunteer-notes-quote" style={{ marginTop: '6px', background: '#FFFFFF', borderColor: '#A7F3D0', color: '#064E3B' }}>
+                        "{activeStudent.generalFeedback.trim()}"
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+            ) : (
+              /* Case C: Needs Changes / In-Review Feedback */
+              <>
+                {/* Improve Areas Tags */}
+                {activeStudent.improveTags && activeStudent.improveTags.length > 0 && (
+                  <div style={{ marginBottom: '12px', marginTop: '14px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
+                      Areas to Improve:
+                    </span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                      {activeStudent.improveTags.map(tag => (
+                        <span key={tag} className="improve-chip selected" style={{ fontSize: '11px', padding: '3px 10px' }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Volunteer General Note */}
-            <div>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
-                Mentor's General Feedback:
-              </span>
-              <div className="volunteer-notes-quote">
-                "{activeStudent.generalFeedback || 'Great foundation. Review the highlighted action items on your resume.'}"
-              </div>
-            </div>
+                {/* Volunteer General Note (actual saved feedback only) */}
+                {activeStudent.generalFeedback && activeStudent.generalFeedback.trim() && (
+                  <div style={{ marginTop: '12px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
+                      Mentor's General Feedback:
+                    </span>
+                    <div className="volunteer-notes-quote">
+                      "{activeStudent.generalFeedback.trim()}"
+                    </div>
+                  </div>
+                )}
+
+                {/* Category-Wise Feedback from Volunteer */}
+                {activeStudent.categoryFeedback && Object.keys(activeStudent.categoryFeedback).length > 0 && (
+                  <div style={{ marginTop: '14px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Category-Wise Feedback:
+                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                      {Object.entries(activeStudent.categoryFeedback)
+                        .filter(([category, text]) => (activeStudent.improveTags?.includes(category) || Boolean(text?.trim())))
+                        .map(([category, text]) => {
+                          if (!text || !text.trim()) return null;
+                          return (
+                            <div key={category} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                <span className="improve-chip selected" style={{ fontSize: '11px', padding: '2px 8px', fontWeight: 600 }}>
+                                  {category}
+                                </span>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                  Feedback
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '13px', color: '#1E293B', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                                {text}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Mentor Voice Audio Memo if present */}
             {activeStudent.audioNote?.recorded && (() => {
@@ -777,15 +725,17 @@ export const StudentFeedbackView: React.FC = () => {
             )}
           </div>
 
-          {/* Actionable Feedback & Improvements Section */}
-          <div className="action-items-section-header">
-            <h2 className="action-items-title">
-              <CommentIcon size={18} /> Feedback & Improvements from Volunteer
-            </h2>
-            <span className="action-progress-pill">
-              {resolvedCount} of {totalSubtopics} fixed
-            </span>
-          </div>
+          {/* Actionable Feedback & Improvements Section (Case C: Needs Changes) */}
+          {!isCompleted && (
+            <>
+              <div className="action-items-section-header">
+                <h2 className="action-items-title">
+                  <CommentIcon size={18} /> Feedback & Improvements from Volunteer
+                </h2>
+                <span className="action-progress-pill">
+                  {resolvedCount} of {totalSubtopics} fixed
+                </span>
+              </div>
 
           {/* Feedback Cards List */}
           <div className="student-mistakes-list">
@@ -990,7 +940,9 @@ export const StudentFeedbackView: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Right Column: Student's Own Resume Document */}
         <div className="student-resume-right-col">
@@ -1269,6 +1221,30 @@ export const StudentFeedbackView: React.FC = () => {
                   }}
                 >
                   <canvas ref={canvasRef} style={{ display: 'block', borderRadius: '4px' }} />
+
+                  {/* Privacy Redaction Layer: White Frosted Blur when protected or in volunteer preview */}
+                  {(activeRole === 'volunteer' || activeStudent.status === 'changes_required' || activeStudent.status === 'in_review') && privacyMasks.map(mask => (
+                    <div
+                      key={mask.id}
+                      className="privacy-mask-frosted"
+                      title="Personal contact detail is protected."
+                      style={{
+                        position: 'absolute',
+                        left: `${mask.leftPercent}%`,
+                        top: `${mask.topPercent}%`,
+                        width: `${mask.widthPercent}%`,
+                        height: `${mask.heightPercent}%`,
+                        background: 'rgba(255, 255, 255, 0.88)',
+                        backdropFilter: 'blur(9px)',
+                        WebkitBackdropFilter: 'blur(9px)',
+                        borderRadius: mask.type === 'photo' ? '8px' : '4px',
+                        border: '1px solid rgba(226, 232, 240, 0.7)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+                        zIndex: 9,
+                        pointerEvents: 'none'
+                      }}
+                    />
+                  ))}
 
                   {/* Highlights and Annotation Badges in Revised View (v2) */}
                   {activeResumeVersion === 'new' && volunteerSubtopics.map(sub => {

@@ -8,11 +8,10 @@ import {
   ChevronRight, 
   ChevronLeft, 
   ChevronDown, 
-  Eye, 
   FileText, 
   ArrowUpDown 
 } from 'lucide-react';
-import { DashboardIcon, UsersIcon } from './Icons';
+import { UsersIcon } from './Icons';
 
 export const DashboardView: React.FC = () => {
   const { 
@@ -25,7 +24,7 @@ export const DashboardView: React.FC = () => {
     filterStatus, 
     setFilterStatus, 
     openStudentReview,
-    logout,
+    openModal,
     stats,
     setActiveRole,
     setSelectedStudentForViewId 
@@ -115,7 +114,7 @@ export const DashboardView: React.FC = () => {
             </p>
             <button 
               className="btn btn-outline"
-              onClick={() => logout()}
+              onClick={() => openModal('logout')}
             >
               Sign out
             </button>
@@ -324,19 +323,6 @@ export const DashboardView: React.FC = () => {
 
                       {/* Right: Actions */}
                       <div className="student-row-right-actions">
-                        <button 
-                          type="button"
-                          className="btn-student-view"
-                          onClick={() => {
-                            setSelectedStudentForViewId(student.id);
-                            setActiveRole('student');
-                          }}
-                          title="See what this student sees"
-                        >
-                          <Eye size={15} />
-                          <span>Student View</span>
-                        </button>
-
                         {isCompleted ? (
                           <button 
                             type="button"
@@ -391,19 +377,13 @@ export const DashboardView: React.FC = () => {
 
       {/* Mobile Bottom Navigation (Preserved) */}
       <nav className="mobile-bottom-nav">
-        <button className="mobile-nav-item active">
-          <DashboardIcon size={18} />
-          <span>Home</span>
-        </button>
         <button className="mobile-nav-item" onClick={() => setVolunteerAssignmentMode(volunteerAssignmentMode === 'single' ? 'group' : 'single')}>
           <UsersIcon size={18} />
           <span>{volunteerAssignmentMode === 'single' ? 'Switch to Group' : 'Switch to Single'}</span>
         </button>
         <button 
           className="mobile-nav-item"
-          onClick={() => {
-            if (window.confirm('Log out from volunteer account?')) logout();
-          }}
+          onClick={() => openModal('logout')}
         >
           <img src={volunteer.avatar} style={{ width: '18px', height: '18px', borderRadius: '50%' }} alt="Profile" />
           <span>Profile</span>

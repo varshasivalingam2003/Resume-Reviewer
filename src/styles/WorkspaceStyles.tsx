@@ -525,6 +525,11 @@ const styles = `/* Resume Review Workspace Styles */
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: auto;
+  max-height: 100%;
+  align-self: flex-start;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 /* ========================================================
@@ -533,7 +538,7 @@ const styles = `/* Resume Review Workspace Styles */
 .simplified-review-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   width: 100%;
 }
 
@@ -601,7 +606,7 @@ const styles = `/* Resume Review Workspace Styles */
 .review-decision-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
 .review-decision-btn {
@@ -609,7 +614,7 @@ const styles = `/* Resume Review Workspace Styles */
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 10px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 2px solid #CBD5E1;
   background: #FFFFFF;
@@ -658,17 +663,19 @@ const styles = `/* Resume Review Workspace Styles */
 .improvement-selection-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 14px 16px;
   background: #FFFFFF;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .improvement-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 2px;
 }
 
 .improvement-label {
@@ -686,13 +693,13 @@ const styles = `/* Resume Review Workspace Styles */
 .improvement-chips-flex {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .improvement-chip {
-  padding: 5px 11px;
-  border-radius: 20px;
-  font-size: 11.5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
   font-weight: 600;
   border: 1.5px solid #E2E8F0;
   background: #FFFFFF;
@@ -700,6 +707,7 @@ const styles = `/* Resume Review Workspace Styles */
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  line-height: 1.2;
 }
 
 .improvement-chip:hover {
@@ -720,10 +728,10 @@ const styles = `/* Resume Review Workspace Styles */
 .quick-feedback-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px 14px;
   background: #FFFBEB;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #FEF08A;
 }
 
@@ -731,6 +739,7 @@ const styles = `/* Resume Review Workspace Styles */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 2px;
 }
 
 .quick-feedback-title {
@@ -747,13 +756,13 @@ const styles = `/* Resume Review Workspace Styles */
 .quick-feedback-chips-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 7px;
 }
 
 .quick-feedback-chip {
-  padding: 4px 9px;
-  border-radius: 14px;
-  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 600;
   border: 1px solid #FDE68A;
   background: #FFFFFF;
@@ -761,6 +770,7 @@ const styles = `/* Resume Review Workspace Styles */
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .quick-feedback-chip:hover {
@@ -774,7 +784,7 @@ const styles = `/* Resume Review Workspace Styles */
 .additional-note-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .additional-note-top {
@@ -783,10 +793,11 @@ const styles = `/* Resume Review Workspace Styles */
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 2px;
 }
 
 .additional-note-label {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   color: #1E293B;
 }
@@ -794,12 +805,12 @@ const styles = `/* Resume Review Workspace Styles */
 .speak-feedback-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  font-size: 11px;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   font-weight: 700;
   border-radius: 999px;
-  border: 1px solid #CBD5E1;
+  border: 1.5px solid #CBD5E1;
   background: #FFFFFF;
   color: #0F172A;
   cursor: pointer;
@@ -826,16 +837,16 @@ const styles = `/* Resume Review Workspace Styles */
 
 .additional-note-textarea {
   width: 100%;
-  min-height: 72px;
-  padding: 8px 10px;
+  min-height: 84px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1.5px solid #CBD5E1;
-  font-size: 12.5px;
+  font-size: 13px;
   color: #0F172A;
   background: #FFFFFF;
   font-family: inherit;
   resize: vertical;
-  line-height: 1.4;
+  line-height: 1.5;
   box-sizing: border-box;
 }
 
@@ -843,6 +854,28 @@ const styles = `/* Resume Review Workspace Styles */
   outline: none;
   border-color: #EAB308;
   box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+
+.category-feedback-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.category-feedback-card {
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.category-feedback-card:hover {
+  border-color: #94A3B8;
+}
+
+.category-feedback-textarea {
+  min-height: 56px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 12.5px;
 }
 
 .voice-memo-saved-pill {
@@ -862,8 +895,8 @@ const styles = `/* Resume Review Workspace Styles */
 .review-primary-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .primary-review-cta {
