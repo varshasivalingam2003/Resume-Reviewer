@@ -70,6 +70,10 @@ const PORT =
 // Static imports would execute before the .env parser.
 // ==================================================
 
+export function hasSupabaseConfig() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SECRET_KEY);
+}
+
 let supabaseModulesPromise = null;
 
 async function getSupabaseModules() {
@@ -1072,11 +1076,12 @@ const server =
       }
 
       // --------------------------------------------------
-      // NEW:
-      // SUPABASE-FIRST VOLUNTEER LOGIN
+      // SUPABASE-FIRST VOLUNTEER LOGIN (if configured)
+      // If Supabase is not configured, falls through to direct Zoho proxy
       // --------------------------------------------------
 
       if (
+        hasSupabaseConfig() &&
         req.method === 'POST' &&
         req.url ===
         '/api/volunteer/login'
@@ -1090,10 +1095,11 @@ const server =
       }
 
       // --------------------------------------------------
-      // SUPABASE-FIRST STUDENT LOGIN
+      // SUPABASE-FIRST STUDENT LOGIN (if configured)
       // --------------------------------------------------
 
       if (
+        hasSupabaseConfig() &&
         req.method === 'POST' &&
         req.url ===
         '/api/student/login'
